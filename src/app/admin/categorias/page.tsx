@@ -8,14 +8,28 @@ import Link from "next/link"
 import { BotaoExcluirCategoria } from "@/components/admin/BotaoExcluirCategoria"
 
 export default async function CategoriasPage() {
-  const categorias = await prisma.categoria.findMany({
-    include: {
-      _count: {
-        select: { pratos: true }
-      }
-    },
-    orderBy: { ordem: 'asc' }
-  })
+  let categorias: Array<{
+    id: number
+    nome: string
+    descricao: string | null
+    ordem: number
+    ativo: boolean
+    _count: { pratos: number }
+  }> = []
+
+  try {
+    categorias = await prisma.categoria.findMany({
+      include: {
+        _count: {
+          select: { pratos: true }
+        }
+      },
+      orderBy: { ordem: 'asc' }
+    })
+  } catch (err) {
+    console.error('[admin/categorias] Falha ao consultar categorias', err)
+    // Em produção, apenas mostraremos vazio; logs na Vercel ajudarão.
+  }
 
   return (
     <div className="space-y-6">
