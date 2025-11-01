@@ -1,3 +1,7 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 import { prisma } from "@/lib/prisma"
 import Image from "next/image"
 import { CartProvider } from "@/components/public/CartProvider"
@@ -7,28 +11,41 @@ import { HeroSection } from "@/components/public/HeroSection"
 
 export default async function Home() {
   // Esta função roda no SERVIDOR! 🚀
-  const categorias = await prisma.categoria.findMany({
-    where: { ativo: true },
-    include: {
-      pratos: {
-        where: { ativo: true },
-        include: {
-          ingredientes: {
-            include: {
-              ingrediente: true
+  // Evita falha de build em ambientes sem DB acessível (ex: Vercel com env incorreto)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let categorias: Array<any> = []
+  let settings = {
+    aceitarPedidos: true,
+    pedidoMinimo: 0,
+    taxaEntrega: 0,
+  }
+
+  try {
+    categorias = await prisma.categoria.findMany({
+      where: { ativo: true },
+      include: {
+        pratos: {
+          where: { ativo: true },
+          include: {
+            ingredientes: {
+              include: {
+                ingrediente: true
+              }
             }
           }
         }
-      }
-    },
-    orderBy: { ordem: 'asc' }
-  })
+      },
+      orderBy: { ordem: 'asc' }
+    })
 
-  const cfg = await prisma.configuracao.findFirst()
-  const settings = {
-    aceitarPedidos: cfg?.aceitarPedidos ?? true,
-    pedidoMinimo: Number(cfg?.pedidoMinimo ?? 0),
-    taxaEntrega: Number(cfg?.taxaEntrega ?? 0),
+    const cfg = await prisma.configuracao.findFirst()
+    settings = {
+      aceitarPedidos: cfg?.aceitarPedidos ?? true,
+      pedidoMinimo: Number(cfg?.pedidoMinimo ?? 0),
+      taxaEntrega: Number(cfg?.taxaEntrega ?? 0),
+    }
+  } catch (err) {
+    console.error('[Home] Falha ao carregar dados do banco. Verifique DATABASE_URL/DIRECT_URL.', err)
   }
 
   // Horário de funcionamento (São Paulo) com faixas por dia
@@ -90,7 +107,8 @@ export default async function Home() {
               <p className="relative text-gray-700 text-lg mb-8 text-center md:text-left">{categoria.descricao}</p>
               
               <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {categoria.pratos.map((prato) => (
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {categoria.pratos.map((prato: any) => (
                   <div
                     key={prato.id}
                     className={`group relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-2 ${
@@ -125,7 +143,8 @@ export default async function Home() {
                     {/* Ingredientes */}
                     {prato.ingredientes.length > 0 && (
                       <div className="mb-4 flex flex-wrap justify-center gap-2">
-                        {prato.ingredientes.map((pi) => (
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {prato.ingredientes.map((pi: any) => (
                           <span
                             key={pi.ingrediente.id}
                             className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${
@@ -154,6 +173,16 @@ export default async function Home() {
               )}
             </section>
           ))}
+          {categorias.length === 0 && (
+            <div className="text-center py-12 rounded-2xl border-2 border-orange-200 bg-orange-50">
+              <p className="text-orange-800 font-semibold">
+                Cardápio indisponível no momento. Tente novamente em instantes.
+              </p>
+              <p className="text-orange-700 text-sm mt-2">
+                Dica: verifique as variáveis de ambiente de banco em produção (DATABASE_URL com host pooler.supabase.com:6543).
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
