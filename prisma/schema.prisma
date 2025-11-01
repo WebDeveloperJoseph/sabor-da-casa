@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo: Categoria de pratos (Entradas, Pratos Principais, Sobremesas, etc.)
+model Categoria {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique @db.VarChar(100)
+  descricao String?  @db.Text
+  ativo     Boolean  @default(true)
+  ordem     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  pratos Prato[]
+
+  @@map("categorias")
+}
+
+// Modelo: Prato do cardápio
+model Prato {
+  id          Int     @id @default(autoincrement())
+  nome        String  @db.VarChar(200)
+  descricao   String? @db.Text
+  preco       Decimal @db.Decimal(10, 2)
+  imagem      String? @db.VarChar(500)
+  ativo       Boolean @default(true)
+  destaque    Boolean @default(false)
+  categoriaId Int     @map("categoria_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  categoria    Categoria          @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  ingredientes PratoIngrediente[]
+  itensPedido  ItemPedido[]
+
+  @@map("pratos")
+}
+
+// Modelo: Ingrediente (para controle de alérgenos e composição)
+model Ingrediente {
+  id         Int     @id @default(autoincrement())
+  nome       String  @unique @db.VarChar(100)
+  alergenico Boolean @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  pratos PratoIngrediente[]
+
+  @@map("ingredientes")
+}
+
+// Tabela de relacionamento N:N entre Prato e Ingrediente
+model PratoIngrediente {
+  pratoId       Int @map("prato_id")
+  ingredienteId Int @map("ingrediente_id")
+
+  // Relacionamentos
+  prato       Prato       @relation(fields: [pratoId], references: [id], onDelete: Cascade)
+  ingrediente Ingrediente @relation(fields: [ingredienteId], references: [id], onDelete: Cascade)
+
+  @@id([pratoId, ingredienteId])
+  @@map("prato_ingredientes")
+}
+
+// Modelo: Cliente cadastrado
+model Cliente {
+  id                Int       @id @default(autoincrement())
+  nome              String    @db.VarChar(200)
+  telefone          String    @unique @db.VarChar(20)
+  email             String?   @db.VarChar(200)
+  dataNascimento    DateTime? @map("data_nascimento") @db.Date
+  cpf               String?   @db.VarChar(100) // Armazenado CRIPTOGRAFADO se usado
+  
+  // Endereço completo
+  endereco          String?   @db.Text
+  complemento       String?   @db.VarChar(200)
+  bairro            String?   @db.VarChar(100)
+  cidade            String?   @db.VarChar(100)
+  uf                String?   @db.VarChar(2)
+  cep               String?   @db.VarChar(10)
+  
+  // Preferências de marketing
+  aceitaWhatsApp    Boolean   @default(true) @map("aceita_whatsapp")
+  aceitaEmail       Boolean   @default(false) @map("aceita_email")
+  aceitaPromocoes   Boolean   @default(true) @map("aceita_promocoes")
+  
+  // Controle LGPD
+  consentimentoData DateTime  @default(now()) @map("consentimento_data")
+  ativo             Boolean   @default(true)
+  
+  // Timestamps
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  // Relacionamentos
+  pedidos           Pedido[]
+  
+  @@map("clientes")
+  @@index([telefone])
+  @@index([dataNascimento])
+  @@index([email])
+}
+
+// Modelo: Pedido do cliente
+model Pedido {
+  id            Int      @id @default(autoincrement())
+  clienteId     Int?     @map("cliente_id") // Relacionamento opcional com Cliente
+  nomeCliente   String   @map("nome_cliente") @db.VarChar(200)
+  telefone      String?  @db.VarChar(20)
+  endereco      String?  @db.Text
+  observacoes   String?  @db.Text
+  // Número sequencial por dia — útil para exibição ao cliente
+  dailyNumber   Int?
+  status        String   @default("pendente") @db.VarChar(50) // pendente, em_preparo, saiu_entrega, entregue, cancelado
+  valorTotal    Decimal  @map("valor_total") @db.Decimal(10, 2)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  cliente   Cliente?    @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  itens     ItemPedido[]
+  avaliacao Avaliacao?
+
+  @@map("pedidos")
+  @@index([clienteId])
+}
+
+// Modelo: Item do pedido (cada pizza/prato no pedido)
+model ItemPedido {
+  id          Int     @id @default(autoincrement())
+  pedidoId    Int     @map("pedido_id")
+  pratoId     Int     @map("prato_id")
+  nomePrato   String  @map("nome_prato") @db.VarChar(200) // snapshot do nome na hora do pedido
+  quantidade  Int     @default(1)
+  precoUnit   Decimal @map("preco_unit") @db.Decimal(10, 2) // snapshot do preço na hora do pedido
+  subtotal    Decimal @db.Decimal(10, 2)
+  observacoes String? @db.Text
+
+  // Relacionamentos
+  pedido Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  prato  Prato  @relation(fields: [pratoId], references: [id], onDelete: Restrict)
+
+  @@map("itens_pedido")
+}
+
+// Modelo: Configurações gerais (singleton)
+model Configuracao {
+  id                    Int      @id @default(autoincrement())
+  nomePizzaria          String   @map("nome_pizzaria") @db.VarChar(200)
+  telefone              String?  @db.VarChar(30)
+  endereco              String?  @db.Text
+  cnpj                  String?  @db.VarChar(20)
+  email                 String?  @db.VarChar(200)
+  taxaEntrega           Decimal  @map("taxa_entrega") @default(0) @db.Decimal(10, 2)
+  pedidoMinimo          Decimal  @map("pedido_minimo") @default(0) @db.Decimal(10, 2)
+  tempoPreparoMinutos   Int      @map("tempo_preparo_minutos") @default(30)
+  raioEntregaKm         Int      @map("raio_entrega_km") @default(5)
+  aceitarPedidos        Boolean  @map("aceitar_pedidos") @default(true)
+  mensagemBoasVindas    String?  @map("mensagem_boas_vindas") @db.VarChar(300)
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("configuracoes")
+}
+
+// Modelo: Avaliação do pedido
+model Avaliacao {
+  id         Int      @id @default(autoincrement())
+  pedidoId   Int      @unique @map("pedido_id")
+  estrelas   Int      // 1 a 5
+  comentario String?  @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relacionamentos
+  pedido Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  @@map("avaliacoes")
+  @@index([estrelas])
+}
+
+// Contador diário de pedidos (para gerar dailyNumber de forma atômica)
+model DailyOrderCounter {
+  date String @id // formato YYYY-MM-DD no timezone configurado
+  last Int
+
+  @@map("daily_order_counters")
+}

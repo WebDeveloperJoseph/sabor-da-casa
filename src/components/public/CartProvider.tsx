@@ -1,0 +1,62 @@
+"use client"
+
+import { createContext, useContext, useMemo, useState } from 'react'
+
+export type CartItem = {
+  pratoId: number
+  nome: string
+  preco: number
+  quantidade: number
+  observacoes?: string
+}
+
+export type Settings = {
+  aceitarPedidos: boolean
+  pedidoMinimo: number
+  taxaEntrega: number
+}
+
+type CartContextType = {
+  items: CartItem[]
+  add: (item: Omit<CartItem, 'quantidade'>, qtd?: number) => void
+  remove: (pratoId: number) => void
+  updateQty: (pratoId: number, qtd: number) => void
+  updateObs: (pratoId: number, obs: string) => void
+  clear: () => void
+  subtotal: number
+  total: number
+  settings: Settings
+}
+
+const CartContext = createContext<CartContextType | undefined>(undefined)
+
+export function CartProvider({ children, settings }: { children: React.ReactNode, settings: Settings }) {
+  const [items, setItems] = useState<CartItem[]>([])
+
+  const add: CartContextType['add'] = (item, qtd = 1) => {
+    setItems((prev) => {
+      const i = prev.find((p) => p.pratoId === item.pratoId)
+      if (i) {
+        return prev.map((p) => p.pratoId === item.pratoId ? { ...p, quantidade: p.quantidade + qtd } : p)
+      }
+      return [...prev, { ...item, quantidade: qtd }]
+    })
+  }
+
+  const remove = (pratoId: number) => setItems((prev) => prev.filter((i) => i.pratoId !== pratoId))
+  const updateQty = (pratoId: number, qtd: number) => setItems((prev) => prev.map((i) => i.pratoId === pratoId ? { ...i, quantidade: Math.max(1, qtd) } : i))
+  const updateObs = (pratoId: number, obs: string) => setItems((prev) => prev.map((i) => i.pratoId === pratoId ? { ...i, observacoes: obs } : i))
+  const clear = () => setItems([])
+
+  const subtotal = useMemo(() => items.reduce((acc, i) => acc + i.preco * i.quantidade, 0), [items])
+  const total = useMemo(() => subtotal + Number(settings.taxaEntrega || 0), [subtotal, settings.taxaEntrega])
+
+  const value = { items, add, remove, updateQty, updateObs, clear, subtotal, total, settings }
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
+}
+
+export function useCart() {
+  const ctx = useContext(CartContext)
+  if (!ctx) throw new Error('useCart must be used within CartProvider')
+  return ctx
+}
