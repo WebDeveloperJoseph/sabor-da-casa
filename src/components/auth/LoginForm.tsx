@@ -1,14 +1,13 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -114,6 +113,10 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
       // Login bem-sucedido: limpar tentativas e salvar sessão
       localStorage.removeItem('loginAttempts')
       localStorage.setItem('adminAuth', 'true')
+      
+      // Salvar cookie para o middleware
+      document.cookie = 'adminAuth=true; path=/; max-age=86400; SameSite=Lax'
+      
       setAttemptCount(0)
       
       toast.success('Bem-vindo de volta! 🎉')
@@ -123,8 +126,9 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
       
       const next = redirectTo || searchParams.get('redirectTo') || '/admin'
       console.log('[LoginForm] Redirecionando para:', next)
-      router.push(next)
-      router.refresh()
+      
+      // Usar window.location ao invés de router.push para garantir reload completo
+      window.location.href = next
     } catch (err) {
       let message = 'Falha no login. Verifique sua senha.'
       if (err instanceof Error) {
