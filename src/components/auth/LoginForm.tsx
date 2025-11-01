@@ -3,19 +3,17 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
-import { supabase } from '@/lib/supabaseClient'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+  const [errors, setErrors] = useState<{ password?: string }>({})
   const [attemptCount, setAttemptCount] = useState(0)
   const [isLocked, setIsLocked] = useState(false)
   const [lockTime, setLockTime] = useState(0)
@@ -54,19 +52,8 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
     }
   }, [lockTime])
 
-  function validateEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
-
   function validateForm(): boolean {
-    const newErrors: { email?: string; password?: string } = {}
-    
-    if (!email) {
-      newErrors.email = 'E-mail é obrigatório'
-    } else if (!validateEmail(email)) {
-      newErrors.email = 'E-mail inválido'
-    }
+    const newErrors: { password?: string } = {}
     
     if (!password) {
       newErrors.password = 'Senha é obrigatória'
@@ -107,24 +94,21 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
       return
     }
     
-    if (!supabase) {
-      toast.error('Erro de configuração. Entre em contato com o suporte.')
-      return
-    }
+    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
     
     setLoading(true)
     try {
-      console.log('[LoginForm] Tentando login...', { email })
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      console.log('[LoginForm] Tentando login admin...')
       
-      if (error) {
-        console.error('[LoginForm] Erro no login:', error)
+      if (password !== adminPassword) {
+        console.error('[LoginForm] Senha incorreta')
         handleFailedAttempt()
-        throw error
+        throw new Error('Senha incorreta')
       }
       
-      // Login bem-sucedido: limpar tentativas
+      // Login bem-sucedido: limpar tentativas e salvar sessão
       localStorage.removeItem('loginAttempts')
+      localStorage.setItem('adminAuth', 'true')
       setAttemptCount(0)
       
       toast.success('Bem-vindo de volta! 🎉')
@@ -132,15 +116,9 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
       router.push(next)
       router.refresh()
     } catch (err) {
-      let message = 'Falha no login. Verifique suas credenciais.'
+      let message = 'Falha no login. Verifique sua senha.'
       if (err instanceof Error) {
-        if (err.message.includes('Invalid')) {
-          message = 'E-mail ou senha incorretos'
-        } else if (err.message.includes('Email not confirmed')) {
-          message = 'E-mail não confirmado. Verifique sua caixa de entrada.'
-        } else {
-          message = err.message
-        }
+        message = err.message
       }
       toast.error(message)
     } finally {
@@ -158,39 +136,9 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-6 w-full">
-      {/* Email */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">E-mail</label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Mail className="h-5 w-5 text-gray-400" />
-          </div>
-          <Input
-            type="email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value)
-              if (errors.email) setErrors({ ...errors, email: undefined })
-            }}
-            placeholder="seu@email.com"
-            className={`pl-10 border-2 focus:ring-2 focus:ring-orange-500 ${
-              errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300'
-            }`}
-            disabled={isLocked}
-            required
-          />
-        </div>
-        {errors.email && (
-          <div className="mt-1 flex items-center gap-1 text-sm text-red-600">
-            <AlertCircle className="h-4 w-4" />
-            <span>{errors.email}</span>
-          </div>
-        )}
-      </div>
-
       {/* Password */}
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Senha</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-2">Senha de Administrador</label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Lock className="h-5 w-5 text-gray-400" />
@@ -202,7 +150,7 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
               setPassword(e.target.value)
               if (errors.password) setErrors({ ...errors, password: undefined })
             }}
-            placeholder="••••••••"
+            placeholder="Digite a senha de admin"
             className={`pl-10 pr-10 border-2 focus:ring-2 focus:ring-orange-500 ${
               errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-300'
             }`}
