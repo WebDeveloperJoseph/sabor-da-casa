@@ -4,8 +4,9 @@ import LoginForm from '@/components/auth/LoginForm'
 import Image from 'next/image'
 import { Flame, Shield, Lock } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function LoginPage() {
+function LoginContent() {
   const params = useSearchParams()
   const redirectTo = params.get('redirectTo') ?? undefined
 
@@ -91,5 +92,17 @@ export default function LoginPage() {
         }
       `}</style>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-orange-500 via-red-500 to-pink-600">
+        <div className="text-white text-xl">Carregando...</div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }
