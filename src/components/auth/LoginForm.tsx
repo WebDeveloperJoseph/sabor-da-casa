@@ -94,11 +94,16 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
       return
     }
     
-    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
+    // Remove aspas se existirem na env var
+    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD?.replace(/^["']|["']$/g, '') || ''
     
     setLoading(true)
     try {
-      console.log('[LoginForm] Tentando login admin...')
+      console.log('[LoginForm] Tentando login admin...', { 
+        passwordLength: password.length, 
+        adminPasswordLength: adminPassword.length,
+        match: password === adminPassword 
+      })
       
       if (password !== adminPassword) {
         console.error('[LoginForm] Senha incorreta')
@@ -112,7 +117,12 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
       setAttemptCount(0)
       
       toast.success('Bem-vindo de volta! 🎉')
+      
+      // Aguardar um pouco antes do redirect para garantir que o toast apareça
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
       const next = redirectTo || searchParams.get('redirectTo') || '/admin'
+      console.log('[LoginForm] Redirecionando para:', next)
       router.push(next)
       router.refresh()
     } catch (err) {
