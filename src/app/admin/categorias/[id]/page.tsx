@@ -2,8 +2,6 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import FormularioCategoria from "../../../../components/admin/FormularioCategoria"
 
-export const dynamic = 'force-dynamic'
-
 interface EditarCategoriaPageProps {
   params: Promise<{ id: string }>
 }

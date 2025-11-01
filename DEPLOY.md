@@ -15,14 +15,16 @@
 Configure localmente (/.env.local) e na plataforma de deploy (Vercel → Project Settings → Environment Variables):
 ```env
 # Banco de dados (Supabase Postgres)
-DATABASE_URL="postgresql://postgres.tuzgyvduqottmttlfjhf:[PASSWORD]@db.tuzgyvduqottmttlfjhf.supabase.co:5432/postgres"
+# Use pooling (6543) em produção e conexão direta (5432) para migrações
+DATABASE_URL=postgresql://postgres:SEU_PASSWORD@db.tuzgyvduqottmttlfjhf.supabase.co:6543/postgres?pgbouncer=true&connection_limit=1
+DIRECT_URL=postgresql://postgres:SEU_PASSWORD@db.tuzgyvduqottmttlfjhf.supabase.co:5432/postgres
 
-# Supabase (Auth/Storage) – chaves públicas
-NEXT_PUBLIC_SUPABASE_URL="https://tuzgyvduqottmttlfjhf.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="[SUA_ANON_PUBLIC_KEY]"
+# Supabase (Auth/Storage) – chaves públicas (sem aspas)
+NEXT_PUBLIC_SUPABASE_URL=https://tuzgyvduqottmttlfjhf.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=SEU_ANON_KEY
 
 # Admin (se aplicável)
-NEXT_PUBLIC_ADMIN_PASSWORD="[SUA_SENHA_ADMIN]"
+NEXT_PUBLIC_ADMIN_PASSWORD=
 ```
 
 Observações:
@@ -88,11 +90,22 @@ git push -u origin main
 2. Faça login com sua conta GitHub
 3. Clique em **"Add New Project"**
 4. Selecione o repositório `sabor-casa`
-5. Configure as variáveis de ambiente:
-  - `DATABASE_URL` → cole a connection string do Supabase
-  - `NEXT_PUBLIC_SUPABASE_URL` → URL do seu projeto no Supabase
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY` → chave pública (anon) do Supabase
-  - `NEXT_PUBLIC_ADMIN_PASSWORD` → sua senha de admin
+5. Configure as variáveis de ambiente (copie EXATAMENTE como está abaixo):
+
+**CRÍTICO - Use as portas corretas:**
+- `DATABASE_URL` → porta **6543** (pgBouncer/pooling)
+- `DIRECT_URL` → porta **5432** (conexão direta para migrações)
+
+```env
+DATABASE_URL=postgresql://postgres:SEU_PASSWORD@db.tuzgyvduqottmttlfjhf.supabase.co:6543/postgres?pgbouncer=true&connection_limit=1
+DIRECT_URL=postgresql://postgres:SEU_PASSWORD@db.tuzgyvduqottmttlfjhf.supabase.co:5432/postgres
+
+NEXT_PUBLIC_SUPABASE_URL=https://tuzgyvduqottmttlfjhf.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=SEU_ANON_KEY
+
+NEXT_PUBLIC_ADMIN_PASSWORD=@Mary1234#
+```
+
 6. Clique em **"Deploy"**
 
 ### 8. Aguardar Deploy
@@ -235,7 +248,6 @@ Para adicionar depois do deploy:
 **Erro de conexão com banco:**
 - Verificar se DATABASE_URL está correta nas variáveis de ambiente da Vercel
 - Verificar se o IP da Vercel está liberado no Supabase (geralmente já está)
- - Em ambientes serverless (Vercel), prefira a Connection String de Connection Pooling (pgBouncer) do Supabase para `DATABASE_URL` (Dashboard Supabase → Database → Connection Pooling → string de conexão). Isso reduz erros de “too many connections”.
 
 **Página em branco:**
 - Ver logs na Vercel
@@ -250,7 +262,7 @@ Para adicionar depois do deploy:
  - Ou rode manualmente: `npm run prisma:generate`
 
 **Autenticação Supabase não funciona (login/redirect):**
-- Confira se as URLs do seu domínio estão autorizadas no Supabase → Authentication → URL Configuration (Auth Redirect URLs, Site URL).
+- Confira se as URLs do seu domínio estão autorizadas no Supabase → Authentication → URL Configuration (Auth Redirect URLs, Site URL). Evite aspas nas variáveis da Vercel.
 - Garanta que `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` estão corretas na Vercel.
 
 **Notificações não funcionam:**

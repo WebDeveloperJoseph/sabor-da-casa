@@ -2,8 +2,6 @@ import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import FormularioIngrediente from '@/components/admin/FormularioIngrediente'
 
-export const dynamic = 'force-dynamic'
-
 export default async function EditarIngredientePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: idParam } = await params
   const id = Number(idParam)

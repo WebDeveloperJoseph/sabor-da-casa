@@ -1,8 +1,25 @@
 import { cookies, headers } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 
+function assertValidSupabaseEnv() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url) {
+    throw new Error('Configuração inválida: NEXT_PUBLIC_SUPABASE_URL não definida no ambiente.')
+  }
+  if (!/^https?:\/\//i.test(url)) {
+    // Ajuda a diagnosticar casos com aspas na Vercel ou espaços extras
+    throw new Error('Configuração inválida: NEXT_PUBLIC_SUPABASE_URL deve iniciar com http(s) e não conter aspas. Ex: https://xxxx.supabase.co')
+  }
+  if (!key) {
+    throw new Error('Configuração inválida: NEXT_PUBLIC_SUPABASE_ANON_KEY não definida no ambiente.')
+  }
+}
+
 export async function getSupabaseServer() {
   const cookieStore = await cookies()
+  assertValidSupabaseEnv()
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
@@ -40,6 +57,7 @@ export async function requireUser() {
   // Se tem token no header, usar ele
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7)
+    assertValidSupabaseEnv()
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     
