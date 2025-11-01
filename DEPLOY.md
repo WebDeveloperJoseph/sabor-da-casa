@@ -18,6 +18,12 @@ Configure localmente (/.env.local) e na plataforma de deploy (Vercel → Project
 # Use pooling (6543) em produção e conexão direta (5432) para migrações
 DATABASE_URL=postgresql://postgres:SEU_PASSWORD@db.tuzgyvduqottmttlfjhf.supabase.co:6543/postgres?pgbouncer=true&connection_limit=1
 DIRECT_URL=postgresql://postgres:SEU_PASSWORD@db.tuzgyvduqottmttlfjhf.supabase.co:5432/postgres
+```env
+# Pooling (Vercel/produção): use o host do Pooler + porta 6543
+DATABASE_URL=postgresql://postgres:SEU_PASSWORD@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
+
+# Conexão direta (migrações): use o host db.<ref>.supabase.co + porta 5432
+DIRECT_URL=postgresql://postgres:SEU_PASSWORD@db.tuzgyvduqottmttlfjhf.supabase.co:5432/postgres
 
 # Supabase (Auth/Storage) – chaves públicas (sem aspas)
 NEXT_PUBLIC_SUPABASE_URL=https://tuzgyvduqottmttlfjhf.supabase.co
@@ -98,6 +104,9 @@ git push -u origin main
 
 ```env
 DATABASE_URL=postgresql://postgres:SEU_PASSWORD@db.tuzgyvduqottmttlfjhf.supabase.co:6543/postgres?pgbouncer=true&connection_limit=1
+DIRECT_URL=postgresql://postgres:SEU_PASSWORD@db.tuzgyvduqottmttlfjhf.supabase.co:5432/postgres
+```env
+DATABASE_URL=postgresql://postgres:SEU_PASSWORD@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
 DIRECT_URL=postgresql://postgres:SEU_PASSWORD@db.tuzgyvduqottmttlfjhf.supabase.co:5432/postgres
 
 NEXT_PUBLIC_SUPABASE_URL=https://tuzgyvduqottmttlfjhf.supabase.co

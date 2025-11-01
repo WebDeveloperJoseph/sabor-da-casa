@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
       }
     ]
   },
+  // Não exportar páginas /admin como estáticas - forçar SSR
+  output: 'standalone',
 };
 
 export default nextConfig;
