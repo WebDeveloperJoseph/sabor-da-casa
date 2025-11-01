@@ -14,6 +14,8 @@ import {
   Star
 } from "lucide-react"
 
+export const dynamic = 'force-dynamic'
+
 export default async function PedidosPage() {
   const pedidos = await prisma.pedido.findMany({
     include: {

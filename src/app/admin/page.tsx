@@ -13,6 +13,9 @@ import {
 import Link from "next/link"
 import type { ElementType } from "react"
 
+// Força renderização dinâmica (não tenta gerar estático no build)
+export const dynamic = 'force-dynamic'
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export default async function AdminDashboard() {
   // Buscar estatísticas do banco

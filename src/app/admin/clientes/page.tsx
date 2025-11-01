@@ -8,6 +8,9 @@ import { Card } from "@/components/ui/card"
 import EditClienteDialog from "@/components/admin/EditClienteDialog"
 import DeleteClienteButton from "@/components/admin/DeleteClienteButton"
 
+// Força renderização dinâmica
+export const dynamic = 'force-dynamic'
+
 export default async function ClientesPage({
   searchParams,
 }: {

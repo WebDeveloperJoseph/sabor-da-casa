@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import PrintActionsClient from '@/components/admin/PrintActionsClient'
 
+export const dynamic = 'force-dynamic'
+
 type Props = {
   params: { id: string }
   searchParams?: { [key: string]: string | string[] | undefined }

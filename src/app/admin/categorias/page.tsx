@@ -3,6 +3,8 @@ import { Plus, Edit, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { BotaoExcluirCategoria } from "@/components/admin/BotaoExcluirCategoria"
 
+export const dynamic = 'force-dynamic'
+
 export default async function CategoriasPage() {
   const categorias = await prisma.categoria.findMany({
     include: {

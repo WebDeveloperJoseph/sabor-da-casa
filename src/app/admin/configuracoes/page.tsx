@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { ConfiguracoesForm } from '@/components/admin/ConfiguracoesForm'
 import { Settings } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ConfiguracoesPage() {
   // Garante que existe um registro
   let cfg = await prisma.configuracao.findFirst()
