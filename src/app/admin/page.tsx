@@ -1,3 +1,7 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
 import { prisma } from "@/lib/prisma"
 import { 
   Pizza, 
@@ -15,59 +19,77 @@ import type { ElementType } from "react"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export default async function AdminDashboard() {
-  // Buscar estatísticas do banco
+  // Buscar estatísticas do banco com fallback seguro para não quebrar em produção
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)
 
-  const [
-    totalPizzas,
-    totalCategorias,
-    totalIngredientes,
-    pizzasDestaque,
-    pizzasRecentes,
-    totalPedidos,
-    pedidosHoje,
-    vendasHoje,
-    pedidosPendentes,
-    avaliacoes
-  ] = await Promise.all([
-    prisma.prato.count({ where: { ativo: true } }),
-    prisma.categoria.count({ where: { ativo: true } }),
-    prisma.ingrediente.count(),
-    prisma.prato.findMany({
-      where: { destaque: true, ativo: true },
-      include: { categoria: true },
-      take: 3
-    }),
-    prisma.prato.findMany({
-      where: { ativo: true },
-      include: { categoria: true },
-      orderBy: { createdAt: 'desc' },
-      take: 5
-    }),
-    prisma.pedido.count(),
-    prisma.pedido.count({
-      where: {
-        createdAt: { gte: hoje }
-      }
-    }),
-    prisma.pedido.aggregate({
-      _sum: { valorTotal: true },
-      where: {
-        createdAt: { gte: hoje },
-        status: { notIn: ['cancelado'] }
-      }
-    }),
-    prisma.pedido.count({
-      where: {
-        status: 'pendente'
-      }
-    }),
-    prisma.avaliacao.aggregate({
-      _avg: { estrelas: true },
-      _count: true
-    })
-  ])
+  let dbError = false
+
+  let totalPizzas = 0
+  let totalCategorias = 0
+  let totalIngredientes = 0
+  let pizzasDestaque: any[] = []
+  let pizzasRecentes: any[] = []
+  let totalPedidos = 0
+  let pedidosHoje = 0
+  let vendasHoje: any = { _sum: { valorTotal: 0 } }
+  let pedidosPendentes = 0
+  let avaliacoes: { _avg: { estrelas: number | null }, _count: number } = { _avg: { estrelas: 0 }, _count: 0 }
+
+  try {
+    ;[
+      totalPizzas,
+      totalCategorias,
+      totalIngredientes,
+      pizzasDestaque,
+      pizzasRecentes,
+      totalPedidos,
+      pedidosHoje,
+      vendasHoje,
+      pedidosPendentes,
+      avaliacoes
+    ] = await Promise.all([
+      prisma.prato.count({ where: { ativo: true } }),
+      prisma.categoria.count({ where: { ativo: true } }),
+      prisma.ingrediente.count(),
+      prisma.prato.findMany({
+        where: { destaque: true, ativo: true },
+        include: { categoria: true },
+        take: 3
+      }),
+      prisma.prato.findMany({
+        where: { ativo: true },
+        include: { categoria: true },
+        orderBy: { createdAt: 'desc' },
+        take: 5
+      }),
+      prisma.pedido.count(),
+      prisma.pedido.count({
+        where: {
+          createdAt: { gte: hoje }
+        }
+      }),
+      prisma.pedido.aggregate({
+        _sum: { valorTotal: true },
+        where: {
+          createdAt: { gte: hoje },
+          status: { notIn: ['cancelado'] }
+        }
+      }),
+      prisma.pedido.count({
+        where: {
+          status: 'pendente'
+        }
+      }),
+      prisma.avaliacao.aggregate({
+        _avg: { estrelas: true },
+        _count: true
+      })
+    ])
+  } catch (e) {
+    dbError = true
+    console.error('[AdminDashboard] Falha ao consultar o banco. Verifique DATABASE_URL no Vercel.', e)
+  }
 
   // Aniversariantes do mês atual - busca com try/catch para suportar client ainda não regenerado
   let aniversariantesMes = 0
@@ -177,6 +199,16 @@ export default async function AdminDashboard() {
           Visão geral do seu cardápio e estatísticas
         </p>
       </div>
+
+      {/* Aviso de indisponibilidade de banco (ambiente de produção sem acesso) */}
+      {dbError && (
+        <div className="rounded-xl border-2 border-orange-300 bg-orange-50 p-4 text-orange-800">
+          Não foi possível carregar as estatísticas agora. Verifique as variáveis de ambiente de banco em produção.
+          <div className="text-sm mt-1">
+            Dica: use host aws-1-us-east-1.pooler.supabase.com:6543 na DATABASE_URL e remova aspas.
+          </div>
+        </div>
+      )}
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
