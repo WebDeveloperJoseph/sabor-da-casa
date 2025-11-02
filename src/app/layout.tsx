@@ -19,6 +19,26 @@ export const metadata: Metadata = {
     icon: '/img/logoSaborDaCasa.jpg',
     apple: '/img/logoSaborDaCasa.jpg',
     shortcut: '/img/logoSaborDaCasa.jpg'
+  },
+  openGraph: {
+    title: 'Sabor da Casa',
+    description: 'Cardápio digital - Sabor da Casa',
+    images: [
+      {
+        url: '/img/logoSaborDaCasa.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Logo Sabor da Casa'
+      }
+    ],
+    type: 'website',
+    locale: 'pt_BR'
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sabor da Casa',
+    description: 'Cardápio digital - Sabor da Casa',
+    images: ['/img/logoSaborDaCasa.jpg']
   }
 };
 

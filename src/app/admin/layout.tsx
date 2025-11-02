@@ -68,8 +68,8 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-gray-50 to-red-50">
-      {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-72 bg-gradient-to-br from-white to-orange-50/30 shadow-xl border-r border-orange-100 z-30 backdrop-blur-sm">
+      {/* Sidebar - esconde em mobile, mostra md+ */}
+      <div className="hidden md:fixed md:inset-y-0 md:left-0 md:w-64 lg:w-72 bg-gradient-to-br from-white to-orange-50/30 shadow-xl border-r border-orange-100 z-30 backdrop-blur-sm">
         {/* Header da Sidebar */}
         <div className="flex items-center justify-center h-28 px-6 border-b border-orange-200 bg-gradient-to-br from-orange-500 to-red-500 relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
@@ -124,10 +124,10 @@ export default function AdminLayout({
       </div>
 
       {/* Conteúdo Principal */}
-      <div className="ml-72">
+      <div className="ml-0 md:ml-64 lg:ml-72">
         {/* Header Principal */}
         <header className="bg-white/80 backdrop-blur-md shadow-md border-b border-orange-100 h-16 sticky top-0 z-20">
-          <div className="flex items-center justify-between h-full px-6">
+          <div className="flex items-center justify-between h-full px-4 md:px-6">
             <div>
               <h2 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
                 Painel Administrativo
@@ -144,7 +144,7 @@ export default function AdminLayout({
         </header>
 
         {/* Área de Conteúdo */}
-        <main className="p-6">
+        <main className="p-4 md:p-6">
           {children}
         </main>
       </div>
