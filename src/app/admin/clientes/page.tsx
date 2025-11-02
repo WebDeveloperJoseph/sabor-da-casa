@@ -2,6 +2,22 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import type { Cliente } from "@/generated/prisma"
 type ClienteWithCount = Cliente & { _count: { pedidos: number } }
+type FidelidadeCfg = {
+  ativo: boolean
+  meta: number
+  descricao?: string | null
+  categoriaNome?: string | null
+  porPedido: boolean
+  expiraDias?: number | null
+}
+type CfgPartial = {
+  fidelidadeAtivo?: boolean
+  fidelidadeMeta?: number
+  fidelidadeDescricao?: string | null
+  fidelidadeCategoriaNome?: string | null
+  fidelidadePorPedido?: boolean
+  fidelidadeExpiraDias?: number | null
+} | null
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -19,6 +35,8 @@ export default async function ClientesPage({
   // Base query
   let clientes: ClienteWithCount[] = []
   let erroPrisma: string | null = null
+  let fidelidade: FidelidadeCfg = { ativo: false, meta: 10, porPedido: true }
+  const countsByCliente: Record<number, number> = {}
   try {
     clientes = await prisma.cliente.findMany({
       where: { ativo: true },
@@ -28,6 +46,59 @@ export default async function ClientesPage({
       orderBy: { createdAt: "desc" },
       take: 200,
     })
+
+    // Carrega configuração do cartão fidelidade (com defaults seguros)
+    const cfg = await prisma.configuracao.findFirst() as CfgPartial
+    fidelidade = {
+      ativo: cfg?.fidelidadeAtivo ?? false,
+      meta: cfg?.fidelidadeMeta ?? 10,
+      descricao: cfg?.fidelidadeDescricao ?? null,
+      categoriaNome: cfg?.fidelidadeCategoriaNome ?? 'Pizzas',
+      porPedido: cfg?.fidelidadePorPedido ?? true,
+      expiraDias: cfg?.fidelidadeExpiraDias ?? null,
+    }
+
+    // Agrega quantidade de compras qualificadas por cliente (somente se ativo)
+    if (fidelidade.ativo && clientes.length > 0) {
+      const ids = clientes.map(c => c.id)
+      const threshold = fidelidade.expiraDias && Number.isFinite(fidelidade.expiraDias)
+        ? new Date(Date.now() - (fidelidade.expiraDias as number) * 24 * 60 * 60 * 1000)
+        : null
+
+      if (fidelidade.porPedido) {
+        // Conta pedidos distintos que tenham ao menos uma pizza na categoria configurada
+        const rows: Array<{ clienteId: number; qtd: number }> = await prisma.$queryRaw`
+          SELECT p.cliente_id as "clienteId",
+                 COUNT(DISTINCT p.id)::int as qtd
+          FROM pedidos p
+          JOIN itens_pedido ip ON ip.pedido_id = p.id
+          JOIN pratos pr ON pr.id = ip.prato_id
+          JOIN categorias c ON c.id = pr.categoria_id
+          WHERE p.cliente_id = ANY(${ids})
+            AND p.status = 'entregue'
+            AND (${fidelidade.categoriaNome} IS NULL OR c.nome = ${fidelidade.categoriaNome})
+            AND (${threshold} IS NULL OR p.created_at >= ${threshold})
+          GROUP BY p.cliente_id
+        `
+        rows.forEach(r => { countsByCliente[r.clienteId] = r.qtd })
+      } else {
+        // Conta itens (cada pizza conta 1)
+        const rows: Array<{ clienteId: number; qtd: number }> = await prisma.$queryRaw`
+          SELECT p.cliente_id as "clienteId",
+                 COUNT(*)::int as qtd
+          FROM pedidos p
+          JOIN itens_pedido ip ON ip.pedido_id = p.id
+          JOIN pratos pr ON pr.id = ip.prato_id
+          JOIN categorias c ON c.id = pr.categoria_id
+          WHERE p.cliente_id = ANY(${ids})
+            AND p.status = 'entregue'
+            AND (${fidelidade.categoriaNome} IS NULL OR c.nome = ${fidelidade.categoriaNome})
+            AND (${threshold} IS NULL OR p.created_at >= ${threshold})
+          GROUP BY p.cliente_id
+        `
+        rows.forEach(r => { countsByCliente[r.clienteId] = r.qtd })
+      }
+    }
   } catch {
     erroPrisma = "Cliente model não encontrado no Prisma Client. Regere o client com: npx prisma generate"
   }
@@ -93,6 +164,7 @@ export default async function ClientesPage({
                 <th className="px-4 py-3 font-semibold text-gray-700">Email</th>
                 <th className="px-4 py-3 font-semibold text-gray-700">Nascimento</th>
                 <th className="px-4 py-3 font-semibold text-gray-700">Pedidos</th>
+                <th className="px-4 py-3 font-semibold text-gray-700">Fidelidade</th>
                 <th className="px-4 py-3 text-center font-semibold text-gray-700">Ações</th>
               </tr>
             </thead>
@@ -105,13 +177,40 @@ export default async function ClientesPage({
                   <td className="px-4 py-3">{
                     c.dataNascimento
                       ? (() => {
-                          // Formata a data ignorando fuso: usa a porção YYYY-MM-DD do ISO
-                          const [yyyy, mm, dd] = c.dataNascimento.toISOString().split('T')[0].split('-')
+                          // Formata a data usando getUTCDate/Month/FullYear para evitar bug de timezone
+                          const d = c.dataNascimento
+                          const dd = String(d.getUTCDate()).padStart(2, '0')
+                          const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+                          const yyyy = d.getUTCFullYear()
                           return `${dd}/${mm}/${yyyy}`
                         })()
                       : "-"
                   }</td>
                   <td className="px-4 py-3">{c._count.pedidos}</td>
+                  <td className="px-4 py-3">
+                    {fidelidade.ativo ? (
+                      (() => {
+                        const qtd = countsByCliente[c.id] ?? 0
+                        const meta = Math.max(1, fidelidade.meta || 10)
+                        const atual = qtd % meta
+                        const percent = Math.min(100, Math.round((atual / meta) * 100))
+                        const ciclos = Math.floor(qtd / meta)
+                        return (
+                          <div className="min-w-[180px]">
+                            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                              <span>{fidelidade.categoriaNome ?? 'Pizzas'}</span>
+                              <span>{atual}/{meta}{ciclos > 0 ? ` (+${ciclos})` : ''}</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                              <div className="h-full bg-linear-to-r from-orange-500 to-red-500" style={{ width: `${percent}%` }} />
+                            </div>
+                          </div>
+                        )
+                      })()
+                    ) : (
+                      <span className="text-gray-400 text-sm">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-center gap-2">
                       <Link href={`/admin/clientes/${c.id}`} className="text-blue-600 hover:text-blue-800 transition-colors text-sm">
@@ -126,7 +225,7 @@ export default async function ClientesPage({
 
               {clientes.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                     Nenhum cliente encontrado.
                   </td>
                 </tr>

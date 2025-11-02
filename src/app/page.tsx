@@ -8,12 +8,33 @@ import { CartProvider } from "@/components/public/CartProvider"
 import { AddToCartButton } from "@/components/public/AddToCartButton"
 import { CartDialog } from "@/components/public/CartDialog"
 import { HeroSection } from "@/components/public/HeroSection"
+import { Star } from "lucide-react"
+
+// Tipos auxiliares para evitar uso de `any` e padronizar o shape usado aqui
+type IngredienteTag = { ingrediente: { id: number; nome: string; alergenico: boolean } }
+type PrecoLike = number | string | { toString(): string }
+type PratoWithIngred = {
+  id: number
+  nome: string
+  descricao: string | null
+  preco: PrecoLike
+  imagem: string | null
+  ativo: boolean
+  destaque: boolean
+  ingredientes: IngredienteTag[]
+  rating?: { avg: number; count: number }
+}
+type CategoriaWithPratos = {
+  id: number
+  nome: string
+  descricao: string | null
+  pratos: PratoWithIngred[]
+}
 
 export default async function Home() {
   // Esta função roda no SERVIDOR! 🚀
   // Evita falha de build em ambientes sem DB acessível (ex: Vercel com env incorreto)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let categorias: Array<any> = []
+  let categorias: CategoriaWithPratos[] = []
   let settings = {
     aceitarPedidos: true,
     pedidoMinimo: 0,
@@ -44,6 +65,27 @@ export default async function Home() {
       pedidoMinimo: Number(cfg?.pedidoMinimo ?? 0),
       taxaEntrega: Number(cfg?.taxaEntrega ?? 0),
     }
+
+    // Agregar avaliações por prato: média de estrelas e contagem
+    // Considera as avaliações por pedido e relaciona pelos itens do pedido
+    // Retorna { pratoId, avg, count }
+    const agregados: Array<{ pratoId: number; avg: number; count: number }> = await prisma.$queryRaw`
+      SELECT ip.prato_id as "pratoId",
+             AVG(a.estrelas)::float as "avg",
+             COUNT(a.id)::int as "count"
+      FROM avaliacoes a
+      JOIN pedidos p ON p.id = a.pedido_id
+      JOIN itens_pedido ip ON ip.pedido_id = p.id
+      GROUP BY ip.prato_id
+    `
+    // Monta um mapa para lookup rápido no render
+    const byPrato: Record<number, { avg: number; count: number }> = {}
+    agregados.forEach(r => { byPrato[r.pratoId] = { avg: r.avg, count: r.count } })
+    // Anexa no objeto categoria->prato para facilitar o uso na UI
+    categorias = categorias.map(cat => ({
+      ...cat,
+      pratos: cat.pratos.map((p: PratoWithIngred) => ({ ...p, rating: byPrato[p.id] || { avg: 0, count: 0 } }))
+    }))
   } catch (err) {
     console.error('[Home] Falha ao carregar dados do banco. Verifique DATABASE_URL/DIRECT_URL.', err)
   }
@@ -107,20 +149,21 @@ export default async function Home() {
               <p className="relative text-gray-700 text-lg mb-8 text-center md:text-left">{categoria.descricao}</p>
               
               <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {categoria.pratos.map((prato: any) => (
+                {categoria.pratos.map((prato: PratoWithIngred) => (
                   <div
                     key={prato.id}
-                    className={`group relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-2 ${
+                    className={`group relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-2 flex flex-col h-full ${
                       prato.destaque ? 'border-orange-400 ring-4 ring-orange-200 shadow-lg' : 'border-gray-200 hover:border-orange-300'
                     }`}
                   >
-                    {/* Badge de destaque */}
-                    {prato.destaque && (
-                      <div className="inline-block bg-linear-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-sm font-bold mb-4 shadow-lg animate-pulse">
-                        🔥 Destaque
-                      </div>
-                    )}
+                    {/* Área do selo Destaque (altura fixa e centralizada para padronizar todos os cards) */}
+                    <div className="flex justify-center items-center h-10 mb-4">
+                      {prato.destaque ? (
+                        <div className="inline-block bg-linear-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
+                          🔥 Destaque
+                        </div>
+                      ) : null}
+                    </div>
                     {/* Imagem da pizza */}
                     {prato.imagem && (
                       <div className="relative overflow-hidden rounded-xl mb-4 bg-gray-50">
@@ -140,27 +183,42 @@ export default async function Home() {
                       </span>
                       <p className="text-gray-600 text-sm leading-relaxed mb-3">{prato.descricao}</p>
                     </div>
-                    {/* Ingredientes */}
-                    {prato.ingredientes.length > 0 && (
-                      <div className="mb-4 flex flex-wrap justify-center gap-2">
-                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                        {prato.ingredientes.map((pi: any) => (
-                          <span
-                            key={pi.ingrediente.id}
-                            className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${
-                              pi.ingrediente.alergenico
-                                ? 'bg-red-100 text-red-800 border border-red-200'
-                                : 'bg-green-100 text-green-800 border border-green-200'
-                            }`}
-                          >
-                            {pi.ingrediente.nome}
-                            {pi.ingrediente.alergenico && ' ⚠️'}
-                          </span>
-                        ))}
+                    {/* Conteúdo inferior padronizado */}
+                    <div className="mt-auto">
+                      {/* Ingredientes */}
+                      {prato.ingredientes.length > 0 && (
+                        <div className="mb-4 flex flex-wrap justify-center gap-2">
+                          {prato.ingredientes.map((pi: IngredienteTag) => (
+                            <span
+                              key={pi.ingrediente.id}
+                              className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${
+                                pi.ingrediente.alergenico
+                                  ? 'bg-red-100 text-red-800 border border-red-200'
+                                  : 'bg-green-100 text-green-800 border border-green-200'
+                              }`}
+                            >
+                              {pi.ingrediente.nome}
+                              {pi.ingrediente.alergenico && ' ⚠️'}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Avaliação média do prato */}
+                      <div className="flex items-center justify-center gap-2 mb-3">
+                        {Array.from({ length: 5 }).map((_, i) => {
+                          const filled = prato.rating?.avg ? i < Math.round(prato.rating.avg - 0.01) : false
+                          return (
+                            <Star key={i} className={`w-4 h-4 ${filled ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />
+                          )
+                        })}
+                        <span className="text-xs text-gray-600">{prato.rating?.avg ? prato.rating.avg.toFixed(1) : '0.0'} ({prato.rating?.count || 0})</span>
                       </div>
-                    )}
-                    <div className="flex items-center justify-center mt-4">
-                      <AddToCartButton pratoId={prato.id} nome={prato.nome} preco={Number(prato.preco)} />
+
+                      {/* Botão */}
+                      <div className="flex items-center justify-center">
+                        <AddToCartButton pratoId={prato.id} nome={prato.nome} preco={Number(prato.preco)} />
+                      </div>
                     </div>
                   </div>
                 ))}

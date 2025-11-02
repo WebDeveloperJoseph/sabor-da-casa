@@ -194,9 +194,11 @@ export default function AniversariantesPage() {
                     <td className="px-4 py-3">{a.telefone}</td>
                     <td className="px-4 py-3">
                       {(() => {
-                        // a.dataNascimento pode vir como ISO string
-                        const iso = new Date(a.dataNascimento).toISOString()
-                        const [yyyy, mm, dd] = iso.split('T')[0].split('-')
+                        // Formata usando UTC para evitar bug de timezone
+                        const d = new Date(a.dataNascimento)
+                        const dd = String(d.getUTCDate()).padStart(2, '0')
+                        const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+                        const yyyy = d.getUTCFullYear()
                         return `${dd}/${mm}/${yyyy}`
                       })()}
                     </td>

@@ -170,6 +170,13 @@ model Configuracao {
   raioEntregaKm         Int      @map("raio_entrega_km") @default(5)
   aceitarPedidos        Boolean  @map("aceitar_pedidos") @default(true)
   mensagemBoasVindas    String?  @map("mensagem_boas_vindas") @db.VarChar(300)
+  // Cartão Fidelidade (configurável pelo dono)
+  fidelidadeAtivo       Boolean  @map("fidelidade_ativo") @default(false)
+  fidelidadeMeta        Int      @map("fidelidade_meta") @default(10) // quantas compras para ganhar
+  fidelidadeDescricao   String?  @map("fidelidade_descricao") @db.VarChar(300)
+  fidelidadeCategoriaNome String? @map("fidelidade_categoria_nome") @db.VarChar(100) // ex: "Pizzas"
+  fidelidadePorPedido   Boolean  @map("fidelidade_por_pedido") @default(true) // true: conta por pedido; false: por item
+  fidelidadeExpiraDias  Int?     @map("fidelidade_expira_dias") // validade opcional do ciclo (em dias)
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 

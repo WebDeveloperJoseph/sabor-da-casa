@@ -115,9 +115,9 @@ export default function MeusPedidosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-yellow-50">
+    <div className="min-h-screen bg-linear-to-br from-orange-50 via-red-50 to-yellow-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white py-6 shadow-lg">
+  <div className="bg-linear-to-r from-orange-600 to-red-600 text-white py-6 shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
             <div>

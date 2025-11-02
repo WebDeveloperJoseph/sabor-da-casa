@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { createClient } from '@supabase/supabase-js'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -20,6 +19,13 @@ type Props = {
     raioEntregaKm: number
     aceitarPedidos: boolean
     mensagemBoasVindas?: string | null
+    // Fidelidade
+    fidelidadeAtivo?: boolean
+    fidelidadeMeta?: number
+    fidelidadeDescricao?: string | null
+    fidelidadeCategoriaNome?: string | null
+    fidelidadePorPedido?: boolean
+    fidelidadeExpiraDias?: number | null
   }
 }
 
@@ -36,34 +42,38 @@ export function ConfiguracoesForm({ initial }: Props) {
     raioEntregaKm: String(initial.raioEntregaKm ?? 5),
     aceitarPedidos: initial.aceitarPedidos ?? true,
     mensagemBoasVindas: initial.mensagemBoasVindas ?? '',
+    // Fidelidade
+    fidelidadeAtivo: Boolean(initial.fidelidadeAtivo ?? false),
+    fidelidadeMeta: String(initial.fidelidadeMeta ?? 10),
+    fidelidadeDescricao: initial.fidelidadeDescricao ?? '',
+    fidelidadeCategoriaNome: initial.fidelidadeCategoriaNome ?? 'Pizzas',
+    fidelidadePorPedido: Boolean(initial.fidelidadePorPedido ?? true),
+    fidelidadeExpiraDias: initial.fidelidadeExpiraDias != null ? String(initial.fidelidadeExpiraDias) : '',
   })
   const [loading, setLoading] = useState(false)
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      console.debug('ConfiguracoesForm: enviando PUT /api/configuracoes', { form, hasSession: !!session })
+      console.debug('ConfiguracoesForm: enviando PUT /api/configuracoes', { form })
       const res = await fetch('/api/configuracoes', {
         method: 'PUT',
         // garantir que cookies de sessão sejam enviados (caso o servidor dependa deles)
         credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
           taxaEntrega: Number(form.taxaEntrega),
           pedidoMinimo: Number(form.pedidoMinimo),
           tempoPreparoMinutos: Number(form.tempoPreparoMinutos),
           raioEntregaKm: Number(form.raioEntregaKm),
+          fidelidadeAtivo: Boolean(form.fidelidadeAtivo),
+          fidelidadeMeta: Number(form.fidelidadeMeta || 10),
+          fidelidadeDescricao: form.fidelidadeDescricao || null,
+          fidelidadeCategoriaNome: form.fidelidadeCategoriaNome || null,
+          fidelidadePorPedido: Boolean(form.fidelidadePorPedido),
+          fidelidadeExpiraDias: form.fidelidadeExpiraDias === '' ? null : Number(form.fidelidadeExpiraDias),
         })
       })
 
@@ -198,6 +208,86 @@ export function ConfiguracoesForm({ initial }: Props) {
           className="border-2 border-green-200 focus:border-green-500 focus:ring-green-500 min-h-[100px]"
           placeholder="Digite uma mensagem de boas-vindas para os clientes..."
         />
+      </div>
+
+      {/* Cartão Fidelidade */}
+      <div id="fidelidade" className="bg-linear-to-br from-yellow-50 to-amber-50 rounded-xl border-2 border-yellow-200 p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+          <span className="w-8 h-8 bg-yellow-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm">4</span>
+          Cartão Fidelidade
+        </h3>
+        <div className="space-y-6">
+          <label className="inline-flex items-center space-x-3 cursor-pointer">
+            <input
+              type="checkbox"
+              className="h-5 w-5 text-yellow-600 border-2 border-gray-300 rounded focus:ring-yellow-500 focus:ring-offset-2"
+              checked={form.fidelidadeAtivo}
+              onChange={(e) => setForm({ ...form, fidelidadeAtivo: e.target.checked })}
+            />
+            <span className="text-base font-semibold text-gray-900">Ativar Cartão Fidelidade</span>
+          </label>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">Meta (compras)</label>
+              <Input
+                type="number"
+                min={1}
+                value={form.fidelidadeMeta}
+                onChange={(e) => setForm({ ...form, fidelidadeMeta: e.target.value })}
+                className="border-2 border-yellow-200 focus:border-yellow-500 focus:ring-yellow-500"
+                disabled={!form.fidelidadeAtivo}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">Categoria alvo</label>
+              <Input
+                value={form.fidelidadeCategoriaNome}
+                onChange={(e) => setForm({ ...form, fidelidadeCategoriaNome: e.target.value })}
+                className="border-2 border-yellow-200 focus:border-yellow-500 focus:ring-yellow-500"
+                placeholder="Pizzas"
+                disabled={!form.fidelidadeAtivo}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">Expira em (dias)</label>
+              <Input
+                type="number"
+                min={1}
+                value={form.fidelidadeExpiraDias}
+                onChange={(e) => setForm({ ...form, fidelidadeExpiraDias: e.target.value })}
+                className="border-2 border-yellow-200 focus:border-yellow-500 focus:ring-yellow-500"
+                placeholder="(opcional)"
+                disabled={!form.fidelidadeAtivo}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">Contagem</label>
+              <select
+                value={form.fidelidadePorPedido ? 'pedido' : 'item'}
+                onChange={(e) => setForm({ ...form, fidelidadePorPedido: e.target.value === 'pedido' })}
+                className="w-full rounded-md border-2 border-yellow-200 focus:border-yellow-500 focus:ring-yellow-500 p-2 bg-white"
+                disabled={!form.fidelidadeAtivo}
+              >
+                <option value="pedido">Por pedido (conta 1 por pedido com pizza)</option>
+                <option value="item">Por item (cada pizza conta 1)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">Descrição do benefício</label>
+              <Textarea
+                value={form.fidelidadeDescricao}
+                onChange={(e) => setForm({ ...form, fidelidadeDescricao: e.target.value })}
+                className="border-2 border-yellow-200 focus:border-yellow-500 focus:ring-yellow-500 min-h-20"
+                placeholder="Ex.: Na 10ª compra, ganhe uma pizza brotinho."
+                disabled={!form.fidelidadeAtivo}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Ações */}

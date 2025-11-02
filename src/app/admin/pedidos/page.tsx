@@ -3,6 +3,8 @@ import Link from "next/link"
 import DeletePedidoButton from '@/components/admin/DeletePedidoButton'
 import AdminOrderRealtimeNotifier from '@/components/admin/AdminOrderRealtimeNotifier'
 import PedidoStatusControls from '@/components/admin/PedidoStatusControls'
+import LimparPedidosTesteButton from '@/components/admin/LimparPedidosTesteButton'
+import ZerarPedidosButton from '@/components/admin/ZerarPedidosButton'
 import { 
   ShoppingCart, 
   Clock, 
@@ -95,13 +97,21 @@ export default async function PedidosPage() {
   <AdminOrderRealtimeNotifier />
       {/* Cabeçalho */}
       <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-orange-100 p-6 shadow-sm">
-        <h1 className="text-4xl font-bold bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent flex items-center">
-          <ShoppingCart className="w-10 h-10 mr-4 text-orange-600" />
-          Pedidos
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Gerencie todos os pedidos recebidos
-        </p>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-4xl font-bold bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent flex items-center">
+              <ShoppingCart className="w-10 h-10 mr-4 text-orange-600" />
+              Pedidos
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Gerencie todos os pedidos recebidos
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <LimparPedidosTesteButton />
+            <ZerarPedidosButton />
+          </div>
+        </div>
       </div>
 
       {/* Resumo por Status */}
@@ -152,7 +162,7 @@ export default async function PedidosPage() {
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-4 space-y-4 lg:space-y-0">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-3">
-                      <h3 className="text-lg md:text-xl font-bold text-gray-900 break-words">
+                      <h3 className="text-lg md:text-xl font-bold text-gray-900 wrap-break-word">
                         Pedido #{pedido.id}
                         {((pedido as unknown as { dailyNumber?: number }).dailyNumber) && (
                           <span className="ml-2 text-xs md:text-sm font-medium px-2 md:px-3 py-1 bg-orange-100 text-orange-700 rounded-full whitespace-nowrap">hoje: #{(pedido as unknown as { dailyNumber?: number }).dailyNumber}</span>
@@ -168,14 +178,14 @@ export default async function PedidosPage() {
                     </div>
                     
                     <div className="text-xs md:text-sm text-gray-700 space-y-2 bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200">
-                      <p className="break-words"><strong className="text-gray-900">Cliente:</strong> {pedido.nomeCliente}</p>
-                      {pedido.telefone && <p className="break-words"><strong className="text-gray-900">Telefone:</strong> {pedido.telefone}</p>}
-                      {pedido.endereco && <p className="break-words"><strong className="text-gray-900">Endereço:</strong> {pedido.endereco}</p>}
-                      <p className="break-words"><strong className="text-gray-900">Data:</strong> {new Date(pedido.createdAt).toLocaleString('pt-BR')}</p>
+                      <p className="wrap-break-word"><strong className="text-gray-900">Cliente:</strong> {pedido.nomeCliente}</p>
+                      {pedido.telefone && <p className="wrap-break-word"><strong className="text-gray-900">Telefone:</strong> {pedido.telefone}</p>}
+                      {pedido.endereco && <p className="wrap-break-word"><strong className="text-gray-900">Endereço:</strong> {pedido.endereco}</p>}
+                      <p className="wrap-break-word"><strong className="text-gray-900">Data:</strong> {new Date(pedido.createdAt).toLocaleString('pt-BR')}</p>
                     </div>
                   </div>
 
-                  <div className="text-left lg:text-right lg:ml-6 flex-shrink-0">
+                  <div className="text-left lg:text-right lg:ml-6 shrink-0">
                     <p className="text-2xl md:text-3xl font-extrabold text-orange-600 mb-3">
                       R$ {Number(pedido.valorTotal).toFixed(2).replace('.', ',')}
                     </p>
