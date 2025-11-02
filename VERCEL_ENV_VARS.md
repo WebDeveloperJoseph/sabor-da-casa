@@ -6,14 +6,14 @@ Vá em: **Vercel → Project Settings → Environment Variables**
 
 ---
 
-### DATABASE_URL
+### DATABASE_URL (produção - pooler)
 ```
-postgresql://postgres.tuzgyvduqottmttlfjhf:@102090josedev@db.tuzgyvduqottmttlfjhf.supabase.co:6543/postgres?pgbouncer=true&connection_limit=1
+postgresql://postgres:SUA_SENHA@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1&sslmode=require
 ```
 
-### DIRECT_URL
+### DIRECT_URL (migrações/seed - conexão direta)
 ```
-postgresql://postgres.tuzgyvduqottmttlfjhf:@102090josedev@db.tuzgyvduqottmttlfjhf.supabase.co:5432/postgres
+postgresql://postgres:SUA_SENHA@db.tuzgyvduqottmttlfjhf.supabase.co:5432/postgres?sslmode=require
 ```
 
 ### NEXT_PUBLIC_SUPABASE_URL
@@ -36,8 +36,9 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1emd5dmR
 ## ✅ Checklist de Configuração
 
 - [ ] Todas as 5 variáveis foram adicionadas
-- [ ] DATABASE_URL usa porta **6543** (pgBouncer)
-- [ ] DIRECT_URL usa porta **5432** (conexão direta)
+- [ ] DATABASE_URL usa host `aws-1-us-east-1.pooler.supabase.com` e porta **6543** (pgBouncer)
+- [ ] DIRECT_URL usa host `db.tuzgyvduqottmttlfjhf.supabase.co` e porta **5432** (conexão direta)
+- [ ] Ambos com `sslmode=require`
 - [ ] As variáveis foram salvas para **Production, Preview e Development**
 - [ ] Fazer Redeploy após adicionar variáveis
 
@@ -46,7 +47,8 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1emd5dmR
 ## 🔧 Troubleshooting
 
 **Erro: "prepared statement does not exist"**
-- Certifique-se de usar porta 6543 no DATABASE_URL
+- Certifique-se de usar host do pooler e porta 6543 no DATABASE_URL
+- Adicione também `sslmode=require`
 - Adicione `?pgbouncer=true&connection_limit=1` no final da URL
 
 **Erro: "SASL authentication failed"**

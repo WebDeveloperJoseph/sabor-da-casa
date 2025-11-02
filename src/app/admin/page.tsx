@@ -86,9 +86,20 @@ export default async function AdminDashboard() {
         _count: true
       })
     ])
-  } catch (e) {
+  } catch {
     dbError = true
-    console.error('[AdminDashboard] Falha ao consultar o banco. Verifique DATABASE_URL no Vercel.', e)
+    // Não expor segredos: loga apenas host/porta quando possível
+    try {
+      const raw = process.env.DATABASE_URL
+      if (raw) {
+        const u = new URL(raw)
+        console.error('[AdminDashboard] Falha DB', {
+          host: u.hostname,
+          port: u.port,
+        })
+      }
+    } catch {}
+    console.error('[AdminDashboard] Falha ao consultar o banco. Verifique DATABASE_URL no Vercel.')
   }
 
   // Aniversariantes do mês atual - busca com try/catch para suportar client ainda não regenerado
