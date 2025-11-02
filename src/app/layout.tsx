@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://sabor-da-casa.vercel.app'),
   title: "Sabor da Casa",
   description: "Cardápio digital - Sabor da Casa",
   icons: {
@@ -23,6 +24,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Sabor da Casa',
     description: 'Cardápio digital - Sabor da Casa',
+    url: '/',
+    siteName: 'Sabor da Casa',
     images: [
       {
         url: '/img/logoSaborDaCasa.jpg',
