@@ -16,9 +16,9 @@ export const metadata: Metadata = {
   title: "Sabor da Casa",
   description: "Cardápio digital - Sabor da Casa",
   icons: {
-    icon: '/favicon.svg',
-    apple: '/favicon.svg',
-    shortcut: '/favicon.svg'
+    icon: '/img/logoSaborDaCasa.jpg',
+    apple: '/img/logoSaborDaCasa.jpg',
+    shortcut: '/img/logoSaborDaCasa.jpg'
   }
 };
 
