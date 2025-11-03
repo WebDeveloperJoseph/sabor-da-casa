@@ -5,59 +5,17 @@ export const fetchCache = 'force-no-store'
 import Link from "next/link"
 import Image from "next/image"
 import { 
-  LayoutDashboard, 
-  Pizza, 
-  FolderOpen, 
-  Utensils, 
   ArrowLeft,
-  User,
-  ShoppingCart
+  User
 } from "lucide-react"
 import { BotaoSair } from "@/components/admin/BotaoSair"
+import { AdminNav } from "@/components/admin/AdminNav"
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const menuItems = [
-    {
-      href: "/admin",
-      icon: LayoutDashboard,
-      label: "Dashboard",
-      description: "Visão geral"
-    },
-    {
-      href: "/admin/pedidos",
-      icon: ShoppingCart,
-      label: "Pedidos",
-      description: "Controle de vendas"
-    },
-    {
-      href: "/admin/clientes",
-      icon: User,
-      label: "Clientes",
-      description: "Cadastro e histórico"
-    },
-    {
-      href: "/admin/pizzas",
-      icon: Pizza,
-      label: "Pizzas",
-      description: "Gerenciar cardápio"
-    },
-    {
-      href: "/admin/categorias",
-      icon: FolderOpen,
-      label: "Categorias",
-      description: "Organizar seções"
-    },
-    {
-      href: "/admin/ingredientes",
-      icon: Utensils,
-      label: "Ingredientes",
-      description: "Componentes das pizzas"
-    }
-  ]
 
   return (
   <div className="min-h-screen bg-linear-to-br from-orange-50 via-gray-50 to-red-50">
@@ -81,29 +39,7 @@ export default function AdminLayout({
         </div>
 
         {/* Navegação */}
-        <nav className="mt-6 px-3 pb-24 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
-          <div className="space-y-1">
-            {menuItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex items-center justify-center md:justify-start px-2 md:px-4 py-3.5 text-sm font-medium rounded-xl text-gray-700 hover:bg-linear-to-r hover:from-orange-500 hover:to-red-500 hover:text-white hover:shadow-lg transition-all duration-200 group"
-                  title={item.label}
-                >
-                  <Icon className="w-5 h-5 md:mr-3 text-gray-500 group-hover:text-white transition-colors shrink-0" />
-                  <div className="hidden md:flex md:flex-1 md:flex-col">
-                    <div className="font-semibold">{item.label}</div>
-                    <div className="text-xs text-gray-500 group-hover:text-orange-100">
-                      {item.description}
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        </nav>
+        <AdminNav />
 
         {/* Voltar para site */}
   <div className="absolute bottom-0 left-0 right-0 p-2 md:p-4 bg-linear-to-t from-white to-transparent border-t border-orange-100">

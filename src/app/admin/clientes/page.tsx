@@ -118,38 +118,53 @@ export default async function ClientesPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {erroPrisma && (
-        <div className="rounded-lg border border-red-200 bg-red-50 text-red-800 p-3">
+        <div className="rounded-lg border border-red-200 bg-red-50 text-red-800 p-3 text-sm">
           {erroPrisma}
         </div>
       )}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">Clientes</h1>
-        <div className="flex items-center gap-3">
+      {/* Cabeçalho responsivo */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl sm:text-2xl font-bold bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+          Clientes
+        </h1>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <Link 
             href="/admin/clientes/aniversariantes" 
-            className="text-sm px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-medium transition-colors"
+            className="text-xs sm:text-sm px-3 py-2 sm:px-4 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-medium transition-colors text-center"
           >
             🎂 Aniversariantes Hoje
           </Link>
-          <Link href="/admin/pedidos" className="text-sm text-gray-600 hover:text-orange-600">
+          <Link 
+            href="/admin/pedidos" 
+            className="text-xs sm:text-sm px-3 py-2 sm:px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-orange-600 rounded-lg font-medium transition-colors text-center"
+          >
             Ver pedidos
           </Link>
         </div>
       </div>
 
       {/* Filtros */}
-      <Card className="p-4 border-2 border-orange-100">
-        <form className="flex flex-col md:flex-row gap-3 items-start md:items-center">
-          <div className="flex-1 w-full">
-            <Input name="busca" defaultValue={busca} placeholder="Buscar por nome, telefone ou email" />
+      <Card className="p-3 sm:p-4 border-2 border-orange-100">
+        <form className="flex flex-col gap-3 items-stretch">
+          <div className="w-full">
+            <Input 
+              name="busca" 
+              defaultValue={busca} 
+              placeholder="Buscar cliente..." 
+              className="text-sm"
+            />
           </div>
-          <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" name="aniversariantes" defaultChecked={aniversariantes} className="rounded" />
-            Aniversariantes do mês
-          </label>
-          <Button type="submit" className="bg-linear-to-r from-orange-500 to-red-500 text-white">Filtrar</Button>
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+            <label className="inline-flex items-center gap-2 text-xs sm:text-sm text-gray-700">
+              <input type="checkbox" name="aniversariantes" defaultChecked={aniversariantes} className="rounded" />
+              Aniversariantes do mês
+            </label>
+            <Button type="submit" className="bg-linear-to-r from-orange-500 to-red-500 text-white text-sm py-2">
+              Filtrar
+            </Button>
+          </div>
         </form>
       </Card>
 
