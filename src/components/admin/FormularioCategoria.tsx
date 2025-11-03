@@ -4,8 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Save, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { toast } from 'sonner'
-import { supabase } from '@/lib/supabaseClient'
 
 interface Categoria {
   id: number
@@ -36,25 +34,13 @@ export default function FormularioCategoria({ categoria }: FormularioCategoriaPr
     setLoading(true)
 
     try {
-      // Obter token de autenticação
-      if (!supabase) {
-        throw new Error('Supabase não configurado')
-      }
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        toast.error('Sessão expirada. Faça login novamente.')
-        router.push('/login')
-        return
-      }
-
       const url = isEditing ? `/api/categorias/${categoria.id}` : '/api/categorias'
       const method = isEditing ? 'PUT' : 'POST'
 
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(formData)
       })
@@ -84,21 +70,10 @@ export default function FormularioCategoria({ categoria }: FormularioCategoriaPr
     setLoading(true)
     
     try {
-      // Obter token de autenticação
-      if (!supabase) {
-        throw new Error('Supabase não configurado')
-      }
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        toast.error('Sessão expirada. Faça login novamente.')
-        router.push('/login')
-        return
-      }
-
       const response = await fetch(`/api/categorias/${categoria.id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`
+          'Content-Type': 'application/json'
         }
       })
 

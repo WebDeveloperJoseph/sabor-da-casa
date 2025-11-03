@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
-import { supabase } from '@/lib/supabaseClient'
 
 export function BotaoExcluirCategoria({ id }: { id: number }) {
   const router = useRouter()
@@ -12,22 +11,9 @@ export function BotaoExcluirCategoria({ id }: { id: number }) {
   async function onDelete() {
     if (!confirm('Tem certeza que deseja excluir esta categoria?')) return
     try {
-      // Obter token de autenticação
-      if (!supabase) {
-        throw new Error('Supabase não configurado')
-      }
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        toast.error('Sessão expirada. Faça login novamente.')
-        router.push('/login')
-        return
-      }
-
       const res = await fetch(`/api/categorias/${id}`, { 
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+        headers: { 'Content-Type': 'application/json' }
       })
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { message?: string }

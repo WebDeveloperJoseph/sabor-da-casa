@@ -13,6 +13,7 @@ import { Star } from "lucide-react"
 // Tipos auxiliares para evitar uso de `any` e padronizar o shape usado aqui
 type IngredienteTag = { ingrediente: { id: number; nome: string; alergenico: boolean } }
 type PrecoLike = number | string | { toString(): string }
+type TamanhoType = { tamanho: string; preco: number }
 type PratoWithIngred = {
   id: number
   nome: string
@@ -22,6 +23,7 @@ type PratoWithIngred = {
   ativo: boolean
   destaque: boolean
   ingredientes: IngredienteTag[]
+  tamanhos?: TamanhoType[]
   rating?: { avg: number; count: number }
 }
 type CategoriaWithPratos = {
@@ -42,7 +44,7 @@ export default async function Home() {
   }
 
   try {
-    categorias = await prisma.categoria.findMany({
+    const categoriasRaw = await prisma.categoria.findMany({
       where: { ativo: true },
       include: {
         pratos: {
@@ -52,12 +54,34 @@ export default async function Home() {
               include: {
                 ingrediente: true
               }
+            },
+            tamanhos: {
+              where: { ativo: true },
+              orderBy: { tamanho: 'asc' }
             }
           }
         }
       },
       orderBy: { ordem: 'asc' }
     })
+    
+    // Converter Decimal para number nos tamanhos e montar estrutura tipada
+    categorias = categoriasRaw.map(cat => ({
+      id: cat.id,
+      nome: cat.nome,
+      descricao: cat.descricao,
+      pratos: cat.pratos.map(p => ({
+        id: p.id,
+        nome: p.nome,
+        descricao: p.descricao,
+        preco: p.preco,
+        imagem: p.imagem,
+        ativo: p.ativo,
+        destaque: p.destaque,
+        ingredientes: p.ingredientes,
+        tamanhos: p.tamanhos.map(t => ({ tamanho: t.tamanho, preco: Number(t.preco) }))
+      }))
+    }))
 
     const cfg = await prisma.configuracao.findFirst()
     settings = {
@@ -178,9 +202,12 @@ export default async function Home() {
                     )}
                     <div className="mb-2 flex flex-col items-center text-center">
                       <h3 className="text-xl font-bold text-gray-900 mb-2">{prato.nome}</h3>
-                      <span className="text-2xl font-extrabold bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
-                        R$ {prato.preco.toString().replace('.', ',')}
-                      </span>
+                      {/* Mostrar preço apenas para produtos sem tamanhos (bebidas, sobremesas, etc) */}
+                      {(!prato.tamanhos || prato.tamanhos.length === 0) && (
+                        <span className="text-2xl font-extrabold bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
+                          R$ {Number(prato.preco).toFixed(2).replace('.', ',')}
+                        </span>
+                      )}
                       <p className="text-gray-600 text-sm leading-relaxed mb-3">{prato.descricao}</p>
                     </div>
                     {/* Conteúdo inferior padronizado */}
@@ -217,7 +244,12 @@ export default async function Home() {
 
                       {/* Botão */}
                       <div className="flex items-center justify-center">
-                        <AddToCartButton pratoId={prato.id} nome={prato.nome} preco={Number(prato.preco)} />
+                        <AddToCartButton 
+                          pratoId={prato.id} 
+                          nome={prato.nome} 
+                          preco={Number(prato.preco)}
+                          tamanhos={prato.tamanhos && prato.tamanhos.length > 0 ? prato.tamanhos : undefined}
+                        />
                       </div>
                     </div>
                   </div>

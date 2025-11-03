@@ -1,16 +1,20 @@
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
-import { requireUser } from '@/lib/supabaseServer'
+import { requireAuth } from '@/lib/auth'
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const { id } = await context.params
     const idNum = Number(id)
     const prato = await prisma.prato.findUnique({
       where: { id: idNum },
-      include: { categoria: true, ingredientes: { include: { ingrediente: true } } }
+      include: { 
+        categoria: true, 
+        ingredientes: { include: { ingrediente: true } },
+        tamanhos: { where: { ativo: true }, orderBy: { tamanho: 'asc' } }
+      }
     })
     if (!prato) return NextResponse.json({ message: 'Prato não encontrado' }, { status: 404 })
     return NextResponse.json(prato)
@@ -22,12 +26,12 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
 
 export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const { id } = await context.params
     const idNum = Number(id)
     const body = await request.json()
-    const { nome, descricao, preco, imagem, categoriaId, ingredientes, destaque, ativo } = body
+    const { nome, descricao, preco, imagem, categoriaId, ingredientes, destaque, ativo, tamanhos } = body
 
     const exist = await prisma.prato.findUnique({ where: { id: idNum } })
     if (!exist) return NextResponse.json({ message: 'Prato não encontrado' }, { status: 404 })
@@ -53,7 +57,30 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       ])
     }
 
-    const prato = await prisma.prato.findUnique({ where: { id: idNum }, include: { categoria: true, ingredientes: { include: { ingrediente: true } } } })
+    // Sincronizar tamanhos (se enviados)
+    if (Array.isArray(tamanhos)) {
+      await prisma.$transaction([
+        prisma.pratoTamanho.deleteMany({ where: { pratoId: idNum } }),
+        ...tamanhos.map((t: { tamanho: string; preco: number }) => 
+          prisma.pratoTamanho.create({ 
+            data: { 
+              pratoId: idNum, 
+              tamanho: t.tamanho.toUpperCase(), 
+              preco: typeof t.preco === 'string' ? parseFloat(t.preco) : t.preco 
+            } 
+          })
+        )
+      ])
+    }
+
+    const prato = await prisma.prato.findUnique({ 
+      where: { id: idNum }, 
+      include: { 
+        categoria: true, 
+        ingredientes: { include: { ingrediente: true } },
+        tamanhos: { where: { ativo: true }, orderBy: { tamanho: 'asc' } }
+      } 
+    })
     return NextResponse.json(prato)
   } catch (error) {
     console.error('Erro PUT /pratos/[id]:', error)
@@ -63,8 +90,8 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 
 export async function DELETE(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const { id } = await context.params
     const idNum = Number(id)
     const exist = await prisma.prato.findUnique({ where: { id: idNum } })

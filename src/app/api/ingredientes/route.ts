@@ -1,12 +1,12 @@
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
-import { requireUser } from '@/lib/supabaseServer'
+import { requireAuth } from '@/lib/auth'
 
 // GET - Listar ingredientes
 export async function GET() {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const ingredientes = await prisma.ingrediente.findMany({ orderBy: { nome: 'asc' } })
     return NextResponse.json(ingredientes)
   } catch (error) {
@@ -18,8 +18,8 @@ export async function GET() {
 // POST - Criar novo ingrediente
 export async function POST(request: NextRequest) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const body = await request.json()
     const { nome, alergenico } = body
 

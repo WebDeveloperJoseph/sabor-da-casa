@@ -141,7 +141,8 @@ Obrigado!`
           itens: items.map(i => ({
             pratoId: i.pratoId,
             quantidade: i.quantidade,
-            observacoes: i.observacoes
+            observacoes: i.observacoes,
+            tamanho: i.tamanho
           }))
         })
       })
@@ -215,49 +216,56 @@ Obrigado!`
               {items.length === 0 ? (
                 <p className="text-gray-500">Seu carrinho está vazio.</p>
               ) : (
-                items.map((item) => (
-                  <div
-                    key={item.pratoId}
-                    className="border rounded-lg p-3 overflow-hidden grid gap-3 md:gap-4 md:grid-cols-1"
-                  >
-                    {/* Linha superior: nome, valor, controles de quantidade */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-medium text-gray-900 truncate" title={item.nome}>{item.nome}</p>
-                        <p className="text-sm text-gray-600">R$ {item.preco.toFixed(2).replace('.', ',')}</p>
+                items.map((item) => {
+                  // Gerar chave única considerando tamanho
+                  const chave = `${item.pratoId}-${item.tamanho || ''}`
+                  return (
+                    <div
+                      key={chave}
+                      className="border rounded-lg p-3 overflow-hidden grid gap-3 md:gap-4 md:grid-cols-1"
+                    >
+                      {/* Linha superior: nome, valor, controles de quantidade */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-900 truncate" title={item.nome}>
+                            {item.nome}
+                            {item.tamanho && <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">({item.tamanho})</span>}
+                          </p>
+                          <p className="text-sm text-gray-600">R$ {item.preco.toFixed(2).replace('.', ',')}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="icon-sm"
+                            variant="outline"
+                            onClick={() => updateQty(item.pratoId, item.quantidade - 1)}
+                          >
+                            <Minus />
+                          </Button>
+                          <span className="w-6 text-center">{item.quantidade}</span>
+                          <Button
+                            size="icon-sm"
+                            variant="outline"
+                            onClick={() => updateQty(item.pratoId, item.quantidade + 1)}
+                          >
+                            <Plus />
+                          </Button>
+                          <Button size="icon-sm" variant="destructive" onClick={() => remove(item.pratoId)}>
+                            <Trash />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="icon-sm"
-                          variant="outline"
-                          onClick={() => updateQty(item.pratoId, item.quantidade - 1)}
-                        >
-                          <Minus />
-                        </Button>
-                        <span className="w-6 text-center">{item.quantidade}</span>
-                        <Button
-                          size="icon-sm"
-                          variant="outline"
-                          onClick={() => updateQty(item.pratoId, item.quantidade + 1)}
-                        >
-                          <Plus />
-                        </Button>
-                        <Button size="icon-sm" variant="destructive" onClick={() => remove(item.pratoId)}>
-                          <Trash />
-                        </Button>
+                      {/* Observações do item em largura total do card */}
+                      <div>
+                         <Textarea
+                           placeholder="Observações (ex: sem cebola)"
+                           value={item.observacoes || ''}
+                           onChange={(e) => updateObs(item.pratoId, e.target.value)}
+                           className="mt-1 min-h-12 md:min-h-16 max-h-40 resize-y w-full max-w-[340px] md:max-w-md mx-auto overflow-x-hidden wrap-break-word text-center"
+                         />
                       </div>
                     </div>
-                    {/* Observações do item em largura total do card */}
-                    <div>
-                       <Textarea
-                         placeholder="Observações (ex: sem cebola)"
-                         value={item.observacoes || ''}
-                         onChange={(e) => updateObs(item.pratoId, e.target.value)}
-                         className="mt-1 min-h-12 md:min-h-16 max-h-40 resize-y w-full max-w-[340px] md:max-w-md mx-auto overflow-x-hidden wrap-break-word text-center"
-                       />
-                    </div>
-                  </div>
-                ))
+                  )
+                })
               )}
 
               <div className="border-t pt-3 text-sm text-gray-700 space-y-1">

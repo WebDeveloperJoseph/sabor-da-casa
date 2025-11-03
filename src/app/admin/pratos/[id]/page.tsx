@@ -9,7 +9,10 @@ export default async function EditarPratoPage({ params }: { params: Promise<{ id
   const id = Number(idStr)
   const prato = await prisma.prato.findUnique({
     where: { id },
-    include: { ingredientes: true }
+    include: { 
+      ingredientes: true,
+      tamanhos: { where: { ativo: true }, orderBy: { tamanho: 'asc' } }
+    }
   })
 
   if (!prato) return notFound()
@@ -28,7 +31,8 @@ export default async function EditarPratoPage({ params }: { params: Promise<{ id
     categoriaId: prato.categoriaId,
     destaque: prato.destaque,
     ativo: prato.ativo,
-    ingredientesIds: prato.ingredientes.map((pi) => pi.ingredienteId)
+    ingredientesIds: prato.ingredientes.map((pi) => pi.ingredienteId),
+    tamanhos: prato.tamanhos.map((t) => ({ tamanho: t.tamanho, preco: Number(t.preco) }))
   }
 
   return (

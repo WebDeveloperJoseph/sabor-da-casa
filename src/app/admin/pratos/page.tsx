@@ -7,7 +7,10 @@ export const dynamic = 'force-dynamic'
 
 export default async function PagePratos() {
   const pratos = await prisma.prato.findMany({
-    include: { categoria: true },
+    include: { 
+      categoria: true,
+      tamanhos: { where: { ativo: true }, orderBy: { tamanho: 'asc' } }
+    },
     orderBy: [{ destaque: 'desc' }, { createdAt: 'desc' }]
   })
 
@@ -33,25 +36,32 @@ export default async function PagePratos() {
             </tr>
           </thead>
           <tbody>
-            {pratos.map((p) => (
-              <tr key={p.id} className="border-t">
-                <td className="p-3">{p.nome}</td>
-                <td className="p-3">{p.categoria?.nome ?? '-'}</td>
-                <td className="p-3">R$ {Number(p.preco).toFixed(2)}</td>
-                <td className="p-3">{p.destaque ? 'Sim' : 'Não'}</td>
-                <td className="p-3">{p.ativo ? 'Sim' : 'Não'}</td>
-                <td className="p-3">
-                  <div className="flex gap-2 justify-end">
-                    <Link href={`/admin/pratos/${p.id}`}>
-                      <Button variant="secondary" size="sm">
-                        Editar
-                      </Button>
-                    </Link>
-                    <BotaoExcluirPrato id={p.id} />
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {pratos.map((p) => {
+              const temTamanhos = p.tamanhos && p.tamanhos.length > 0
+              const precoDisplay = temTamanhos 
+                ? p.tamanhos.map(t => `${t.tamanho}: R$ ${Number(t.preco).toFixed(2)}`).join(' | ')
+                : `R$ ${Number(p.preco).toFixed(2)}`
+              
+              return (
+                <tr key={p.id} className="border-t">
+                  <td className="p-3">{p.nome}</td>
+                  <td className="p-3">{p.categoria?.nome ?? '-'}</td>
+                  <td className="p-3 text-xs">{precoDisplay}</td>
+                  <td className="p-3">{p.destaque ? 'Sim' : 'Não'}</td>
+                  <td className="p-3">{p.ativo ? 'Sim' : 'Não'}</td>
+                  <td className="p-3">
+                    <div className="flex gap-2 justify-end">
+                      <Link href={`/admin/pratos/${p.id}`}>
+                        <Button variant="secondary" size="sm">
+                          Editar
+                        </Button>
+                      </Link>
+                      <BotaoExcluirPrato id={p.id} />
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
             {pratos.length === 0 && (
               <tr>
                 <td className="p-4 text-center text-muted-foreground" colSpan={6}>

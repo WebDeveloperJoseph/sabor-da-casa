@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/prisma"
 import { NextRequest, NextResponse } from "next/server"
-import { requireUser } from "@/lib/supabaseServer"
+import { requireAuth } from "@/lib/auth"
 
 // GET - Listar categorias
 export async function GET() {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const categorias = await prisma.categoria.findMany({
       include: {
         _count: {
@@ -29,8 +29,8 @@ export async function GET() {
 // POST - Criar nova categoria
 export async function POST(request: NextRequest) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const body = await request.json()
     const { nome, descricao, ordem, ativo } = body
 

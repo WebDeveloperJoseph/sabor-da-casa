@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { NextRequest, NextResponse } from "next/server"
-import { requireUser } from "@/lib/supabaseServer"
+import { requireAuth } from "@/lib/auth"
 
 // GET - Buscar categoria específica
 export async function GET(
@@ -8,8 +8,8 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const { id } = await context.params
     const categoria = await prisma.categoria.findUnique({
       where: { id: parseInt(id) },
@@ -43,8 +43,8 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const { id } = await context.params
     const body = await request.json()
     const { nome, descricao, ordem, ativo } = body
@@ -111,8 +111,8 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const { id } = await context.params
     const categoriaId = parseInt(id)
 

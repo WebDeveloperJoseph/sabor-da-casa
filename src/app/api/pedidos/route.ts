@@ -8,7 +8,8 @@ import { z } from 'zod'
 const itemPedidoSchema = z.object({
   pratoId: z.number(),
   quantidade: z.number().min(1),
-  observacoes: z.string().optional()
+  observacoes: z.string().optional(),
+  tamanho: z.string().optional() // P, M, G
 })
 
 const criarPedidoSchema = z.object({
@@ -38,7 +39,10 @@ export async function POST(request: NextRequest) {
     // Buscar pratos e calcular total
     const pratoIds = itens.map(item => item.pratoId)
     const pratos = await prisma.prato.findMany({
-      where: { id: { in: pratoIds }, ativo: true }
+      where: { id: { in: pratoIds }, ativo: true },
+      include: {
+        tamanhos: { where: { ativo: true } }
+      }
     })
 
     if (pratos.length !== pratoIds.length) {
@@ -48,13 +52,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Calcular valor total
+    // Calcular valor total considerando tamanhos
     let valorTotal = 0
     const itensParaCriar = itens.map(item => {
       const prato = pratos.find(p => p.id === item.pratoId)
       if (!prato) throw new Error('Prato não encontrado')
 
-      const precoUnit = Number(prato.preco)
+      // Se tem tamanho especificado, buscar preço correspondente
+      let precoUnit = Number(prato.preco)
+      if (item.tamanho && prato.tamanhos.length > 0) {
+        const tamanhoEncontrado = prato.tamanhos.find(t => t.tamanho === item.tamanho)
+        if (tamanhoEncontrado) {
+          precoUnit = Number(tamanhoEncontrado.preco)
+        }
+      }
+
       const subtotal = precoUnit * item.quantidade
       valorTotal += subtotal
 
@@ -62,9 +74,10 @@ export async function POST(request: NextRequest) {
         pratoId: item.pratoId,
         nomePrato: prato.nome,
         quantidade: item.quantidade,
-        precoUnit: prato.preco,
+        precoUnit: precoUnit,
         subtotal: subtotal,
-        observacoes: item.observacoes
+        observacoes: item.observacoes,
+        tamanho: item.tamanho
       }
     })
 

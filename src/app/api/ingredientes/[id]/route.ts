@@ -1,11 +1,11 @@
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
-import { requireUser } from '@/lib/supabaseServer'
+import { requireAuth } from '@/lib/auth'
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const { id } = await context.params
     const ingrediente = await prisma.ingrediente.findUnique({ where: { id: parseInt(id) } })
     if (!ingrediente) return NextResponse.json({ message: 'Ingrediente não encontrado' }, { status: 404 })
@@ -18,8 +18,8 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
 
 export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const { id } = await context.params
     const body = await request.json()
     const { nome, alergenico } = body
@@ -44,8 +44,8 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 
 export async function DELETE(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const { id } = await context.params
     const idNum = parseInt(id)
     // Verificar uso em pratos

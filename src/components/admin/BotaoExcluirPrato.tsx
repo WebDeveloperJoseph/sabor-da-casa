@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { supabase } from '@/lib/supabaseClient'
 
 export function BotaoExcluirPrato({ id }: { id: number }) {
   const router = useRouter()
@@ -11,22 +10,9 @@ export function BotaoExcluirPrato({ id }: { id: number }) {
   async function onDelete() {
     if (!confirm('Tem certeza que deseja excluir este prato?')) return
     try {
-      // Obter token de autenticação
-      if (!supabase) {
-        throw new Error('Supabase não configurado')
-      }
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        toast.error('Sessão expirada. Faça login novamente.')
-        router.push('/login')
-        return
-      }
-
       const res = await fetch(`/api/pratos/${id}`, { 
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+        headers: { 'Content-Type': 'application/json' }
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))

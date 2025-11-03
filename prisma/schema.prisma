@@ -44,8 +44,26 @@ model Prato {
   categoria    Categoria          @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
   ingredientes PratoIngrediente[]
   itensPedido  ItemPedido[]
+  tamanhos     PratoTamanho[]
 
   @@map("pratos")
+}
+
+// Modelo: Tamanhos de pizza/prato (P, M, G) com preços diferentes
+model PratoTamanho {
+  id        Int     @id @default(autoincrement())
+  pratoId   Int     @map("prato_id")
+  tamanho   String  @db.VarChar(10) // P, M, G
+  preco     Decimal @db.Decimal(10, 2)
+  ativo     Boolean @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  prato Prato @relation(fields: [pratoId], references: [id], onDelete: Cascade)
+
+  @@unique([pratoId, tamanho])
+  @@map("prato_tamanhos")
 }
 
 // Modelo: Ingrediente (para controle de alérgenos e composição)
@@ -144,6 +162,7 @@ model ItemPedido {
   pedidoId    Int     @map("pedido_id")
   pratoId     Int     @map("prato_id")
   nomePrato   String  @map("nome_prato") @db.VarChar(200) // snapshot do nome na hora do pedido
+  tamanho     String? @db.VarChar(10) // P, M, G (null para pratos sem tamanho)
   quantidade  Int     @default(1)
   precoUnit   Decimal @map("preco_unit") @db.Decimal(10, 2) // snapshot do preço na hora do pedido
   subtotal    Decimal @db.Decimal(10, 2)

@@ -8,6 +8,7 @@ export type CartItem = {
   preco: number
   quantidade: number
   observacoes?: string
+  tamanho?: string // P, M, G (opcional)
 }
 
 export type Settings = {
@@ -35,9 +36,12 @@ export function CartProvider({ children, settings }: { children: React.ReactNode
 
   const add: CartContextType['add'] = (item, qtd = 1) => {
     setItems((prev) => {
-      const i = prev.find((p) => p.pratoId === item.pratoId)
+      // Identifica item pelo pratoId E tamanho (se houver)
+      const chave = (p: CartItem) => `${p.pratoId}-${p.tamanho || ''}`
+      const novaChave = `${item.pratoId}-${item.tamanho || ''}`
+      const i = prev.find((p) => chave(p) === novaChave)
       if (i) {
-        return prev.map((p) => p.pratoId === item.pratoId ? { ...p, quantidade: p.quantidade + qtd } : p)
+        return prev.map((p) => chave(p) === novaChave ? { ...p, quantidade: p.quantidade + qtd } : p)
       }
       return [...prev, { ...item, quantidade: qtd }]
     })

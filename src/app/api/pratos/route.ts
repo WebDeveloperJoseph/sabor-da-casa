@@ -1,17 +1,18 @@
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
-import { requireUser } from '@/lib/supabaseServer'
+import { requireAuth } from '@/lib/auth'
 
 // GET - listar pratos
 export async function GET() {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const pratos = await prisma.prato.findMany({
       where: { ativo: true },
       include: {
         categoria: true,
-        ingredientes: { include: { ingrediente: true } }
+        ingredientes: { include: { ingrediente: true } },
+        tamanhos: { where: { ativo: true }, orderBy: { tamanho: 'asc' } }
       },
       orderBy: { destaque: 'desc' }
     })
@@ -25,10 +26,10 @@ export async function GET() {
 // POST - criar prato
 export async function POST(request: NextRequest) {
   try {
-    const { user } = await requireUser()
-    if (!user) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 })
     const body = await request.json()
-    const { nome, descricao, preco, imagem, categoriaId, ingredientes, destaque, ativo } = body
+    const { nome, descricao, preco, imagem, categoriaId, ingredientes, destaque, ativo, tamanhos } = body
 
     if (!nome || nome.trim() === '') return NextResponse.json({ message: 'Nome é obrigatório' }, { status: 400 })
     if (!categoriaId) return NextResponse.json({ message: 'Categoria é obrigatória' }, { status: 400 })
@@ -52,7 +53,28 @@ export async function POST(request: NextRequest) {
       await prisma.$transaction(tx)
     }
 
-    const created = await prisma.prato.findUnique({ where: { id: prato.id }, include: { categoria: true, ingredientes: { include: { ingrediente: true } } } })
+    // Criar tamanhos (se enviados)
+    if (Array.isArray(tamanhos) && tamanhos.length > 0) {
+      const txTam = tamanhos.map((t: { tamanho: string; preco: number }) => 
+        prisma.pratoTamanho.create({ 
+          data: { 
+            pratoId: prato.id, 
+            tamanho: t.tamanho.toUpperCase(), 
+            preco: typeof t.preco === 'string' ? parseFloat(t.preco) : t.preco 
+          } 
+        })
+      )
+      await prisma.$transaction(txTam)
+    }
+
+    const created = await prisma.prato.findUnique({ 
+      where: { id: prato.id }, 
+      include: { 
+        categoria: true, 
+        ingredientes: { include: { ingrediente: true } },
+        tamanhos: { where: { ativo: true }, orderBy: { tamanho: 'asc' } }
+      } 
+    })
     return NextResponse.json(created, { status: 201 })
   } catch (error) {
     console.error('Erro ao criar prato:', error)

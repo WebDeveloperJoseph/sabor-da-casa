@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { supabase } from '@/lib/supabaseClient'
 
 type Ingrediente = {
   id: number
@@ -30,25 +29,13 @@ export default function FormularioIngrediente({ ingrediente }: { ingrediente?: I
     try {
       setSalvando(true)
       
-      // Obter token de autenticação
-      if (!supabase) {
-        throw new Error('Supabase não configurado')
-      }
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        toast.error('Sessão expirada. Faça login novamente.')
-        router.push('/login')
-        return
-      }
-      
       const payload = { nome: nome.trim(), alergenico }
       const url = isEditing ? `/api/ingredientes/${ingrediente!.id}` : '/api/ingredientes'
       const method = isEditing ? 'PUT' : 'POST'
       const res = await fetch(url, { 
         method, 
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Content-Type': 'application/json'
         }, 
         body: JSON.stringify(payload)
       })
@@ -72,21 +59,10 @@ export default function FormularioIngrediente({ ingrediente }: { ingrediente?: I
     if (!ingrediente) return
     if (!confirm('Tem certeza que deseja excluir este ingrediente?')) return
     try {
-      // Obter token de autenticação
-      if (!supabase) {
-        throw new Error('Supabase não configurado')
-      }
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        toast.error('Sessão expirada. Faça login novamente.')
-        router.push('/login')
-        return
-      }
-
       const res = await fetch(`/api/ingredientes/${ingrediente.id}`, { 
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`
+          'Content-Type': 'application/json'
         }
       })
       if (!res.ok) {
