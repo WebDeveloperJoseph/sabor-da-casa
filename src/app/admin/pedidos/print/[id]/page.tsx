@@ -130,12 +130,13 @@ export default async function PrintPedidoPage({ params, searchParams }: Props) {
           
           .printable { 
             position: absolute !important; 
-            left: 0 !important; 
+            left: 50% !important; 
             top: 0 !important; 
+            transform: translateX(-50%) !important;
             margin: 0 !important;
-            padding: 3mm !important;
-            width: 55mm !important; 
-            max-width: 55mm !important;
+            padding: 3mm 2mm !important;
+            width: 51mm !important; 
+            max-width: 51mm !important;
             font-size: 13px !important;
             line-height: 1.4 !important;
             color: #000 !important;
