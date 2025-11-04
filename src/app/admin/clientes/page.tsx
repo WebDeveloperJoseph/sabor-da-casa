@@ -27,10 +27,11 @@ import DeleteClienteButton from "@/components/admin/DeleteClienteButton"
 export default async function ClientesPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined }
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const busca = (searchParams?.busca as string) || ""
-  const aniversariantes = (searchParams?.aniversariantes as string) === "true"
+  const params = await searchParams
+  const busca = (params?.busca as string) || ""
+  const aniversariantes = (params?.aniversariantes as string) === "true"
 
   // Base query
   let clientes: ClienteWithCount[] = []

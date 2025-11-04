@@ -2,12 +2,14 @@ import { prisma } from '@/lib/prisma'
 import PrintActionsClient from '@/components/admin/PrintActionsClient'
 
 type Props = {
-  params: { id: string }
-  searchParams?: { [key: string]: string | string[] | undefined }
+  params: Promise<{ id: string }>
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export async function generateMetadata({ params, searchParams }: Props) {
-  const rawId = params?.id ?? (Array.isArray(searchParams?.id) ? searchParams!.id[0] : searchParams?.id)
+  const resolvedParams = await params
+  const resolvedSearch = await searchParams
+  const rawId = resolvedParams?.id ?? (Array.isArray(resolvedSearch?.id) ? resolvedSearch!.id[0] : resolvedSearch?.id)
   const id = rawId ? Number(rawId) : NaN
 
   if (!rawId || Number.isNaN(id)) {
@@ -21,10 +23,8 @@ export async function generateMetadata({ params, searchParams }: Props) {
 }
 
 export default async function PrintPedidoPage({ params, searchParams }: Props) {
-  // Em Next.js 16 params e searchParams podem ser Promises dependendo do runtime.
-  // Para ser robusto, aguardamos ambos antes de acessar as propriedades.
-  const resolvedParams = (await params) as { id?: string } | undefined
-  const resolvedSearch = (await searchParams) as { [key: string]: string | string[] | undefined } | undefined
+  const resolvedParams = await params
+  const resolvedSearch = await searchParams
 
   const rawId = resolvedParams?.id ?? (Array.isArray(resolvedSearch?.id) ? resolvedSearch!.id[0] : resolvedSearch?.id)
   const id = rawId ? Number(rawId) : NaN
