@@ -137,8 +137,8 @@ export default async function PrintPedidoPage({ params, searchParams }: Props) {
             padding: 3mm 2mm !important;
             width: 51mm !important; 
             max-width: 51mm !important;
-            font-size: 13px !important;
-            line-height: 1.4 !important;
+            font-size: 14px !important;
+            line-height: 1.45 !important;
             color: #000 !important;
           }
           
@@ -148,7 +148,7 @@ export default async function PrintPedidoPage({ params, searchParams }: Props) {
           }
           
           .printable .logo {
-            font-size: 18px !important;
+            font-size: 20px !important;
             font-weight: 800 !important;
             color: #000 !important;
           }
@@ -158,11 +158,11 @@ export default async function PrintPedidoPage({ params, searchParams }: Props) {
           }
           
           .printable .text-sm {
-            font-size: 12px !important;
+            font-size: 13px !important;
           }
           
           .printable .text-xs {
-            font-size: 11px !important;
+            font-size: 12px !important;
           }
           
           .no-print { display: none !important; }
