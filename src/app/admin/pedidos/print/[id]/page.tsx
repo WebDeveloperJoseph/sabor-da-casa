@@ -105,14 +105,60 @@ export default async function PrintPedidoPage({ params, searchParams }: Props) {
 
       <style>{`
         /* Print helpers: narrow receipt for 55mm thermal paper */
-        @page { size: 55mm 210mm; margin: 2mm }
+        @page { 
+          size: 55mm auto; 
+          margin: 0; 
+        }
 
         @media print {
-          * { visibility: hidden !important; }
-          .printable, .printable * { visibility: visible !important; }
-          .printable { position: absolute; left: 0; top: 0; width: 55mm; max-width: 55mm; }
+          html, body { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            height: auto !important;
+          }
+          
+          * { 
+            visibility: hidden !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          
+          .printable, .printable * { 
+            visibility: visible !important; 
+          }
+          
+          .printable { 
+            position: absolute !important; 
+            left: 0 !important; 
+            top: 0 !important; 
+            margin: 0 !important;
+            padding: 3mm !important;
+            width: 55mm !important; 
+            max-width: 55mm !important;
+            font-size: 11px !important;
+            line-height: 1.3 !important;
+            color: #000 !important;
+          }
+          
+          .printable * {
+            color: #000 !important;
+            font-weight: 600 !important;
+          }
+          
+          .printable .logo {
+            font-size: 16px !important;
+            font-weight: 700 !important;
+            color: #000 !important;
+          }
+          
           .no-print { display: none !important; }
-          .item-row { padding-top: 2px; padding-bottom: 2px; }
+          
+          .item-row { 
+            padding-top: 2px !important; 
+            padding-bottom: 2px !important;
+            border-color: #000 !important;
+          }
         }
 
         /* Screen preview styling - center a narrow receipt box */
