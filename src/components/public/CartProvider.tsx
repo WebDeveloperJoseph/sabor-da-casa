@@ -20,9 +20,9 @@ export type Settings = {
 type CartContextType = {
   items: CartItem[]
   add: (item: Omit<CartItem, 'quantidade'>, qtd?: number) => void
-  remove: (pratoId: number) => void
-  updateQty: (pratoId: number, qtd: number) => void
-  updateObs: (pratoId: number, obs: string) => void
+  remove: (pratoId: number, tamanho?: string) => void
+  updateQty: (pratoId: number, qtd: number, tamanho?: string) => void
+  updateObs: (pratoId: number, obs: string, tamanho?: string) => void
   clear: () => void
   subtotal: number
   total: number
@@ -47,9 +47,30 @@ export function CartProvider({ children, settings }: { children: React.ReactNode
     })
   }
 
-  const remove = (pratoId: number) => setItems((prev) => prev.filter((i) => i.pratoId !== pratoId))
-  const updateQty = (pratoId: number, qtd: number) => setItems((prev) => prev.map((i) => i.pratoId === pratoId ? { ...i, quantidade: Math.max(1, qtd) } : i))
-  const updateObs = (pratoId: number, obs: string) => setItems((prev) => prev.map((i) => i.pratoId === pratoId ? { ...i, observacoes: obs } : i))
+  const remove = (pratoId: number, tamanho?: string) => {
+    setItems((prev) => prev.filter((i) => {
+      const chave = `${i.pratoId}-${i.tamanho || ''}`
+      const chaveRemover = `${pratoId}-${tamanho || ''}`
+      return chave !== chaveRemover
+    }))
+  }
+
+  const updateQty = (pratoId: number, qtd: number, tamanho?: string) => {
+    setItems((prev) => prev.map((i) => {
+      const chave = `${i.pratoId}-${i.tamanho || ''}`
+      const chaveAtualizar = `${pratoId}-${tamanho || ''}`
+      return chave === chaveAtualizar ? { ...i, quantidade: Math.max(1, qtd) } : i
+    }))
+  }
+
+  const updateObs = (pratoId: number, obs: string, tamanho?: string) => {
+    setItems((prev) => prev.map((i) => {
+      const chave = `${i.pratoId}-${i.tamanho || ''}`
+      const chaveAtualizar = `${pratoId}-${tamanho || ''}`
+      return chave === chaveAtualizar ? { ...i, observacoes: obs } : i
+    }))
+  }
+
   const clear = () => setItems([])
 
   const subtotal = useMemo(() => items.reduce((acc, i) => acc + i.preco * i.quantidade, 0), [items])

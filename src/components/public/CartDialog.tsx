@@ -237,7 +237,7 @@ Obrigado!`
                           <Button
                             size="icon-sm"
                             variant="outline"
-                            onClick={() => updateQty(item.pratoId, item.quantidade - 1)}
+                            onClick={() => updateQty(item.pratoId, item.quantidade - 1, item.tamanho)}
                           >
                             <Minus />
                           </Button>
@@ -245,11 +245,11 @@ Obrigado!`
                           <Button
                             size="icon-sm"
                             variant="outline"
-                            onClick={() => updateQty(item.pratoId, item.quantidade + 1)}
+                            onClick={() => updateQty(item.pratoId, item.quantidade + 1, item.tamanho)}
                           >
                             <Plus />
                           </Button>
-                          <Button size="icon-sm" variant="destructive" onClick={() => remove(item.pratoId)}>
+                          <Button size="icon-sm" variant="destructive" onClick={() => remove(item.pratoId, item.tamanho)}>
                             <Trash />
                           </Button>
                         </div>
@@ -259,7 +259,7 @@ Obrigado!`
                          <Textarea
                            placeholder="Observações (ex: sem cebola)"
                            value={item.observacoes || ''}
-                           onChange={(e) => updateObs(item.pratoId, e.target.value)}
+                           onChange={(e) => updateObs(item.pratoId, e.target.value, item.tamanho)}
                            className="mt-1 min-h-12 md:min-h-16 max-h-40 resize-y w-full max-w-[340px] md:max-w-md mx-auto overflow-x-hidden wrap-break-word text-center"
                          />
                       </div>
