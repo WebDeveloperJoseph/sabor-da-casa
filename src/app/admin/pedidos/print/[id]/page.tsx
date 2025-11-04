@@ -136,20 +136,32 @@ export default async function PrintPedidoPage({ params, searchParams }: Props) {
             padding: 3mm !important;
             width: 55mm !important; 
             max-width: 55mm !important;
-            font-size: 11px !important;
-            line-height: 1.3 !important;
+            font-size: 13px !important;
+            line-height: 1.4 !important;
             color: #000 !important;
           }
           
           .printable * {
             color: #000 !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
           }
           
           .printable .logo {
-            font-size: 16px !important;
-            font-weight: 700 !important;
+            font-size: 18px !important;
+            font-weight: 800 !important;
             color: #000 !important;
+          }
+          
+          .printable strong {
+            font-weight: 800 !important;
+          }
+          
+          .printable .text-sm {
+            font-size: 12px !important;
+          }
+          
+          .printable .text-xs {
+            font-size: 11px !important;
           }
           
           .no-print { display: none !important; }
