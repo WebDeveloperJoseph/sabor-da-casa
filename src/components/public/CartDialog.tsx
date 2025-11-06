@@ -217,8 +217,8 @@ Obrigado!`
                 <p className="text-gray-500">Seu carrinho está vazio.</p>
               ) : (
                 items.map((item) => {
-                  // Gerar chave única considerando tamanho
-                  const chave = `${item.pratoId}-${item.tamanho || ''}`
+                  // Gerar chave única considerando tamanho e borda
+                  const chave = `${item.pratoId}-${item.tamanho || ''}-${item.bordaId || ''}`
                   return (
                     <div
                       key={chave}
@@ -231,7 +231,14 @@ Obrigado!`
                             {item.nome}
                             {item.tamanho && <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">({item.tamanho})</span>}
                           </p>
-                          <p className="text-sm text-gray-600">R$ {item.preco.toFixed(2).replace('.', ',')}</p>
+                          <p className="text-sm text-gray-600">
+                            R$ {item.preco.toFixed(2).replace('.', ',')}
+                            {item.nomeBorda && item.precoBorda && (
+                              <span className="block text-xs text-orange-600 mt-0.5">
+                                + Borda {item.nomeBorda} (R$ {item.precoBorda.toFixed(2).replace('.', ',')})
+                              </span>
+                            )}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Button

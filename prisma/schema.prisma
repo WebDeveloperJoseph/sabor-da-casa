@@ -80,6 +80,21 @@ model Ingrediente {
   @@map("ingredientes")
 }
 
+// Modelo: Bordas recheadas (complemento para pizzas)
+model BordaRecheada {
+  id             Int     @id @default(autoincrement())
+  nome           String  @unique @db.VarChar(100) // Ex: Catupiry, Cheddar, Chocolate
+  precoAdicional Decimal @map("preco_adicional") @db.Decimal(10, 2)
+  ativo          Boolean @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  itensPedido ItemPedido[]
+
+  @@map("bordas_recheadas")
+}
+
 // Tabela de relacionamento N:N entre Prato e Ingrediente
 model PratoIngrediente {
   pratoId       Int @map("prato_id")
@@ -163,6 +178,9 @@ model ItemPedido {
   pratoId     Int     @map("prato_id")
   nomePrato   String  @map("nome_prato") @db.VarChar(200) // snapshot do nome na hora do pedido
   tamanho     String? @db.VarChar(10) // P, M, G (null para pratos sem tamanho)
+  bordaId     Int?    @map("borda_id") // ID da borda recheada (opcional)
+  nomeBorda   String? @map("nome_borda") @db.VarChar(100) // snapshot do nome da borda
+  precoBorda  Decimal? @map("preco_borda") @db.Decimal(10, 2) // snapshot do preço adicional da borda
   quantidade  Int     @default(1)
   precoUnit   Decimal @map("preco_unit") @db.Decimal(10, 2) // snapshot do preço na hora do pedido
   subtotal    Decimal @db.Decimal(10, 2)
@@ -171,6 +189,7 @@ model ItemPedido {
   // Relacionamentos
   pedido Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
   prato  Prato  @relation(fields: [pratoId], references: [id], onDelete: Restrict)
+  borda  BordaRecheada? @relation(fields: [bordaId], references: [id], onDelete: SetNull)
 
   @@map("itens_pedido")
 }

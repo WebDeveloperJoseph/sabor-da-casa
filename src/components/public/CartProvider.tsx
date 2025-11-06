@@ -9,6 +9,9 @@ export type CartItem = {
   quantidade: number
   observacoes?: string
   tamanho?: string // P, M, G (opcional)
+  bordaId?: number // ID da borda recheada (opcional)
+  nomeBorda?: string // Nome da borda
+  precoBorda?: number // Preço adicional da borda
 }
 
 export type Settings = {
@@ -36,9 +39,9 @@ export function CartProvider({ children, settings }: { children: React.ReactNode
 
   const add: CartContextType['add'] = (item, qtd = 1) => {
     setItems((prev) => {
-      // Identifica item pelo pratoId E tamanho (se houver)
-      const chave = (p: CartItem) => `${p.pratoId}-${p.tamanho || ''}`
-      const novaChave = `${item.pratoId}-${item.tamanho || ''}`
+      // Identifica item pelo pratoId, tamanho E bordaId (se houver)
+      const chave = (p: CartItem) => `${p.pratoId}-${p.tamanho || ''}-${p.bordaId || ''}`
+      const novaChave = `${item.pratoId}-${item.tamanho || ''}-${item.bordaId || ''}`
       const i = prev.find((p) => chave(p) === novaChave)
       if (i) {
         return prev.map((p) => chave(p) === novaChave ? { ...p, quantidade: p.quantidade + qtd } : p)
@@ -73,7 +76,13 @@ export function CartProvider({ children, settings }: { children: React.ReactNode
 
   const clear = () => setItems([])
 
-  const subtotal = useMemo(() => items.reduce((acc, i) => acc + i.preco * i.quantidade, 0), [items])
+  const subtotal = useMemo(() => 
+    items.reduce((acc, i) => {
+      const precoTotal = i.preco + (i.precoBorda || 0)
+      return acc + precoTotal * i.quantidade
+    }, 0), 
+    [items]
+  )
   const total = useMemo(() => subtotal + Number(settings.taxaEntrega || 0), [subtotal, settings.taxaEntrega])
 
   const value = { items, add, remove, updateQty, updateObs, clear, subtotal, total, settings }

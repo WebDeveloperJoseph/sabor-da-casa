@@ -82,7 +82,16 @@ export default async function PrintPedidoPage({ params, searchParams }: Props) {
             {pedido.itens.map((it) => (
               <div key={it.id} className="item-row flex justify-between items-start py-1 border-b border-dashed">
                 <div className="flex-1 pr-2">
-                  <div className="font-medium">{it.quantidade}x {it.nomePrato}</div>
+                  <div className="font-medium">
+                    {it.quantidade}x {it.nomePrato}
+                    {it.tamanho && <span className="ml-1 text-xs">({it.tamanho})</span>}
+                  </div>
+                  {(it as { nomeBorda?: string; precoBorda?: number }).nomeBorda && (
+                    <div className="text-xs text-gray-700 mt-0.5">
+                      + Borda {(it as { nomeBorda?: string }).nomeBorda} 
+                      (+R$ {Number((it as { precoBorda?: number }).precoBorda || 0).toFixed(2).replace('.', ',')})
+                    </div>
+                  )}
                   {it.observacoes && <div className="text-xs text-gray-600 mt-0.5">{it.observacoes}</div>}
                 </div>
                 <div className="ml-2 text-right min-w-12">R$ {Number(it.subtotal).toFixed(2).replace('.', ',')}</div>
