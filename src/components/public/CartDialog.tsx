@@ -287,18 +287,46 @@ Obrigado!`
 
             {/* Dados do cliente e pagamento */}
             <div className="space-y-6 md:col-span-2">
+              {/* Aviso sobre dados obrigatórios */}
+              <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
+                <div className="flex">
+                  <div className="shrink-0">
+                    <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-orange-700">
+                      <strong>Atenção:</strong> Preencha seu nome para finalizar o pedido. Telefone e endereço são recomendados para entrega.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-3">
                 <h4 className="text-sm font-semibold text-gray-900">Dados do cliente</h4>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Seu nome</label>
-                  <Input value={nomeCliente} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Seu nome <span className="text-red-500">*</span>
+                  </label>
+                  <Input 
+                    value={nomeCliente} 
+                    onChange={(e) => setNome(e.target.value)} 
+                    placeholder="Nome completo" 
+                    required
+                    className={!nomeCliente.trim() ? 'border-orange-300' : ''}
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Telefone <span className="text-gray-400 text-xs">(recomendado)</span>
+                  </label>
                   <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} onBlur={checkAndPrefillByPhone} placeholder="(DDD) 9 9999-9999" disabled={loading || checandoCliente} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Endereço <span className="text-gray-400 text-xs">(recomendado para entrega)</span>
+                  </label>
                   <Input value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Rua, número, bairro" />
                 </div>
               </div>
