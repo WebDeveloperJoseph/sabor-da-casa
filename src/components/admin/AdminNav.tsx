@@ -8,8 +8,7 @@ import {
   FolderOpen, 
   Utensils, 
   User,
-  ShoppingCart,
-  Cookie
+  ShoppingCart
 } from "lucide-react"
 
 const menuItems = [
@@ -36,12 +35,6 @@ const menuItems = [
     icon: Pizza,
     label: "Pizzas",
     description: "Gerenciar cardápio"
-  },
-  {
-    href: "/admin/bordas",
-    icon: Cookie,
-    label: "Bordas",
-    description: "Bordas recheadas"
   },
   {
     href: "/admin/categorias",

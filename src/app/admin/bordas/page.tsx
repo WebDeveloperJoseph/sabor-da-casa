@@ -32,10 +32,18 @@ export default function BordasPage() {
       const res = await fetch('/api/bordas')
       if (res.ok) {
         const data = await res.json()
-        setBordas(data)
+        // Verificar se data é um array
+        if (Array.isArray(data)) {
+          setBordas(data)
+        } else {
+          // Se não for array, significa erro (tabela não existe ainda)
+          setBordas([])
+          console.warn('A tabela de bordas ainda não foi criada. Execute a migration.')
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar bordas:', error)
+      setBordas([])
     } finally {
       setLoading(false)
     }
@@ -66,8 +74,21 @@ export default function BordasPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!nome.trim() || !precoAdicional || Number(precoAdicional) < 0) {
-      toast.error('Preencha todos os campos corretamente')
+    
+    // Validações detalhadas
+    if (!nome.trim()) {
+      toast.error('Nome é obrigatório')
+      return
+    }
+    
+    if (!precoAdicional || precoAdicional.trim() === '') {
+      toast.error('Preço adicional é obrigatório')
+      return
+    }
+    
+    const preco = Number(precoAdicional)
+    if (isNaN(preco) || preco < 0) {
+      toast.error('Preço adicional deve ser um número válido maior ou igual a zero')
       return
     }
 
@@ -76,26 +97,49 @@ export default function BordasPage() {
       const url = editando ? `/api/bordas/${editando.id}` : '/api/bordas'
       const method = editando ? 'PUT' : 'POST'
       
+      const payload = {
+        nome: nome.trim(),
+        precoAdicional: preco,
+        ativo
+      }
+      
+      console.log('=== INICIANDO REQUISIÇÃO ===')
+      console.log('Método:', method)
+      console.log('URL:', url)
+      console.log('Payload:', payload)
+      
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome: nome.trim(),
-          precoAdicional: Number(precoAdicional),
-          ativo
-        })
+        body: JSON.stringify(payload)
       })
 
+      console.log('=== RESPOSTA RECEBIDA ===')
+      console.log('Status:', res.status)
+      console.log('StatusText:', res.statusText)
+      console.log('Headers:', Object.fromEntries(res.headers.entries()))
+
       if (!res.ok) {
-        const err = await res.json()
+        let err;
+        try {
+          err = await res.json()
+        } catch {
+          // Se não conseguir parsear JSON, usar statusText
+          err = { message: res.statusText || 'Erro ao salvar' }
+        }
+        console.error('Erro da API:', err, 'Status:', res.status)
         throw new Error(err.message || 'Erro ao salvar')
       }
+
+      const data = await res.json()
+      console.log('Borda salva:', data)
 
       toast.success(editando ? 'Borda atualizada!' : 'Borda criada!')
       fecharForm()
       carregarBordas()
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao salvar'
+      console.error('Erro ao salvar borda:', error)
       toast.error(message)
     } finally {
       setSalvando(false)

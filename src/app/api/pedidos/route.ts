@@ -9,10 +9,7 @@ const itemPedidoSchema = z.object({
   pratoId: z.number(),
   quantidade: z.number().min(1),
   observacoes: z.string().optional(),
-  tamanho: z.string().optional(), // P, M, G
-  bordaId: z.number().optional(), // ID da borda recheada
-  nomeBorda: z.string().optional(), // Nome da borda (snapshot)
-  precoBorda: z.number().optional() // Preço adicional da borda (snapshot)
+  tamanho: z.string().optional() // P, M, G
 })
 
 const criarPedidoSchema = z.object({
@@ -70,11 +67,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Adicionar preço da borda (se houver)
-      const precoBorda = item.precoBorda ? Number(item.precoBorda) : 0
-      const precoTotalItem = precoUnit + precoBorda
-
-      const subtotal = precoTotalItem * item.quantidade
+      const subtotal = precoUnit * item.quantidade
       valorTotal += subtotal
 
       return {
@@ -84,10 +77,7 @@ export async function POST(request: NextRequest) {
         precoUnit: precoUnit,
         subtotal: subtotal,
         observacoes: item.observacoes,
-        tamanho: item.tamanho,
-        bordaId: item.bordaId,
-        nomeBorda: item.nomeBorda,
-        precoBorda: precoBorda
+        tamanho: item.tamanho
       }
     })
 

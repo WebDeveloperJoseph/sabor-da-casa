@@ -10,12 +10,21 @@ import {
 } from "lucide-react"
 import { BotaoSair } from "@/components/admin/BotaoSair"
 import { AdminNav } from "@/components/admin/AdminNav"
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Verificar autenticação
+  const cookieStore = await cookies()
+  const adminAuth = cookieStore.get('adminAuth')?.value
+  
+  if (!adminAuth || adminAuth !== 'true') {
+    redirect('/login?redirectTo=/admin')
+  }
 
   return (
   <div className="min-h-screen bg-linear-to-br from-orange-50 via-gray-50 to-red-50">
