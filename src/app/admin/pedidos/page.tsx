@@ -181,7 +181,7 @@ export default async function PedidosPage() {
                       <p className="wrap-break-word"><strong className="text-gray-900">Cliente:</strong> {pedido.nomeCliente}</p>
                       {pedido.telefone && <p className="wrap-break-word"><strong className="text-gray-900">Telefone:</strong> {pedido.telefone}</p>}
                       {pedido.endereco && <p className="wrap-break-word"><strong className="text-gray-900">Endereço:</strong> {pedido.endereco}</p>}
-                      <p className="wrap-break-word"><strong className="text-gray-900">Data:</strong> {new Date(pedido.createdAt).toLocaleString('pt-BR')}</p>
+                      <p className="wrap-break-word"><strong className="text-gray-900">Data:</strong> {new Date(pedido.createdAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</p>
                     </div>
                   </div>
 
@@ -257,7 +257,7 @@ export default async function PedidosPage() {
                       </p>
                     )}
                     <p className="text-xs text-gray-500 mt-2">
-                      Avaliado em {new Date(pedido.avaliacao.createdAt).toLocaleString('pt-BR')}
+                      Avaliado em {new Date(pedido.avaliacao.createdAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
                     </p>
                   </div>
                 )}

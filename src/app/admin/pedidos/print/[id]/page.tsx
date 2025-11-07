@@ -67,7 +67,7 @@ export default async function PrintPedidoPage({ params, searchParams }: Props) {
               <div className="text-sm text-gray-600">Comprovante do pedido</div>
             </div>
             <div className="text-right text-sm text-gray-600">
-              <div>Data: {new Date(pedido.createdAt).toLocaleString('pt-BR')}</div>
+              <div>Data: {new Date(pedido.createdAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</div>
               <div>{dailyNumber ? `Hoje: #${dailyNumber}` : ''}</div>
             </div>
           </header>

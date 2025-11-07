@@ -178,7 +178,7 @@ export default function MeusPedidosPage() {
                         Pedido #{pedido.dailyNumber || pedido.id}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        {new Date(pedido.createdAt).toLocaleString('pt-BR')}
+                        {new Date(pedido.createdAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
                       </p>
                     </div>
 
@@ -239,7 +239,7 @@ export default function MeusPedidosPage() {
                         </p>
                       )}
                       <p className="text-xs text-gray-500 mt-2">
-                        Avaliado em {new Date(pedido.avaliacao.createdAt).toLocaleString('pt-BR')}
+                        Avaliado em {new Date(pedido.avaliacao.createdAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
                       </p>
                     </div>
                   ) : pedido.status === 'entregue' ? (
