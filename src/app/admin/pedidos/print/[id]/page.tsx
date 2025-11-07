@@ -79,28 +79,18 @@ export default async function PrintPedidoPage({ params, searchParams }: Props) {
           </section>
 
           <div className="w-full items text-sm">
-            {pedido.itens.map((it) => {
-              const nomeBorda = it.nomeBorda as string | null
-              const precoBorda = it.precoBorda ? Number(it.precoBorda) : 0
-              
-              return (
-                <div key={it.id} className="item-row flex justify-between items-start py-1 border-b border-dashed">
-                  <div className="flex-1 pr-2">
-                    <div className="font-medium">
-                      {it.quantidade}x {it.nomePrato}
-                      {it.tamanho && <span className="ml-1 text-xs">({it.tamanho})</span>}
-                    </div>
-                    {nomeBorda && precoBorda > 0 && (
-                      <div className="text-xs text-gray-700 mt-0.5">
-                        + Borda {nomeBorda} (+R$ {precoBorda.toFixed(2).replace('.', ',')})
-                      </div>
-                    )}
-                    {it.observacoes && <div className="text-xs text-gray-600 mt-0.5">{it.observacoes}</div>}
+            {pedido.itens.map((it) => (
+              <div key={it.id} className="item-row flex justify-between items-start py-1 border-b border-dashed">
+                <div className="flex-1 pr-2">
+                  <div className="font-medium">
+                    {it.quantidade}x {it.nomePrato}
+                    {it.tamanho && <span className="ml-1 text-xs">({it.tamanho})</span>}
                   </div>
-                  <div className="ml-2 text-right min-w-12">R$ {Number(it.subtotal).toFixed(2).replace('.', ',')}</div>
+                  {it.observacoes && <div className="text-xs text-gray-600 mt-0.5">{it.observacoes}</div>}
                 </div>
-              )
-            })}
+                <div className="ml-2 text-right min-w-12">R$ {Number(it.subtotal).toFixed(2).replace('.', ',')}</div>
+              </div>
+            ))}
           </div>
 
           <div className="mt-4 text-right text-base font-semibold">Total: R$ {Number(pedido.valorTotal).toFixed(2).replace('.', ',')}</div>
