@@ -41,7 +41,7 @@ export function HeroSection({ isOpenNow }: Props) {
             </h1>
             
             <p className="text-xl text-gray-700 max-w-2xl mx-auto lg:mx-0">
-              Ingredientes frescos, massa artesanal e muito sabor. Peça agora e receba quentinha em casa! 🍕
+              Massa de Longa Fermentação, Molho Artesanal, Você vai comer uma Pizza Leve e Saborosa, Feita com Muito Amor 🍕
             </p>
             
             {/* Badges de info */}
