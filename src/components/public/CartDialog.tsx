@@ -84,8 +84,14 @@ Obrigado!`
         toast.error(`Pedido mínimo: R$ ${Number(settings.pedidoMinimo).toFixed(2).replace('.', ',')}`)
         return
       }
-      if (!nomeCliente.trim()) {
+      const nomeTrim = nomeCliente.trim()
+      if (!nomeTrim) {
         toast.error('Informe seu nome')
+        return
+      }
+      if (nomeTrim.length < 3) {
+        // Back-end exige min(3) pelo schema Zod. Se usuário digitou "Ze" ou 2 letras o pedido falha.
+        toast.error('Nome deve ter no mínimo 3 caracteres')
         return
       }
 
@@ -133,7 +139,7 @@ Obrigado!`
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nomeCliente,
+          nomeCliente: nomeTrim,
           telefone,
           endereco,
           observacoes: obsComPagamento,
@@ -150,7 +156,26 @@ Obrigado!`
     // debug: logar a resposta do servidor para diagnóstico
   try { console.log('Resposta /api/pedidos', res.status, body) } catch (err) { console.error(err) }
     if (!res.ok) {
-      throw new Error(body?.erro || 'Erro ao finalizar pedido')
+      // Tentar extrair mensagens de validação detalhadas do Zod (se presentes)
+      const detalhes: unknown = body?.detalhes
+      if (detalhes && typeof detalhes === 'object' && detalhes !== null) {
+        try {
+          type ZodErrorShape = { fieldErrors?: Record<string, string[] | undefined> }
+          const fieldErrors = (detalhes as ZodErrorShape).fieldErrors
+          if (fieldErrors) {
+            const mensagens = Object.values(fieldErrors).flat().filter(Boolean) as string[]
+            if (mensagens.length > 0) {
+              toast.error(mensagens[0])
+              throw new Error(mensagens[0])
+            }
+          }
+        } catch {
+          // ignora se estrutura inesperada
+        }
+      }
+      const msg = body?.erro || 'Erro ao finalizar pedido'
+      toast.error(msg)
+      throw new Error(msg)
     }
 
     if (!body?.id) {
