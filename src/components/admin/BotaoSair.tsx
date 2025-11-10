@@ -21,7 +21,7 @@ export function BotaoSair() {
   }
 
   return (
-    <Button variant="outline" onClick={onSignOut} size="sm">
+    <Button variant="outline" onClick={onSignOut} size="sm" className="cursor-pointer">
       Sair
     </Button>
   )

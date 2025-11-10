@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Bordas Diferentes - Sabor da Casa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .success { 
+            background-color: #d4edda; 
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .info { 
+            background-color: #e7f3ff; 
+            border: 1px solid #b8daff;
+            color: #004085;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        h1, h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+        }
+        .step strong {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste: Pizzas com Bordas Diferentes no Carrinho</h1>
+    
+    <div class="test-container instructions">
+        <h2>📋 Instruções de Teste</h2>
+        <p><strong>Objetivo:</strong> Verificar se o sistema consegue distinguir a mesma pizza com bordas diferentes no carrinho.</p>
+        
+        <div class="step">
+            <strong>Passo 1:</strong> Vá para a página principal do site
+            <br>🔗 <a href="http://localhost:3000" target="_blank">http://localhost:3000</a>
+        </div>
+        
+        <div class="step">
+            <strong>Passo 2:</strong> Encontre uma pizza na seção "Pizzas Tradicionais"
+            <br>📝 Exemplo: Pizza Margherita
+        </div>
+        
+        <div class="step">
+            <strong>Passo 3:</strong> Adicione a pizza SEM borda recheada
+            <br>🍕 Deixe a opção "Sem borda recheada" selecionada e adicione ao carrinho
+        </div>
+        
+        <div class="step">
+            <strong>Passo 4:</strong> Adicione a MESMA pizza COM borda recheada
+            <br>🧀 Selecione uma borda (ex: "Borda Recheada com Catupiry") e adicione ao carrinho
+        </div>
+        
+        <div class="step">
+            <strong>Passo 5:</strong> Adicione a MESMA pizza com uma borda DIFERENTE
+            <br>🧀 Selecione outra borda (ex: "Borda Recheada com Cheddar") e adicione ao carrinho
+        </div>
+        
+        <div class="step">
+            <strong>Passo 6:</strong> Abra o carrinho e verifique os resultados
+            <br>🛒 Clique no ícone do carrinho para ver os itens
+        </div>
+    </div>
+
+    <div class="test-container success">
+        <h2>✅ Resultado Esperado</h2>
+        <p>O carrinho deve mostrar <strong>3 itens separados</strong>:</p>
+        <ul>
+            <li>🍕 Pizza Margherita (P/M/G) - sem borda</li>
+            <li>🍕 Pizza Margherita (P/M/G) + 🧀 Borda: Borda Recheada com Catupiry</li>
+            <li>🍕 Pizza Margherita (P/M/G) + 🧀 Borda: Borda Recheada com Cheddar</li>
+        </ul>
+        <p><strong>Preços diferentes:</strong> Cada item deve mostrar o preço correto (base + borda)</p>
+        <p><strong>Controles independentes:</strong> Deve poder alterar quantidade de cada item separadamente</p>
+    </div>
+
+    <div class="test-container info">
+        <h2>🔧 Teste Adicional: Monte Sua Pizza</h2>
+        
+        <div class="step">
+            <strong>Teste 1:</strong> Clique em "Monte sua Pizza"
+            <br>🎯 Selecione 2 sabores + sem borda → Adicionar
+        </div>
+        
+        <div class="step">
+            <strong>Teste 2:</strong> Monte a mesma combinação de sabores
+            <br>🎯 Mesmos 2 sabores + borda recheada → Adicionar
+        </div>
+        
+        <div class="step">
+            <strong>Resultado:</strong> Devem aparecer como itens separados no carrinho
+            <br>✅ "Pizza Mista (2 sabores)" e "Pizza Mista (2 sabores) + Borda Recheada"
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🚨 Problemas a Verificar</h2>
+        <ul>
+            <li><strong>Agrupamento incorreto:</strong> Se pizzas com bordas diferentes aparecerem como um item só</li>
+            <li><strong>Preços errados:</strong> Se o preço não refletir corretamente a soma base + borda</li>
+            <li><strong>Controles bugados:</strong> Se alterar quantidade de um item afetar outro</li>
+            <li><strong>Visualização confusa:</strong> Se não ficar claro qual borda está em cada pizza</li>
+        </ul>
+    </div>
+
+    <script>
+        // Adicionar timestamp para facilitar acompanhamento
+        document.addEventListener('DOMContentLoaded', function() {
+            const timestamp = new Date().toLocaleString('pt-BR');
+            document.body.insertAdjacentHTML('beforeend', 
+                `<div style="text-align: center; margin-top: 30px; color: #666; font-size: 12px;">
+                    Teste criado em: ${timestamp}
+                </div>`
+            );
+        });
+    </script>
+</body>
+</html>

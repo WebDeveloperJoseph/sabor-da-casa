@@ -44,7 +44,7 @@ export function AddToCartButton({
               key={t.tamanho}
               type="button"
               onClick={() => setTamanhoSelecionado(t.tamanho)}
-              className={`px-3 py-1 text-sm font-medium rounded border transition-all duration-300 transform ${
+              className={`px-3 py-1 text-sm font-medium rounded border transition-all duration-300 transform cursor-pointer ${
                 tamanhoSelecionado === t.tamanho
                   ? 'bg-orange-500 text-white border-orange-500 scale-105 shadow-md'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-orange-500 hover:scale-105 hover:shadow-md hover:bg-orange-50'

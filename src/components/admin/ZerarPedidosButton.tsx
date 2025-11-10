@@ -32,7 +32,7 @@ export default function ZerarPedidosButton() {
     return (
       <button
         onClick={() => setConfirm(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium shadow-md hover:shadow-lg"
+        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium shadow-md hover:shadow-lg cursor-pointer"
       >
         <RotateCcw className="w-4 h-4" />
         Zerar Pedidos (IDs)
@@ -48,14 +48,14 @@ export default function ZerarPedidosButton() {
       <button
         onClick={handle}
         disabled={loading}
-        className="px-3 py-1.5 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50 text-sm font-medium"
+        className="px-3 py-1.5 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50 text-sm font-medium cursor-pointer"
       >
         {loading ? 'Zerando...' : 'Confirmar'}
       </button>
       <button
         onClick={() => setConfirm(false)}
         disabled={loading}
-        className="px-3 py-1.5 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 disabled:opacity-50 text-sm font-medium"
+        className="px-3 py-1.5 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 disabled:opacity-50 text-sm font-medium cursor-pointer"
       >
         Cancelar
       </button>

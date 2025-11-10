@@ -120,6 +120,20 @@ async function main() {
 
   // 4. Criar Pizzas
   await prisma.$transaction([
+    // Pizza especial para pizzas mistas/personalizadas
+    prisma.prato.upsert({
+      where: { id: 999 },
+      update: {},
+      create: {
+        id: 999,
+        nome: 'Pizza Personalizada',
+        descricao: 'Pizza com sabores combinados à sua escolha',
+        preco: 0, // Preço será calculado dinamicamente
+        categoriaId: pizzasTradicionais!.id,
+        destaque: false,
+        ativo: false, // Não aparece no cardápio normal
+      },
+    }),
     prisma.prato.upsert({
       where: { id: 1 },
       update: {},

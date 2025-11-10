@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Carrinho - Sabor da Casa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        .info { background-color: #e7f3ff; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            white-space: pre-wrap;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste do Sistema de Carrinho</h1>
+    
+    <div class="test-section info">
+        <h2>Instruções:</h2>
+        <p>1. Abra o site em <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></p>
+        <p>2. Adicione um produto ao carrinho</p>
+        <p>3. Tente finalizar o pedido</p>
+        <p>4. Use os testes abaixo para verificar a API diretamente</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Teste 1: Verificar se o servidor responde</h2>
+        <button onclick="testServerHealth()">Testar Conectividade</button>
+        <div id="health-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Teste 2: Testar API de Pedidos</h2>
+        <button onclick="testCreateOrder()">Criar Pedido de Teste</button>
+        <div id="order-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Teste 3: Verificar Configurações</h2>
+        <button onclick="testConfig()">Verificar Configurações</button>
+        <div id="config-results"></div>
+    </div>
+
+    <script>
+        async function testServerHealth() {
+            const resultsDiv = document.getElementById('health-results');
+            resultsDiv.innerHTML = 'Testando...';
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Servidor OK - Status: ${response.status}
+                        ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Erro de conectividade: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testCreateOrder() {
+            const resultsDiv = document.getElementById('order-results');
+            resultsDiv.innerHTML = 'Enviando pedido de teste...';
+            
+            const testOrder = {
+                nomeCliente: "João Silva Teste",
+                telefone: "11987654321",
+                endereco: "Rua das Flores, 123 - Centro",
+                observacoes: "Pagamento: DINHEIRO | Troco para R$ 50,00",
+                itens: [
+                    {
+                        pratoId: 1,
+                        quantidade: 1,
+                        tamanho: "P"
+                    }
+                ]
+            };
+            
+            try {
+                const response = await fetch('/api/pedidos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testOrder)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Pedido criado com sucesso!
+                            Status: ${response.status}
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Erro ao criar pedido - Status: ${response.status}
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Erro na requisição: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testConfig() {
+            const resultsDiv = document.getElementById('config-results');
+            resultsDiv.innerHTML = 'Verificando configurações...';
+            
+            try {
+                const response = await fetch('/api/configuracoes');
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="info">
+                        📋 Configurações do Sistema:
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Erro ao buscar configurações: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

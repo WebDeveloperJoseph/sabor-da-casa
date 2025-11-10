@@ -79,8 +79,8 @@ export default function PrintActionsClient({ printAuto }: Props) {
       )}
 
       <div className="flex items-center gap-3">
-  <button ref={btnRef} onClick={handlePrintClick} className="px-4 py-2 bg-orange-600 text-white rounded">Imprimir</button>
-  <button onClick={downloadPdf} className="px-4 py-2 bg-blue-600 text-white rounded">Baixar PDF</button>
+  <button ref={btnRef} onClick={handlePrintClick} className="px-4 py-2 bg-orange-600 text-white rounded cursor-pointer">Imprimir</button>
+  <button onClick={downloadPdf} className="px-4 py-2 bg-blue-600 text-white rounded cursor-pointer">Baixar PDF</button>
         <a href="/admin/pedidos" className="text-sm text-gray-600">Voltar à lista</a>
       </div>
     </div>

@@ -95,6 +95,50 @@ Obrigado!`
         return
       }
 
+      // Validar telefone (obrigatório e apenas números)
+      const telefoneTrim = telefone.trim()
+      if (!telefoneTrim) {
+        toast.error('Informe seu telefone')
+        return
+      }
+      
+      // Remover caracteres não numéricos para validação
+      const apenasNumeros = telefoneTrim.replace(/\D/g, '')
+      if (apenasNumeros.length < 8) {
+        toast.error('Telefone deve ter pelo menos 8 dígitos')
+        return
+      }
+      if (apenasNumeros.length > 15) {
+        toast.error('Telefone muito longo (máximo 15 dígitos)')
+        return
+      }
+
+      // Validar endereço (obrigatório)
+      const enderecoTrim = endereco.trim()
+      if (!enderecoTrim) {
+        toast.error('Informe seu endereço')
+        return
+      }
+      if (enderecoTrim.length < 5) {
+        toast.error('Endereço deve ter pelo menos 5 caracteres')
+        return
+      }
+
+      // Validar forma de pagamento (obrigatória)
+      if (!payment) {
+        toast.error('Selecione a forma de pagamento')
+        return
+      }
+
+      // Validar troco se pagamento for dinheiro
+      if (payment === 'dinheiro' && troco) {
+        const valorTroco = Number(troco)
+        if (isNaN(valorTroco) || valorTroco <= total) {
+          toast.error('Valor do troco deve ser maior que o total do pedido')
+          return
+        }
+      }
+
       setLoading(true)
 
       // se usuário optou por salvar dados, cria/associa cliente
@@ -148,7 +192,9 @@ Obrigado!`
             pratoId: i.pratoId,
             quantidade: i.quantidade,
             observacoes: i.observacoes,
-            tamanho: i.tamanho
+            tamanho: i.tamanho,
+            // Para pizzas mistas (pratoId = 999), incluir nome e preço
+            ...(i.pratoId === 999 ? { nome: i.nome, preco: i.preco } : {})
           }))
         })
       })
@@ -242,8 +288,8 @@ Obrigado!`
                 <p className="text-gray-500">Seu carrinho está vazio.</p>
               ) : (
                 items.map((item) => {
-                  // Gerar chave única considerando tamanho
-                  const chave = `${item.pratoId}-${item.tamanho || ''}`
+                  // Gerar chave única considerando tamanho e observações (para bordas diferentes)
+                  const chave = `${item.pratoId}-${item.tamanho || ''}-${item.observacoes || ''}`
                   return (
                     <div
                       key={chave}
@@ -256,6 +302,12 @@ Obrigado!`
                             {item.nome}
                             {item.tamanho && <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">({item.tamanho})</span>}
                           </p>
+                          {/* Mostrar informações da borda se presente */}
+                          {item.observacoes && item.observacoes.includes('Borda:') && (
+                            <p className="text-xs text-orange-600 font-medium">
+                              🍕 {item.observacoes.split('|').find(obs => obs.includes('Borda:'))?.trim()}
+                            </p>
+                          )}
                           <p className="text-sm text-gray-600">
                             R$ {item.preco.toFixed(2).replace('.', ',')}
                           </p>
@@ -264,7 +316,7 @@ Obrigado!`
                           <Button
                             size="icon-sm"
                             variant="outline"
-                            onClick={() => updateQty(item.pratoId, item.quantidade - 1, item.tamanho)}
+                            onClick={() => updateQty(item.pratoId, item.quantidade - 1, item.tamanho, item.observacoes)}
                           >
                             <Minus />
                           </Button>
@@ -272,11 +324,11 @@ Obrigado!`
                           <Button
                             size="icon-sm"
                             variant="outline"
-                            onClick={() => updateQty(item.pratoId, item.quantidade + 1, item.tamanho)}
+                            onClick={() => updateQty(item.pratoId, item.quantidade + 1, item.tamanho, item.observacoes)}
                           >
                             <Plus />
                           </Button>
-                          <Button size="icon-sm" variant="destructive" onClick={() => remove(item.pratoId, item.tamanho)}>
+                          <Button size="icon-sm" variant="destructive" onClick={() => remove(item.pratoId, item.tamanho, item.observacoes)}>
                             <Trash />
                           </Button>
                         </div>
@@ -286,7 +338,7 @@ Obrigado!`
                          <Textarea
                            placeholder="Observações (ex: sem cebola)"
                            value={item.observacoes || ''}
-                           onChange={(e) => updateObs(item.pratoId, e.target.value, item.tamanho)}
+                           onChange={(e) => updateObs(item.pratoId, e.target.value, item.tamanho, item.observacoes)}
                            className="mt-1 min-h-12 md:min-h-16 max-h-40 resize-y w-full max-w-[340px] md:max-w-md mx-auto overflow-x-hidden wrap-break-word text-center"
                          />
                       </div>
@@ -341,7 +393,17 @@ Obrigado!`
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Telefone <span className="text-gray-400 text-xs">(recomendado)</span>
                   </label>
-                  <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} onBlur={checkAndPrefillByPhone} placeholder="(DDD) 9 9999-9999" disabled={loading || checandoCliente} />
+                  <Input 
+                    value={telefone} 
+                    onChange={(e) => {
+                      // Permitir números, parênteses, espaços, hífens e mais (+)
+                      const value = e.target.value.replace(/[^0-9()\s\-+]/g, '')
+                      setTelefone(value)
+                    }}
+                    onBlur={checkAndPrefillByPhone} 
+                    placeholder="(DDD) 9 9999-9999" 
+                    disabled={loading || checandoCliente} 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -431,7 +493,7 @@ Obrigado!`
                 href={waLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white font-semibold shadow"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow text-sm cursor-pointer"
               >
                 Falar com a pizzaria no WhatsApp
               </a>

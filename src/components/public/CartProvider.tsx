@@ -20,9 +20,9 @@ export type Settings = {
 type CartContextType = {
   items: CartItem[]
   add: (item: Omit<CartItem, 'quantidade'>, qtd?: number) => void
-  remove: (pratoId: number, tamanho?: string) => void
-  updateQty: (pratoId: number, qtd: number, tamanho?: string) => void
-  updateObs: (pratoId: number, obs: string, tamanho?: string) => void
+  remove: (pratoId: number, tamanho?: string, observacoes?: string) => void
+  updateQty: (pratoId: number, qtd: number, tamanho?: string, observacoes?: string) => void
+  updateObs: (pratoId: number, obs: string, tamanho?: string, observacoesOriginais?: string) => void
   clear: () => void
   subtotal: number
   total: number
@@ -36,9 +36,9 @@ export function CartProvider({ children, settings }: { children: React.ReactNode
 
   const add: CartContextType['add'] = (item, qtd = 1) => {
     setItems((prev) => {
-      // Identifica item pelo pratoId e tamanho
-      const chave = (p: CartItem) => `${p.pratoId}-${p.tamanho || ''}`
-      const novaChave = `${item.pratoId}-${item.tamanho || ''}`
+      // Identifica item pelo pratoId, tamanho e observações (para diferenciar bordas)
+      const chave = (p: CartItem) => `${p.pratoId}-${p.tamanho || ''}-${p.observacoes || ''}`
+      const novaChave = `${item.pratoId}-${item.tamanho || ''}-${item.observacoes || ''}`
       const i = prev.find((p) => chave(p) === novaChave)
       if (i) {
         return prev.map((p) => chave(p) === novaChave ? { ...p, quantidade: p.quantidade + qtd } : p)
@@ -47,26 +47,26 @@ export function CartProvider({ children, settings }: { children: React.ReactNode
     })
   }
 
-  const remove = (pratoId: number, tamanho?: string) => {
+  const remove = (pratoId: number, tamanho?: string, observacoes?: string) => {
     setItems((prev) => prev.filter((i) => {
-      const chave = `${i.pratoId}-${i.tamanho || ''}`
-      const chaveRemover = `${pratoId}-${tamanho || ''}`
+      const chave = `${i.pratoId}-${i.tamanho || ''}-${i.observacoes || ''}`
+      const chaveRemover = `${pratoId}-${tamanho || ''}-${observacoes || ''}`
       return chave !== chaveRemover
     }))
   }
 
-  const updateQty = (pratoId: number, qtd: number, tamanho?: string) => {
+  const updateQty = (pratoId: number, qtd: number, tamanho?: string, observacoes?: string) => {
     setItems((prev) => prev.map((i) => {
-      const chave = `${i.pratoId}-${i.tamanho || ''}`
-      const chaveAtualizar = `${pratoId}-${tamanho || ''}`
+      const chave = `${i.pratoId}-${i.tamanho || ''}-${i.observacoes || ''}`
+      const chaveAtualizar = `${pratoId}-${tamanho || ''}-${observacoes || ''}`
       return chave === chaveAtualizar ? { ...i, quantidade: Math.max(1, qtd) } : i
     }))
   }
 
-  const updateObs = (pratoId: number, obs: string, tamanho?: string) => {
+  const updateObs = (pratoId: number, obs: string, tamanho?: string, observacoesOriginais?: string) => {
     setItems((prev) => prev.map((i) => {
-      const chave = `${i.pratoId}-${i.tamanho || ''}`
-      const chaveAtualizar = `${pratoId}-${tamanho || ''}`
+      const chave = `${i.pratoId}-${i.tamanho || ''}-${i.observacoes || ''}`
+      const chaveAtualizar = `${pratoId}-${tamanho || ''}-${observacoesOriginais || ''}`
       return chave === chaveAtualizar ? { ...i, observacoes: obs } : i
     }))
   }

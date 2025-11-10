@@ -82,7 +82,7 @@ export function HeroSection({ isOpenNow }: Props) {
             <div className="pt-4">
               <a 
                 href="#cardapio" 
-                className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 cursor-pointer"
               >
                 <span>Ver Cardápio</span>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

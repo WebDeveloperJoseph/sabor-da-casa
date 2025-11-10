@@ -9,13 +9,22 @@ const itemPedidoSchema = z.object({
   pratoId: z.number(),
   quantidade: z.number().min(1),
   observacoes: z.string().optional(),
-  tamanho: z.string().optional() // P, M, G
+  tamanho: z.string().optional(), // P, M, G
+  // Para pizzas mistas (pratoId=0), precisamos do nome e preço
+  nome: z.string().optional(),
+  preco: z.number().optional()
 })
 
 const criarPedidoSchema = z.object({
   nomeCliente: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  telefone: z.string().optional(),
-  endereco: z.string().optional(),
+  telefone: z.string()
+    .min(1, 'Telefone é obrigatório')
+    .refine(value => {
+      // Remover caracteres não numéricos para validação
+      const apenasNumeros = value.replace(/\D/g, '')
+      return apenasNumeros.length >= 8 && apenasNumeros.length <= 15
+    }, { message: 'Telefone deve ter entre 8 e 15 dígitos' }),
+  endereco: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
   observacoes: z.string().optional(),
   itens: z.array(itemPedidoSchema).min(1, 'Pedido deve ter ao menos 1 item'),
   clienteId: z.number().int().optional()
@@ -36,34 +45,72 @@ export async function POST(request: NextRequest) {
 
   const { nomeCliente, telefone, endereco, observacoes, itens, clienteId } = validacao.data
 
-    // Buscar pratos e calcular total
-    const pratoIds = itens.map(item => item.pratoId)
-    const pratos = await prisma.prato.findMany({
-      where: { id: { in: pratoIds }, ativo: true },
-      include: {
-        tamanhos: { where: { ativo: true } }
+    // Separar pizzas mistas (pratoId=999) de pratos normais
+    const itensMistos = itens.filter(item => item.pratoId === 999)
+    const itensNormais = itens.filter(item => item.pratoId !== 999)
+    
+    // Buscar pratos normais e validar
+    let pratos: any[] = []
+    if (itensNormais.length > 0) {
+      const pratoIds = itensNormais.map(item => item.pratoId)
+      const pratoIdsUnicos = [...new Set(pratoIds)] // Remove duplicados
+      
+      pratos = await prisma.prato.findMany({
+        where: { id: { in: pratoIdsUnicos }, ativo: true },
+        include: {
+          tamanhos: { where: { ativo: true } }
+        }
+      })
+
+      if (pratos.length !== pratoIdsUnicos.length) {
+        const pratosEncontrados = pratos.map(p => p.id)
+        const pratosNaoEncontrados = pratoIdsUnicos.filter(id => !pratosEncontrados.includes(id))
+        
+        return NextResponse.json(
+          { erro: 'Alguns pratos não foram encontrados ou estão inativos', pratosNaoEncontrados },
+          { status: 400 }
+        )
       }
-    })
-
-    if (pratos.length !== pratoIds.length) {
-      return NextResponse.json(
-        { erro: 'Alguns pratos não foram encontrados ou estão inativos' },
-        { status: 400 }
-      )
     }
+    
+    // Para pizzas mistas, não validamos no banco pois o preço já vem calculado
+    console.log(`Pedido com ${itensNormais.length} itens normais e ${itensMistos.length} pizzas mistas`)
 
-    // Calcular valor total considerando tamanhos e bordas
+    // Calcular valor total considerando tamanhos
     let valorTotal = 0
     const itensParaCriar = itens.map(item => {
+      // Pizza mista (pratoId = 999)
+      if (item.pratoId === 999) {
+        if (!item.nome || item.preco === undefined) {
+          throw new Error('Pizza mista precisa de nome e preço')
+        }
+        const precoUnit = item.preco
+        const subtotal = precoUnit * item.quantidade
+        valorTotal += subtotal
+        
+        return {
+          pratoId: item.pratoId,
+          nomePrato: item.nome,
+          quantidade: item.quantidade,
+          precoUnit: precoUnit,
+          subtotal: subtotal,
+          observacoes: item.observacoes,
+          tamanho: item.tamanho
+        }
+      }
+      
+      // Prato normal
       const prato = pratos.find(p => p.id === item.pratoId)
       if (!prato) throw new Error('Prato não encontrado')
 
       // Se tem tamanho especificado, buscar preço correspondente
       let precoUnit = Number(prato.preco)
       if (item.tamanho && prato.tamanhos.length > 0) {
-        const tamanhoEncontrado = prato.tamanhos.find(t => t.tamanho === item.tamanho)
+        const tamanhoEncontrado = prato.tamanhos.find((t: any) => t.tamanho === item.tamanho)
         if (tamanhoEncontrado) {
           precoUnit = Number(tamanhoEncontrado.preco)
+        } else {
+          throw new Error(`Tamanho ${item.tamanho} não disponível para ${prato.nome}`)
         }
       }
 
@@ -134,6 +181,7 @@ export async function POST(request: NextRequest) {
       // Se a tabela de contadores diários não existir (migration ainda não aplicada),
       // fazemos um fallback e criamos o pedido sem `dailyNumber` para não bloquear vendas.
       console.error('Erro ao gerar dailyNumber, fallback sem dailyNumber:', e)
+      console.error('Stack trace:', e instanceof Error ? e.stack : e)
 
       // Criar pedido simples sem dailyNumber
       const fallbackData: any = {
@@ -173,8 +221,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(responseBody, { status: 201 })
   } catch (error) {
     console.error('Erro ao criar pedido:', error)
+    console.error('Detalhes do erro:', error instanceof Error ? error.message : error)
+    console.error('Stack:', error instanceof Error ? error.stack : 'N/A')
     return NextResponse.json(
-      { erro: 'Erro ao criar pedido' },
+      { erro: 'Erro ao criar pedido', detalhes: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

@@ -85,7 +85,7 @@ export function AvaliarPedidoDialog({ pedidoId, pedidoNumero }: AvaliarPedidoDia
                   onClick={() => setEstrelas(star)}
                   onMouseEnter={() => setHoverEstrelas(star)}
                   onMouseLeave={() => setHoverEstrelas(0)}
-                  className="transition-transform hover:scale-110 focus:outline-none"
+                  className="transition-transform hover:scale-110 focus:outline-none cursor-pointer"
                 >
                   <Star
                     className={`h-8 w-8 ${

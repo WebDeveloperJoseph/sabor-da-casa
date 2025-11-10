@@ -6,8 +6,10 @@ import { prisma } from "@/lib/prisma"
 import Image from "next/image"
 import { CartProvider } from "@/components/public/CartProvider"
 import { AddToCartButton } from "@/components/public/AddToCartButton"
+import { AddPizzaToCartButton } from "@/components/public/AddPizzaToCartButton"
 import { CartDialog } from "@/components/public/CartDialog"
 import { HeroSection } from "@/components/public/HeroSection"
+import { MonteSuaPizzaButton } from "@/components/public/MonteSuaPizzaButton"
 import { Star } from "lucide-react"
 
 // Tipos auxiliares para evitar uso de `any` e padronizar o shape usado aqui
@@ -160,6 +162,33 @@ export default async function Home() {
           </div>
         )}
 
+        {/* Botão Monte sua Pizza */}
+        {categorias.some(c => c.nome.toLowerCase().includes('tradiciona')) && (
+          <div className="mb-12 flex justify-center">
+            <MonteSuaPizzaButton 
+              pizzas={
+                categorias
+                  .find(c => c.nome.toLowerCase().includes('tradiciona'))
+                  ?.pratos
+                  .filter(p => p.tamanhos && p.tamanhos.length > 0)
+                  .map(p => ({
+                    id: p.id,
+                    nome: p.nome,
+                    preco: Number(p.preco),
+                    descricao: p.descricao,
+                    imagem: p.imagem,
+                    tamanhos: p.tamanhos!.map(t => ({
+                      id: 0, // Não precisamos do ID real aqui
+                      pratoId: p.id,
+                      tamanho: t.tamanho,
+                      preco: t.preco
+                    }))
+                  })) || []
+              }
+            />
+          </div>
+        )}
+
         {/* Cardápio por categorias */}
   <div id="cardapio" className="space-y-16 scroll-mt-24">
           {categorias.map((categoria) => (
@@ -244,12 +273,22 @@ export default async function Home() {
 
                       {/* Botão */}
                       <div className="flex items-center justify-center">
-                        <AddToCartButton 
-                          pratoId={prato.id} 
-                          nome={prato.nome} 
-                          preco={Number(prato.preco)}
-                          tamanhos={prato.tamanhos && prato.tamanhos.length > 0 ? prato.tamanhos : undefined}
-                        />
+                        {categoria.nome.toLowerCase().includes('pizza') || categoria.nome.toLowerCase().includes('tradicional') ? (
+                          <AddPizzaToCartButton 
+                            pratoId={prato.id} 
+                            nome={prato.nome} 
+                            preco={Number(prato.preco)}
+                            tamanhos={prato.tamanhos && prato.tamanhos.length > 0 ? prato.tamanhos : undefined}
+                            categoriaNome={categoria.nome}
+                          />
+                        ) : (
+                          <AddToCartButton 
+                            pratoId={prato.id} 
+                            nome={prato.nome} 
+                            preco={Number(prato.preco)}
+                            tamanhos={prato.tamanhos && prato.tamanhos.length > 0 ? prato.tamanhos : undefined}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>

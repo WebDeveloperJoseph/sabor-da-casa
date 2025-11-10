@@ -37,6 +37,8 @@ model Prato {
   ativo       Boolean @default(true)
   destaque    Boolean @default(false)
   categoriaId Int     @map("categoria_id")
+  nomeBorda   String? @map("nome_borda") @db.VarChar(100)
+  precoBorda  Decimal? @map("preco_borda") @db.Decimal(10, 2)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
