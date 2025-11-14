@@ -49,10 +49,20 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
   // Buscar bordas disponíveis
   useEffect(() => {
     if (open) {
+      console.log('🍕 Carregando bordas...')
       fetch('/api/bordas')
-        .then(res => res.json())
-        .then(data => setBordas(data.bordas || []))
-        .catch(err => console.warn('Erro ao carregar bordas:', err))
+        .then(res => {
+          console.log('🍕 Resposta bordas:', res.status)
+          return res.json()
+        })
+        .then(data => {
+          console.log('🍕 Bordas carregadas:', data)
+          setBordas(data.bordas || [])
+        })
+        .catch(err => {
+          console.error('❌ Erro ao carregar bordas:', err)
+          setBordas([])
+        })
     }
   }, [open])
 
@@ -120,15 +130,25 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
       ? `Sabores: ${nomesSabores} | Borda: ${bordaSelecionada.nome}`
       : `Sabores: ${nomesSabores}`
     
-    add({
+    const itemPizza = {
       pratoId: 999, // ID especial para pizzas mistas
       nome: nomeCompleto,
       preco: precoCalculado,
       tamanho: tamanhoSelecionado,
       observacoes: observacoesFinal
-    })
-
-    toast.success('Pizza adicionada ao carrinho!')
+    }
+    
+    console.log('🍕 Adicionando pizza ao carrinho:', itemPizza)
+    
+    try {
+      add(itemPizza)
+      toast.success('Pizza adicionada ao carrinho!')
+      console.log('✅ Pizza adicionada com sucesso')
+    } catch (error) {
+      console.error('❌ Erro ao adicionar pizza ao carrinho:', error)
+      toast.error('Erro ao adicionar pizza ao carrinho')
+      return
+    }
     
     // Reset
     setSaboresSelecionados([])

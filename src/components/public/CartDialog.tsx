@@ -485,17 +485,33 @@ Obrigado!`
       {/* Modal de confirmação pós-pedido */}
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center flex flex-col items-center gap-4">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full text-center flex flex-col items-center gap-4">
             <h2 className="text-xl font-bold text-orange-700 mb-2">Pedido recebido!</h2>
             <p className="text-gray-700">Seu pedido foi recebido na central e está sendo processado.<br />Assim que o entregador sair, avisaremos!</p>
+            
+            {/* Aviso de segurança */}
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-2">
+              <div className="flex items-start gap-2">
+                <span className="text-yellow-600 text-lg">⚠️</span>
+                <div className="text-left">
+                  <h3 className="font-bold text-yellow-800 mb-1">Confirmação Necessária</h3>
+                  <p className="text-sm text-yellow-700">
+                    <strong>Por segurança, confirme seu pedido no WhatsApp da pizzaria.</strong><br />
+                    Isso garante que seu pedido seja realmente processado e entregue corretamente.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="flex flex-col items-center gap-2">
               <a
                 href={waLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow text-sm cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold shadow-lg text-sm cursor-pointer animate-pulse"
               >
-                Falar com a pizzaria no WhatsApp
+                <span>📱</span>
+                Confirmar Pedido no WhatsApp
               </a>
 
               {lastOrder && lastOrder.id ? (

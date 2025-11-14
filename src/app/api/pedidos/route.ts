@@ -10,7 +10,7 @@ const itemPedidoSchema = z.object({
   quantidade: z.number().min(1),
   observacoes: z.string().optional(),
   tamanho: z.string().optional(), // P, M, G
-  // Para pizzas mistas (pratoId=0), precisamos do nome e preço
+  // Para pizzas mistas (pratoId=999), precisamos do nome e preço
   nome: z.string().optional(),
   preco: z.number().optional()
 })
@@ -26,7 +26,17 @@ const criarPedidoSchema = z.object({
     }, { message: 'Telefone deve ter entre 8 e 15 dígitos' }),
   endereco: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
   observacoes: z.string().optional(),
-  itens: z.array(itemPedidoSchema).min(1, 'Pedido deve ter ao menos 1 item'),
+  itens: z.array(itemPedidoSchema).min(1, 'Pedido deve ter ao menos 1 item')
+    .refine(itens => {
+      // Validação específica para pizzas mistas (pratoId = 999)
+      return itens.every(item => {
+        if (item.pratoId === 999) {
+          return item.nome && typeof item.nome === 'string' && 
+                 item.preco !== undefined && typeof item.preco === 'number' && item.preco > 0
+        }
+        return true
+      })
+    }, { message: 'Pizzas mistas devem ter nome e preço válidos' }),
   clienteId: z.number().int().optional()
 })
 
