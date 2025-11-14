@@ -34,7 +34,7 @@ export function MonteSuaPizzaButton({ pizzas }: Props) {
         className="w-full md:w-auto px-8 py-4 bg-linear-to-r from-purple-500 to-pink-500 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 border-2 border-white cursor-pointer"
       >
         <Pizza className="w-6 h-6" />
-        <span className="text-lg">Monte sua Pizza (2-4 sabores)</span>
+        <span className="text-lg">Monte sua Pizza</span>
       </button>
 
       <MonteSuaPizzaDialog 

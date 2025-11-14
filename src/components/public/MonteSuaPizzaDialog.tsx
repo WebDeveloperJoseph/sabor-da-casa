@@ -36,7 +36,8 @@ type Props = {
 }
 
 const TAMANHOS_DISPONIVEIS = ['P', 'M', 'G'] as const
-const MAX_SABORES = 4
+const MAX_SABORES_P = 2
+const MAX_SABORES_G = 4
 
 export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
   const { add } = useCart()
@@ -73,13 +74,22 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
     return precoBase + precoBorda
   }, [saboresSelecionados, tamanhoSelecionado, pizzas, bordaSelecionada])
 
+  const getMaxSabores = () => {
+    if (tamanhoSelecionado === 'P' || tamanhoSelecionado === 'M') {
+      return MAX_SABORES_P
+    }
+    return MAX_SABORES_G
+  }
+
   const toggleSabor = (pizzaId: number) => {
     setSaboresSelecionados((prev) => {
       if (prev.includes(pizzaId)) {
         return prev.filter((id) => id !== pizzaId)
       }
-      if (prev.length >= MAX_SABORES) {
-        toast.error(`Você pode escolher no máximo ${MAX_SABORES} sabores`)
+      const maxSabores = getMaxSabores()
+      if (prev.length >= maxSabores) {
+        const tamanhoTexto = tamanhoSelecionado === 'G' ? 'Grande (3-4 sabores)' : 'P/M (até 2 sabores)'
+        toast.error(`Tamanho ${tamanhoTexto}`)
         return prev
       }
       return [...prev, pizzaId]
@@ -87,8 +97,11 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
   }
 
   const handleAddToCart = () => {
-    if (saboresSelecionados.length < 2) {
-      toast.error('Escolha pelo menos 2 sabores')
+    const minSabores = tamanhoSelecionado === 'G' ? 3 : 2
+    
+    if (saboresSelecionados.length < minSabores) {
+      const texto = tamanhoSelecionado === 'G' ? 'pelo menos 3 sabores' : 'pelo menos 2 sabores'
+      toast.error(`Escolha ${texto}`)
       return
     }
 
@@ -133,7 +146,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
             Monte sua Pizza
           </DialogTitle>
           <p className="text-sm text-gray-600 mt-2">
-            Escolha de 2 até {MAX_SABORES} sabores. O preço será do sabor mais caro.
+            Tamanhos P e M: até 2 sabores | Tamanho G: 3 ou 4 sabores. O preço será do sabor mais caro.
           </p>
         </DialogHeader>
 
@@ -146,14 +159,24 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
             {TAMANHOS_DISPONIVEIS.map((tamanho) => (
               <button
                 key={tamanho}
-                onClick={() => setTamanhoSelecionado(tamanho)}
+                onClick={() => {
+                  setTamanhoSelecionado(tamanho)
+                  // Resetar sabores se exceder o novo limite
+                  const novoMax = tamanho === 'P' || tamanho === 'M' ? 2 : 4
+                  setSaboresSelecionados(prev => prev.slice(0, novoMax))
+                }}
                 className={`flex-1 py-3 px-4 rounded-lg border-2 font-semibold transition-all cursor-pointer ${
                   tamanhoSelecionado === tamanho
                     ? 'border-orange-500 bg-orange-50 text-orange-700'
                     : 'border-gray-200 bg-white text-gray-700 hover:border-orange-300'
                 }`}
               >
-                {tamanho}
+                <div className="text-center">
+                  <div>{tamanho}</div>
+                  <div className="text-xs opacity-75">
+                    {tamanho === 'G' ? '3-4 sabores' : 'até 2 sabores'}
+                  </div>
+                </div>
               </button>
             ))}
           </div>
@@ -206,7 +229,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
         <div className="mb-4 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
           <div className="flex justify-between items-center">
             <span className="text-sm font-semibold text-gray-700">
-              Sabores selecionados: {saboresSelecionados.length}/{MAX_SABORES}
+              Sabores selecionados: {saboresSelecionados.length}/{getMaxSabores()}
             </span>
             <span className="text-lg font-bold text-orange-600">
               R$ {precoCalculado.toFixed(2).replace('.', ',')}
@@ -265,7 +288,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
         <div className="flex gap-3 mt-6">
           <Button
             onClick={handleAddToCart}
-            disabled={saboresSelecionados.length < 2}
+            disabled={saboresSelecionados.length < (tamanhoSelecionado === 'G' ? 3 : 2)}
             className="flex-1 bg-linear-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-6 text-lg"
           >
             Adicionar ao Carrinho

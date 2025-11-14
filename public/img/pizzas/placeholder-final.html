@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizza Placeholder - Sabor da Casa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .pizza-placeholder {
+            width: 600px;
+            height: 400px;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 30%, #ff8c42 70%, #ff6b35 100%);
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 25px 50px rgba(255, 107, 53, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Efeitos decorativos de fundo */
+        .pizza-placeholder::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.3) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.2) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        /* Sparkles decorativos */
+        .sparkles {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        
+        .sparkle {
+            position: absolute;
+            font-size: 28px;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: twinkle 3s ease-in-out infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        .sparkle:nth-child(1) { top: 8%; left: 8%; animation-delay: 0s; }
+        .sparkle:nth-child(2) { top: 15%; right: 12%; animation-delay: 1s; }
+        .sparkle:nth-child(3) { bottom: 15%; left: 15%; animation-delay: 2s; }
+        .sparkle:nth-child(4) { bottom: 20%; right: 8%; animation-delay: 0.5s; }
+        .sparkle:nth-child(5) { top: 35%; left: 45%; animation-delay: 1.5s; }
+        .sparkle:nth-child(6) { bottom: 8%; right: 40%; animation-delay: 2.5s; }
+        
+        /* Conteúdo principal */
+        .content {
+            text-align: center;
+            z-index: 2;
+            position: relative;
+        }
+        
+        .pizza-icon {
+            font-size: 120px;
+            margin-bottom: 25px;
+            animation: rotate 6s linear infinite;
+            text-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .main-title {
+            font-size: 42px;
+            font-weight: 900;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 0 0 15px 0;
+            text-shadow: 
+                3px 3px 0px rgba(0, 0, 0, 0.7),
+                0 0 20px rgba(255, 255, 255, 0.3);
+            line-height: 1;
+        }
+        
+        .subtitle {
+            font-size: 20px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            margin: 0 0 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+            line-height: 1.3;
+        }
+        
+        .emoji-line {
+            font-size: 32px;
+            margin: 20px 0;
+            animation: bounce 2s ease-in-out infinite;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .final-text {
+            font-size: 16px;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Borda interna sutil */
+        .pizza-placeholder::after {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 22px;
+            pointer-events: none;
+        }
+        
+        /* Efeito de pulsação suave */
+        .pizza-placeholder {
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+    </style>
+</head>
+<body>
+    <div class="pizza-placeholder">
+        <!-- Sparkles decorativos -->
+        <div class="sparkles">
+            <div class="sparkle">✨</div>
+            <div class="sparkle">⭐</div>
+            <div class="sparkle">✨</div>
+            <div class="sparkle">💫</div>
+            <div class="sparkle">⭐</div>
+            <div class="sparkle">✨</div>
+        </div>
+        
+        <!-- Conteúdo principal -->
+        <div class="content">
+            <div class="pizza-icon">🍕</div>
+            
+            <h1 class="main-title">Foto em Breve!</h1>
+            
+            <p class="subtitle">
+                Esta deliciosa pizza já está<br>
+                no nosso cardápio
+            </p>
+            
+            <div class="emoji-line">📸 ✨ 🔥</div>
+            
+            <p class="final-text">
+                Estamos preparando uma foto incrível para você!
+            </p>
+        </div>
+    </div>
+</body>
+</html>

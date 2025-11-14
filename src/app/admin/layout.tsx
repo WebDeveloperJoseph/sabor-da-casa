@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { BotaoSair } from "@/components/admin/BotaoSair"
 import { AdminNav } from "@/components/admin/AdminNav"
+import { RealtimeOrderNotifications } from "@/components/admin/RealtimeOrderNotifications"
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
@@ -74,6 +75,7 @@ export default async function AdminLayout({
               </h2>
             </div>
             <div className="flex items-center space-x-4">
+              <RealtimeOrderNotifications />
               <div className="flex items-center space-x-2 px-3 py-1.5 bg-orange-50 rounded-full border border-orange-200">
                 <User className="w-4 h-4 text-orange-600" />
                 <span className="text-sm font-medium text-orange-700">Administrador</span>

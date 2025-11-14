@@ -34,7 +34,7 @@ export function HeroSection({ isOpenNow }: Props) {
             
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
               <span className="bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                Pizzas Artesanais
+                👨‍🍳 Pizza Moda da Casa
               </span>
               <br />
               <span className="text-gray-900">Feitas com Amor</span>
@@ -58,7 +58,7 @@ export function HeroSection({ isOpenNow }: Props) {
                 <MapPin className="w-5 h-5 text-red-500" />
                 <div className="text-left">
                   <p className="text-xs text-gray-500 font-medium">Entrega</p>
-                  <p className="text-sm font-bold text-gray-900">Até 5km</p>
+                  <p className="text-sm font-bold text-gray-900">Só em Nova Floresta</p>
                 </div>
               </div>
               

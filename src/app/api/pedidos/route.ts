@@ -237,6 +237,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const limite = Number(searchParams.get('limite')) || 50
     const telefone = searchParams.get('telefone')
+    const desde = searchParams.get('desde') // Para notificações em tempo real
 
     // Se tiver telefone, é busca pública (cliente buscando seus pedidos)
     if (telefone) {
@@ -258,8 +259,17 @@ export async function GET(request: NextRequest) {
     // Caso contrário, requer autenticação (admin)
     await requireUser()
 
+    // Construir filtros
+    const whereClause: any = {}
+    if (status) whereClause.status = status
+    if (desde) {
+      whereClause.createdAt = {
+        gte: new Date(desde)
+      }
+    }
+
     const pedidos = await prisma.pedido.findMany({
-      where: status ? { status } : undefined,
+      where: whereClause,
       include: {
         itens: {
           include: {
