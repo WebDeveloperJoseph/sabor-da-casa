@@ -78,13 +78,18 @@ export function AddPizzaToCartButton({
               key={t.tamanho}
               type="button"
               onClick={() => setTamanhoSelecionado(t.tamanho)}
-              className={`px-3 py-1 text-sm font-medium rounded border transition-all duration-300 transform cursor-pointer ${
+              className={`px-3 py-1 text-sm font-medium rounded border transition-all duration-300 transform cursor-pointer flex flex-col items-center ${
                 tamanhoSelecionado === t.tamanho
                   ? 'bg-orange-500 text-white border-orange-500 scale-105 shadow-md'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-orange-500 hover:scale-105 hover:shadow-md hover:bg-orange-50'
               }`}
             >
-              {t.tamanho} - R$ {t.preco.toFixed(2).replace('.', ',')}
+              <span>{t.tamanho} - R$ {t.preco.toFixed(2).replace('.', ',')}</span>
+              <span className={`text-xs ${
+                tamanhoSelecionado === t.tamanho ? 'text-orange-100' : 'text-blue-600'
+              }`}>
+                {t.tamanho === 'P' ? '4 fatias' : t.tamanho === 'M' ? '6 fatias' : '8 fatias'}
+              </span>
             </button>
           ))}
         </div>

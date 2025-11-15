@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { AvaliarPedidoDialog } from "@/components/public/AvaliarPedidoDialog"
+import { BuscaPedidosLoading } from "@/components/public/PedidoSkeleton"
 import { Clock, CheckCircle, Truck, Package, Star } from "lucide-react"
 import Link from "next/link"
 
@@ -34,25 +35,61 @@ export default function MeusPedidosPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState("")
+  const [ultimaBusca, setUltimaBusca] = useState("")
+  const [cachePedidos, setCachePedidos] = useState<Map<string, Pedido[]>>(new Map())
+  const [showSkeleton, setShowSkeleton] = useState(false)
+
+  // Carregar último telefone usado do localStorage
+  useEffect(() => {
+    const ultimoTelefone = localStorage.getItem('ultimoTelefone')
+    if (ultimoTelefone) {
+      setTelefone(ultimoTelefone)
+    }
+  }, [])
 
   const buscarPedidos = async () => {
-    if (!telefone.trim()) {
+    const telefoneLimpo = telefone.trim()
+    if (!telefoneLimpo) {
       setErro("Digite seu telefone")
       return
     }
 
+    // Verificar cache primeiro
+    if (cachePedidos.has(telefoneLimpo)) {
+      const pedidosCache = cachePedidos.get(telefoneLimpo)!
+      setPedidos(pedidosCache)
+      setUltimaBusca(telefoneLimpo)
+      if (pedidosCache.length === 0) {
+        setErro("Nenhum pedido encontrado com este telefone")
+      } else {
+        setErro("")
+      }
+      return
+    }
+
     setLoading(true)
+    setShowSkeleton(true)
     setErro("")
     
     try {
-      const res = await fetch(`/api/pedidos?telefone=${encodeURIComponent(telefone)}`)
+      // Salvar telefone no localStorage
+      localStorage.setItem('ultimoTelefone', telefoneLimpo)
+      
+      const res = await fetch(`/api/pedidos?telefone=${encodeURIComponent(telefoneLimpo)}`)
       
       if (!res.ok) {
         throw new Error("Erro ao buscar pedidos")
       }
 
       const data = await res.json()
+      
+      // Adicionar ao cache
+      const novoCache = new Map(cachePedidos)
+      novoCache.set(telefoneLimpo, data)
+      setCachePedidos(novoCache)
+      
       setPedidos(data)
+      setUltimaBusca(telefoneLimpo)
       
       if (data.length === 0) {
         setErro("Nenhum pedido encontrado com este telefone")
@@ -62,6 +99,7 @@ export default function MeusPedidosPage() {
       setErro("Erro ao buscar pedidos. Tente novamente.")
     } finally {
       setLoading(false)
+      setTimeout(() => setShowSkeleton(false), 200) // Pequeno delay para suavizar transição
     }
   }
 
@@ -158,11 +196,27 @@ export default function MeusPedidosPage() {
             {erro && (
               <p className="mt-2 text-sm text-red-600">{erro}</p>
             )}
+            {ultimaBusca && ultimaBusca !== telefone.trim() && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  💾 Dados em cache para: {ultimaBusca}
+                </p>
+                <button
+                  onClick={() => setCachePedidos(new Map())}
+                  className="text-xs text-blue-600 hover:text-blue-800 mt-1"
+                >
+                  Limpar cache
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Loading skeleton */}
+        {showSkeleton && <BuscaPedidosLoading />}
+
         {/* Lista de pedidos */}
-        {pedidos.length > 0 && (
+        {pedidos.length > 0 && !showSkeleton && (
           <div className="max-w-4xl mx-auto space-y-4">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               {pedidos.length} pedido{pedidos.length > 1 ? 's' : ''} encontrado{pedidos.length > 1 ? 's' : ''}

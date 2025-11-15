@@ -165,9 +165,14 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
             <Pizza className="w-8 h-8 text-orange-600" />
             Monte sua Pizza
           </DialogTitle>
-          <p className="text-sm text-gray-600 mt-2">
-            Tamanhos P e M: até 2 sabores | Tamanho G: 3 ou 4 sabores. O preço será do sabor mais caro.
-          </p>
+          <div className="text-sm text-gray-600 mt-2">
+            <p className="mb-2">Tamanhos P e M: até 2 sabores | Tamanho G: 3 ou 4 sabores. O preço será do sabor mais caro.</p>
+            <div className="flex gap-4 text-xs bg-blue-50 p-2 rounded border">
+              <span><strong>P:</strong> 4 fatias</span>
+              <span><strong>M:</strong> 6 fatias</span>
+              <span><strong>G:</strong> 8 fatias</span>
+            </div>
+          </div>
         </DialogHeader>
 
         {/* Seleção de Tamanho */}
@@ -195,6 +200,9 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
                   <div>{tamanho}</div>
                   <div className="text-xs opacity-75">
                     {tamanho === 'G' ? '3-4 sabores' : 'até 2 sabores'}
+                  </div>
+                  <div className="text-xs text-blue-600 font-semibold">
+                    {tamanho === 'P' ? '4 fatias' : tamanho === 'M' ? '6 fatias' : '8 fatias'}
                   </div>
                 </div>
               </button>

@@ -300,7 +300,11 @@ Obrigado!`
                         <div className="min-w-0">
                           <p className="font-medium text-gray-900 truncate" title={item.nome}>
                             {item.nome}
-                            {item.tamanho && <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">({item.tamanho})</span>}
+                            {item.tamanho && (
+                              <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
+                                {item.tamanho} - {item.tamanho === 'P' ? '4 fatias' : item.tamanho === 'M' ? '6 fatias' : '8 fatias'}
+                              </span>
+                            )}
                           </p>
                           {/* Mostrar informações da borda se presente */}
                           {item.observacoes && item.observacoes.includes('Borda:') && (

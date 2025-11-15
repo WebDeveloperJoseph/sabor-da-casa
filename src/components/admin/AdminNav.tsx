@@ -8,7 +8,8 @@ import {
   FolderOpen, 
   Utensils, 
   User,
-  ShoppingCart
+  ShoppingCart,
+  Star
 } from "lucide-react"
 
 const menuItems = [
@@ -29,6 +30,12 @@ const menuItems = [
     icon: User,
     label: "Clientes",
     description: "Cadastro e histórico"
+  },
+  {
+    href: "/admin/avaliacoes",
+    icon: Star,
+    label: "Avaliações",
+    description: "Feedback dos clientes"
   },
   {
     href: "/admin/pizzas",

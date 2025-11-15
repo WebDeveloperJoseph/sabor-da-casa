@@ -8,6 +8,7 @@ import { PratoCard } from "@/components/public/PratoCard"
 import { LazyCartDialog } from "@/components/public/LazyCartDialog"
 import { HeroSection } from "@/components/public/HeroSection"
 import { MonteSuaPizzaButton } from "@/components/public/MonteSuaPizzaButton"
+import { AvaliacoesDestaques } from "@/components/public/AvaliacoesDestaques"
 // Tipos auxiliares para evitar uso de `any` e padronizar o shape usado aqui
 type IngredienteTag = { ingrediente: { id: number; nome: string; alergenico: boolean } }
 type PrecoLike = number | string
@@ -40,6 +41,13 @@ export default async function Home() {
     pedidoMinimo: 0,
     taxaEntrega: 0,
   }
+  let avaliacoesDestaque: Array<{
+    id: number
+    estrelas: number
+    comentario: string | null
+    createdAt: Date
+    pedido: { nomeCliente: string }
+  }> = []
 
   try {
     const categoriasRaw = await prisma.categoria.findMany({
@@ -108,6 +116,21 @@ export default async function Home() {
       ...cat,
       pratos: cat.pratos.map((p: PratoWithIngred) => ({ ...p, rating: byPrato[p.id] || { avg: 0, count: 0 } }))
     }))
+
+    // Buscar avaliações em destaque (5 estrelas com comentários)
+    avaliacoesDestaque = await prisma.avaliacao.findMany({
+      where: {
+        estrelas: { gte: 4 }, // 4 ou 5 estrelas
+        comentario: { not: null } // apenas com comentários
+      },
+      include: {
+        pedido: {
+          select: { nomeCliente: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 6 // máximo 6 avaliações
+    })
   } catch (err) {
     console.error('[Home] Falha ao carregar dados do banco. Verifique DATABASE_URL/DIRECT_URL.', err)
   }
@@ -225,6 +248,9 @@ export default async function Home() {
             </div>
           )}
         </div>
+
+        {/* Avaliações em Destaque */}
+        <AvaliacoesDestaques avaliacoes={avaliacoesDestaque} />
 
         {/* Footer */}
         <footer className="relative mt-24 py-12 bg-linear-to-br from-orange-50 to-red-50 rounded-3xl border-2 border-orange-100">
