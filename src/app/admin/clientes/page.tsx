@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import type { Cliente } from "@/generated/prisma"
+import type { Cliente } from "@prisma/client"
 type ClienteWithCount = Cliente & { _count: { pedidos: number } }
 type FidelidadeCfg = {
   ativo: boolean
