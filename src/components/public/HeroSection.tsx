@@ -78,13 +78,22 @@ export function HeroSection({ isOpenNow }: Props) {
               </div>
             </div>
             
-            {/* CTA Button */}
-            <div className="pt-4">
+            {/* CTA Buttons */}
+            <div className="pt-4 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center lg:justify-start">
               <a 
                 href="#cardapio" 
                 className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 cursor-pointer"
               >
                 <span>Ver Cardápio</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+              <a
+                href="#bordas"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-yellow-400 to-orange-400 text-orange-900 font-bold rounded-full shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-yellow-300"
+              >
+                <span>Ver Bordas Recheadas</span>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>

@@ -22,12 +22,6 @@ type PratoTamanho = {
   preco: number
 }
 
-type Borda = {
-  id: number
-  nome: string
-  preco: number
-  descricao?: string
-}
 
 type Props = {
   open: boolean
@@ -43,46 +37,23 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
   const { add } = useCart()
   const [saboresSelecionados, setSaboresSelecionados] = useState<number[]>([])
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string>('M')
-  const [bordas, setBordas] = useState<Borda[]>([])
-  const [bordaSelecionada, setBordaSelecionada] = useState<Borda | null>(null)
+  // Removido: bordas e bordaSelecionada
 
-  // Buscar bordas disponíveis
-  useEffect(() => {
-    if (open) {
-      console.log('🍕 Carregando bordas...')
-      fetch('/api/bordas')
-        .then(res => {
-          console.log('🍕 Resposta bordas:', res.status)
-          return res.json()
-        })
-        .then(data => {
-          console.log('🍕 Bordas carregadas:', data)
-          setBordas(data.bordas || [])
-        })
-        .catch(err => {
-          console.error('❌ Erro ao carregar bordas:', err)
-          setBordas([])
-        })
-    }
-  }, [open])
+  // Removido: fetch de bordas
 
-  // Calcula o preço pelo sabor mais caro no tamanho selecionado + borda
+  // Calcula o preço pelo sabor mais caro no tamanho selecionado
   const precoCalculado = useMemo(() => {
     if (saboresSelecionados.length === 0) return 0
 
     const precosPorSabor = saboresSelecionados.map((pizzaId) => {
       const pizza = pizzas.find((p) => p.id === pizzaId)
       if (!pizza) return 0
-      
       const tamanho = pizza.tamanhos.find((t) => t.tamanho === tamanhoSelecionado)
       return tamanho ? Number(tamanho.preco) : 0
     })
 
-    const precoBase = Math.max(...precosPorSabor)
-    const precoBorda = bordaSelecionada ? bordaSelecionada.preco : 0
-    
-    return precoBase + precoBorda
-  }, [saboresSelecionados, tamanhoSelecionado, pizzas, bordaSelecionada])
+    return Math.max(...precosPorSabor)
+  }, [saboresSelecionados, tamanhoSelecionado, pizzas])
 
   const getMaxSabores = () => {
     if (tamanhoSelecionado === 'P' || tamanhoSelecionado === 'M') {
@@ -122,14 +93,8 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
 
     // Adiciona ao carrinho como pizza mista
     // Usaremos pratoId = 999 (Pizza Personalizada) criado no seed
-    const nomeCompleto = bordaSelecionada 
-      ? `Pizza Mista (${saboresSelecionados.length} sabores) + ${bordaSelecionada.nome}`
-      : `Pizza Mista (${saboresSelecionados.length} sabores)`
-    
-    const observacoesFinal = bordaSelecionada
-      ? `Sabores: ${nomesSabores} | Borda: ${bordaSelecionada.nome}`
-      : `Sabores: ${nomesSabores}`
-    
+    const nomeCompleto = `Pizza Mista (${saboresSelecionados.length} sabores)`
+    const observacoesFinal = `Sabores: ${nomesSabores}`
     const itemPizza = {
       pratoId: 999, // ID especial para pizzas mistas
       nome: nomeCompleto,
@@ -137,9 +102,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
       tamanho: tamanhoSelecionado,
       observacoes: observacoesFinal
     }
-    
     console.log('🍕 Adicionando pizza ao carrinho:', itemPizza)
-    
     try {
       add(itemPizza)
       toast.success('Pizza adicionada ao carrinho!')
@@ -149,11 +112,9 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
       toast.error('Erro ao adicionar pizza ao carrinho')
       return
     }
-    
     // Reset
     setSaboresSelecionados([])
     setTamanhoSelecionado('M')
-    setBordaSelecionada(null)
     onOpenChange(false)
   }
 
@@ -210,48 +171,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
           </div>
         </div>
 
-        {/* Seleção de Borda Recheada */}
-        {bordas.length > 0 && (
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              🍕 Borda Recheada (Opcional)
-            </label>
-            <div className="grid grid-cols-1 gap-2">
-              <button
-                onClick={() => setBordaSelecionada(null)}
-                className={`p-3 rounded-lg border-2 text-left transition-all cursor-pointer ${
-                  !bordaSelecionada
-                    ? 'border-gray-400 bg-gray-50 text-gray-700'
-                    : 'border-gray-200 bg-white text-gray-600 hover:border-orange-200'
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Sem borda recheada</span>
-                  <span className="text-sm text-gray-500">R$ 0,00</span>
-                </div>
-              </button>
-              {bordas.map((borda) => (
-                <button
-                  key={borda.id}
-                  onClick={() => setBordaSelecionada(borda)}
-                  className={`p-3 rounded-lg border-2 text-left transition-all cursor-pointer ${
-                    bordaSelecionada?.id === borda.id
-                      ? 'border-orange-500 bg-orange-50 text-orange-700'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-orange-200'
-                  }`}
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">{borda.nome}</span>
-                    <span className="font-medium text-orange-600">+R$ {borda.preco.toFixed(2).replace('.', ',')}</span>
-                  </div>
-                  {borda.descricao && (
-                    <p className="text-xs text-gray-500 mt-1">{borda.descricao}</p>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Seleção de Borda Recheada removida */}
 
         {/* Contador de Sabores */}
         <div className="mb-4 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">

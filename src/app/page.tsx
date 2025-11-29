@@ -182,13 +182,12 @@ export default async function Home() {
         )}
 
         {/* Botão Monte sua Pizza */}
-        {categorias.some(c => c.nome.toLowerCase().includes('tradiciona')) && (
+        {categorias.some(c => c.pratos && c.pratos.length > 0) && (
           <div className="mb-12 flex justify-center">
             <MonteSuaPizzaButton 
               pizzas={
                 categorias
-                  .find(c => c.nome.toLowerCase().includes('tradiciona'))
-                  ?.pratos
+                  .flatMap(c => c.pratos)
                   .filter(p => p.tamanhos && p.tamanhos.length > 0)
                   .map(p => ({
                     id: p.id,
@@ -202,13 +201,27 @@ export default async function Home() {
                       tamanho: t.tamanho,
                       preco: t.preco
                     }))
-                  })) || []
+                  }))
               }
             />
           </div>
         )}
 
         {/* Cardápio por categorias */}
+  <div id="bordas" className="scroll-mt-24"></div>
+  <section className="relative bg-yellow-50 rounded-3xl shadow-xl p-8 md:p-10 border-2 border-yellow-200 mb-12 flex flex-col items-center text-center max-w-3xl mx-auto">
+    <h2 className="text-3xl md:text-4xl font-extrabold text-yellow-700 mb-2 flex items-center gap-2">
+      <span role="img" aria-label="borda">🧀</span> Bordas Recheadas
+    </h2>
+    <p className="text-lg text-yellow-900 mb-4">Deixe sua pizza ainda mais irresistível com nossas bordas recheadas!</p>
+    <ul className="text-yellow-800 text-base space-y-1 mb-4">
+      <li><strong>Catupiry</strong> — Cremoso e clássico</li>
+      <li><strong>Cheddar</strong> — Sabor marcante</li>
+      <li><strong>Chocolate</strong> — Para os amantes de doce</li>
+      <li><strong>Requeijão</strong> — Leve e delicioso</li>
+    </ul>
+    <span className="inline-block bg-yellow-200 text-yellow-900 font-semibold px-4 py-2 rounded-full shadow">Peça sua pizza com borda recheada e surpreenda-se!</span>
+  </section>
   <div id="cardapio" className="space-y-16 scroll-mt-24">
           {categorias.map((categoria) => (
             <section key={categoria.id} className="relative bg-linear-to-br from-white to-orange-50/30 rounded-3xl shadow-xl p-8 md:p-10 border-2 border-orange-100 overflow-hidden">

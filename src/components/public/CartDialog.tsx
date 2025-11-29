@@ -288,8 +288,8 @@ Obrigado!`
                 <p className="text-gray-500">Seu carrinho está vazio.</p>
               ) : (
                 items.map((item) => {
-                  // Gerar chave única considerando tamanho e observações (para bordas diferentes)
-                  const chave = `${item.pratoId}-${item.tamanho || ''}-${item.observacoes || ''}`
+                  // Gerar chave única considerando apenas pratoId e tamanho
+                  const chave = `${item.pratoId}-${item.tamanho || ''}`
                   return (
                     <div
                       key={chave}
@@ -306,12 +306,7 @@ Obrigado!`
                               </span>
                             )}
                           </p>
-                          {/* Mostrar informações da borda se presente */}
-                          {item.observacoes && item.observacoes.includes('Borda:') && (
-                            <p className="text-xs text-orange-600 font-medium">
-                              🍕 {item.observacoes.split('|').find(obs => obs.includes('Borda:'))?.trim()}
-                            </p>
-                          )}
+                          {/* Exibição de borda removida */}
                           <p className="text-sm text-gray-600">
                             R$ {item.preco.toFixed(2).replace('.', ',')}
                           </p>
@@ -340,9 +335,9 @@ Obrigado!`
                       {/* Observações do item em largura total do card */}
                       <div>
                          <Textarea
-                           placeholder="Observações (ex: sem cebola)"
+                           placeholder="Observações (ex: sem cebola, ou: se pediu borda adicional, informe em qual pizza deseja a borda)"
                            value={item.observacoes || ''}
-                           onChange={(e) => updateObs(item.pratoId, e.target.value, item.tamanho, item.observacoes)}
+                           onChange={(e) => updateObs(item.pratoId, e.target.value, item.tamanho)}
                            className="mt-1 min-h-12 md:min-h-16 max-h-40 resize-y w-full max-w-[340px] md:max-w-md mx-auto overflow-x-hidden wrap-break-word text-center"
                          />
                       </div>

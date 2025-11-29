@@ -12,7 +12,8 @@ const itemPedidoSchema = z.object({
   tamanho: z.string().optional(), // P, M, G
   // Para pizzas mistas (pratoId=999), precisamos do nome e preço
   nome: z.string().optional(),
-  preco: z.number().optional()
+  preco: z.number().optional(),
+  // bordaId removido
 })
 
 const criarPedidoSchema = z.object({
@@ -86,18 +87,17 @@ export async function POST(request: NextRequest) {
     // Para pizzas mistas, não validamos no banco pois o preço já vem calculado
     console.log(`Pedido com ${itensNormais.length} itens normais e ${itensMistos.length} pizzas mistas`)
 
-    // Calcular valor total considerando tamanhos
-    let valorTotal = 0
+    // Calcular valor total considerando apenas tamanhos
+    let valorTotal = 0;
     const itensParaCriar = itens.map(item => {
       // Pizza mista (pratoId = 999)
       if (item.pratoId === 999) {
         if (!item.nome || item.preco === undefined) {
-          throw new Error('Pizza mista precisa de nome e preço')
+          throw new Error('Pizza mista precisa de nome e preço');
         }
-        const precoUnit = item.preco
-        const subtotal = precoUnit * item.quantidade
-        valorTotal += subtotal
-        
+        const precoUnit = item.preco;
+        const subtotal = precoUnit * item.quantidade;
+        valorTotal += subtotal;
         return {
           pratoId: item.pratoId,
           nomePrato: item.nome,
@@ -106,27 +106,23 @@ export async function POST(request: NextRequest) {
           subtotal: subtotal,
           observacoes: item.observacoes,
           tamanho: item.tamanho
-        }
+        };
       }
-      
       // Prato normal
-      const prato = pratos.find(p => p.id === item.pratoId)
-      if (!prato) throw new Error('Prato não encontrado')
-
+      const prato = pratos.find(p => p.id === item.pratoId);
+      if (!prato) throw new Error('Prato não encontrado');
       // Se tem tamanho especificado, buscar preço correspondente
-      let precoUnit = Number(prato.preco)
+      let precoUnit = Number(prato.preco);
       if (item.tamanho && prato.tamanhos.length > 0) {
-        const tamanhoEncontrado = prato.tamanhos.find((t: any) => t.tamanho === item.tamanho)
+        const tamanhoEncontrado = prato.tamanhos.find((t: any) => t.tamanho === item.tamanho);
         if (tamanhoEncontrado) {
-          precoUnit = Number(tamanhoEncontrado.preco)
+          precoUnit = Number(tamanhoEncontrado.preco);
         } else {
-          throw new Error(`Tamanho ${item.tamanho} não disponível para ${prato.nome}`)
+          throw new Error(`Tamanho ${item.tamanho} não disponível para ${prato.nome}`);
         }
       }
-
-      const subtotal = precoUnit * item.quantidade
-      valorTotal += subtotal
-
+      const subtotal = precoUnit * item.quantidade;
+      valorTotal += subtotal;
       return {
         pratoId: item.pratoId,
         nomePrato: prato.nome,
@@ -135,8 +131,8 @@ export async function POST(request: NextRequest) {
         subtotal: subtotal,
         observacoes: item.observacoes,
         tamanho: item.tamanho
-      }
-    })
+      };
+    });
 
     // Criar pedido com itens e atribuir dailyNumber de forma atômica
     // Usamos o timezone 'America/Recife' para calcular a chave do dia (YYYY-MM-DD)

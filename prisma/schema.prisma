@@ -1,11 +1,13 @@
-generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
-}
+model Borda {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
+  preco     Decimal
+  ativa     Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  itens     ItemPedido[]
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  @@map("bordas")
 }
 
 model Categoria {
@@ -135,6 +137,10 @@ model ItemPedido {
   subtotal    Decimal @db.Decimal(10, 2)
   observacoes String?
   tamanho     String? @db.VarChar(10)
+  bordaId     Int?    @map("borda_id")
+  bordaNome   String? @map("borda_nome")
+  bordaPreco  Decimal? @map("borda_preco")
+  borda       Borda?  @relation(fields: [bordaId], references: [id])
   pedido      Pedido  @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
   prato       Prato   @relation(fields: [pratoId], references: [id])
 
