@@ -257,35 +257,37 @@ Obrigado!`
   return (
     <>
       {/* Botões fixos no canto inferior direito */}
-      <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 flex flex-col gap-2 sm:gap-3 z-50">
         {/* Botão Meus Pedidos */}
         <Link href="/meus-pedidos">
-          <Button className="w-full bg-blue-600 hover:bg-blue-700 shadow-lg gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <Button className="w-full bg-blue-600 hover:bg-blue-700 shadow-lg gap-1 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            Meus Pedidos
+            <span className="hidden sm:inline">Meus Pedidos</span>
+            <span className="sm:hidden">Pedidos</span>
           </Button>
         </Link>
 
         {/* Botão Carrinho */}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-orange-600 hover:bg-orange-700 shadow-lg gap-2">
-              <ShoppingCart />
-              Carrinho ({items.reduce((a, i) => a + i.quantidade, 0)})
+            <Button className="bg-orange-600 hover:bg-orange-700 shadow-lg gap-1 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5">
+              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Carrinho ({items.reduce((a, i) => a + i.quantidade, 0)})</span>
+              <span className="sm:hidden">({items.reduce((a, i) => a + i.quantidade, 0)})</span>
             </Button>
           </DialogTrigger>
-  <DialogContent className="w-full sm:max-w-md md:max-w-3xl p-2 sm:p-6 rounded-2xl max-h-[80vh] overflow-y-auto">
+  <DialogContent className="w-[95vw] sm:max-w-md md:max-w-3xl p-3 sm:p-6 rounded-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Seu Pedido</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">Seu Pedido</DialogTitle>
           </DialogHeader>
 
-          <div className="grid md:grid-cols-5 gap-6">
+          <div className="grid md:grid-cols-5 gap-4 sm:gap-6">
             {/* Itens */}
-            <div className="space-y-3 md:col-span-3">
+            <div className="space-y-2 sm:space-y-3 md:col-span-3">
               {items.length === 0 ? (
-                <p className="text-gray-500">Seu carrinho está vazio.</p>
+                <p className="text-sm sm:text-base text-gray-500">Seu carrinho está vazio.</p>
               ) : (
                 items.map((item) => {
                   // Gerar chave única considerando apenas pratoId e tamanho
@@ -293,52 +295,58 @@ Obrigado!`
                   return (
                     <div
                       key={chave}
-                      className="border rounded-lg p-3 overflow-hidden grid gap-3 md:gap-4 md:grid-cols-1"
+                      className="border rounded-lg p-2 sm:p-3 overflow-hidden grid gap-2 sm:gap-3 md:gap-4 md:grid-cols-1"
                     >
                       {/* Linha superior: nome, valor, controles de quantidade */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="font-medium text-gray-900 truncate" title={item.nome}>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm sm:text-base text-gray-900 truncate" title={item.nome}>
                             {item.nome}
-                            {item.tamanho && (
-                              <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
-                                {item.tamanho} - {item.tamanho === 'P' ? '4 fatias' : item.tamanho === 'M' ? '6 fatias' : '8 fatias'}
-                              </span>
-                            )}
                           </p>
-                          {/* Exibição de borda removida */}
-                          <p className="text-sm text-gray-600">
+                          {item.tamanho && (
+                            <span className="inline-block mt-1 text-[10px] sm:text-xs bg-orange-100 text-orange-700 px-1.5 sm:px-2 py-0.5 rounded">
+                              {item.tamanho} - {item.tamanho === 'P' ? '4 fatias' : item.tamanho === 'M' ? '6 fatias' : '8 fatias'}
+                            </span>
+                          )}
+                          <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
                             R$ {item.preco.toFixed(2).replace('.', ',')}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2 self-end sm:self-auto">
                           <Button
-                            size="icon-sm"
+                            size="icon"
                             variant="outline"
+                            className="h-7 w-7 sm:h-8 sm:w-8"
                             onClick={() => updateQty(item.pratoId, item.quantidade - 1, item.tamanho, item.observacoes)}
                           >
-                            <Minus />
+                            <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
-                          <span className="w-6 text-center">{item.quantidade}</span>
+                          <span className="w-5 sm:w-6 text-center text-sm sm:text-base">{item.quantidade}</span>
                           <Button
-                            size="icon-sm"
+                            size="icon"
                             variant="outline"
+                            className="h-7 w-7 sm:h-8 sm:w-8"
                             onClick={() => updateQty(item.pratoId, item.quantidade + 1, item.tamanho, item.observacoes)}
                           >
-                            <Plus />
+                            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
-                          <Button size="icon-sm" variant="destructive" onClick={() => remove(item.pratoId, item.tamanho, item.observacoes)}>
-                            <Trash />
+                          <Button 
+                            size="icon" 
+                            variant="destructive" 
+                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            onClick={() => remove(item.pratoId, item.tamanho, item.observacoes)}
+                          >
+                            <Trash className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
                       </div>
                       {/* Observações do item em largura total do card */}
                       <div>
                          <Textarea
-                           placeholder="Observações (ex: sem cebola, ou: se pediu borda adicional, informe em qual pizza deseja a borda)"
+                           placeholder="Observações (ex: sem cebola)"
                            value={item.observacoes || ''}
                            onChange={(e) => updateObs(item.pratoId, e.target.value, item.tamanho)}
-                           className="mt-1 min-h-12 md:min-h-16 max-h-40 resize-y w-full max-w-[340px] md:max-w-md mx-auto overflow-x-hidden wrap-break-word text-center"
+                           className="text-xs sm:text-sm min-h-10 sm:min-h-12 md:min-h-16 max-h-32 sm:max-h-40 resize-y w-full"
                          />
                       </div>
                     </div>
@@ -346,38 +354,38 @@ Obrigado!`
                 })
               )}
 
-              <div className="border-t pt-3 text-sm text-gray-700 space-y-1">
+              <div className="border-t pt-2 sm:pt-3 text-xs sm:text-sm text-gray-700 space-y-0.5 sm:space-y-1">
                 <p>Subtotal: <strong>R$ {subtotal.toFixed(2).replace('.', ',')}</strong></p>
                 <p>Taxa de entrega: <strong>R$ {Number(settings.taxaEntrega||0).toFixed(2).replace('.', ',')}</strong></p>
-                <p>Total: <strong className="text-orange-600">R$ {total.toFixed(2).replace('.', ',')}</strong></p>
+                <p className="text-sm sm:text-base">Total: <strong className="text-orange-600">R$ {total.toFixed(2).replace('.', ',')}</strong></p>
                 {!minOk && (
-                  <p className="text-red-600">Pedido mínimo: R$ {Number(settings.pedidoMinimo).toFixed(2).replace('.', ',')}</p>
+                  <p className="text-xs sm:text-sm text-red-600">Pedido mínimo: R$ {Number(settings.pedidoMinimo).toFixed(2).replace('.', ',')}</p>
                 )}
               </div>
             </div>
 
             {/* Dados do cliente e pagamento */}
-            <div className="space-y-6 md:col-span-2">
+            <div className="space-y-4 sm:space-y-6 md:col-span-2">
               {/* Aviso sobre dados obrigatórios */}
-              <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
+              <div className="bg-orange-50 border-l-4 border-orange-500 p-2 sm:p-4 rounded">
                 <div className="flex">
                   <div className="shrink-0">
-                    <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-orange-700">
-                      <strong>Atenção:</strong> Preencha seu nome para finalizar o pedido. Telefone e endereço são recomendados para entrega.
+                  <div className="ml-2 sm:ml-3">
+                    <p className="text-[10px] sm:text-sm text-orange-700">
+                      <strong>Atenção:</strong> Preencha seu nome para finalizar. Telefone e endereço são recomendados.
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-gray-900">Dados do cliente</h4>
+              <div className="space-y-2 sm:space-y-3">
+                <h4 className="text-xs sm:text-sm font-semibold text-gray-900">Dados do cliente</h4>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     Seu nome <span className="text-red-500">*</span>
                   </label>
                   <Input 
@@ -385,12 +393,12 @@ Obrigado!`
                     onChange={(e) => setNome(e.target.value)} 
                     placeholder="Nome completo" 
                     required
-                    className={!nomeCliente.trim() ? 'border-orange-300' : ''}
+                    className={`text-sm ${!nomeCliente.trim() ? 'border-orange-300' : ''}`}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Telefone <span className="text-gray-400 text-xs">(recomendado)</span>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Telefone <span className="text-gray-400 text-[10px] sm:text-xs">(recomendado)</span>
                   </label>
                   <Input 
                     value={telefone} 
@@ -401,41 +409,42 @@ Obrigado!`
                     }}
                     onBlur={checkAndPrefillByPhone} 
                     placeholder="(DDD) 9 9999-9999" 
-                    disabled={loading || checandoCliente} 
+                    disabled={loading || checandoCliente}
+                    className="text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Endereço <span className="text-gray-400 text-xs">(recomendado para entrega)</span>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Endereço <span className="text-gray-400 text-[10px] sm:text-xs">(recomendado)</span>
                   </label>
-                  <Input value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Rua, número, bairro" />
+                  <Input value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Rua, número, bairro" className="text-sm" />
                 </div>
               </div>
 
               <div className="pt-1">
-                <label className="inline-flex items-center gap-2 text-sm text-gray-800">
-                  <input type="checkbox" className="rounded" checked={salvarDados} onChange={(e) => setSalvarDados(e.target.checked)} />
-                  Salvar meus dados para próximos pedidos
+                <label className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-800">
+                  <input type="checkbox" className="rounded h-3 w-3 sm:h-4 sm:w-4" checked={salvarDados} onChange={(e) => setSalvarDados(e.target.checked)} />
+                  Salvar dados para próximos pedidos
                 </label>
                 {salvarDados && (
-                  <div className="mt-3 space-y-3">
+                  <div className="mt-2 sm:mt-3 space-y-2 sm:space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email (opcional)</label>
-                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seuemail@exemplo.com" />
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Email (opcional)</label>
+                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seuemail@exemplo.com" className="text-sm" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Data de nascimento (opcional)</label>
-                      <Input type="date" value={nascimento} onChange={(e) => setNascimento(e.target.value)} />
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Data de nascimento (opcional)</label>
+                      <Input type="date" value={nascimento} onChange={(e) => setNascimento(e.target.value)} className="text-sm" />
                     </div>
-                    <p className="text-xs text-gray-500">Ao salvar, você concorda em receber comunicações sobre seu pedido e promoções. Você pode solicitar a remoção dos seus dados a qualquer momento.</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500">Ao salvar, você concorda em receber comunicações sobre seu pedido e promoções.</p>
                   </div>
                 )}
               </div>
 
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-gray-900">Pagamento</h4>
+              <div className="space-y-2 sm:space-y-3">
+                <h4 className="text-xs sm:text-sm font-semibold text-gray-900">Pagamento</h4>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Forma de pagamento</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Forma de pagamento</label>
                   <Select value={payment} onValueChange={(v) => setPayment(v as typeof payment)}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione" />
@@ -449,15 +458,15 @@ Obrigado!`
                 </div>
                 {payment === 'dinheiro' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Troco para</label>
-                    <Input type="number" step="0.01" placeholder="Ex: 100,00" value={troco} onChange={(e) => setTroco(e.target.value)} />
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Troco para</label>
+                    <Input type="number" step="0.01" placeholder="Ex: 100,00" value={troco} onChange={(e) => setTroco(e.target.value)} className="text-sm" />
                   </div>
                 )}
               </div>
 
               <div className="pt-2">
                 <Button 
-                  className="w-full bg-orange-600 hover:bg-orange-700"
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-sm sm:text-base py-5 sm:py-6"
                   disabled={loading || items.length===0 || !minOk || !settings.aceitarPedidos}
                   onClick={finalizarPedido}
                 >
@@ -468,12 +477,12 @@ Obrigado!`
 
             {/* Observações gerais em largura total */}
             <div className="md:col-span-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Observações gerais</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Observações gerais</label>
                 <Textarea
                   value={observacoes}
                   onChange={(e) => setObs(e.target.value)}
                   placeholder="Ex: entregar pelo portão lateral"
-                  className="min-h-24 md:min-h-28 resize-y w-full max-w-[340px] md:max-w-md overflow-x-hidden wrap-break-word"
+                  className="text-xs sm:text-sm min-h-20 sm:min-h-24 md:min-h-28 resize-y w-full"
               />
             </div>
           </div>
@@ -483,51 +492,52 @@ Obrigado!`
 
       {/* Modal de confirmação pós-pedido */}
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full text-center flex flex-col items-center gap-4">
-            <h2 className="text-xl font-bold text-orange-700 mb-2">Pedido recebido!</h2>
-            <p className="text-gray-700">Seu pedido foi recebido na central e está sendo processado.<br />Assim que o entregador sair, avisaremos!</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8 max-w-lg w-full text-center flex flex-col items-center gap-3 sm:gap-4">
+            <h2 className="text-lg sm:text-xl font-bold text-orange-700 mb-1 sm:mb-2">Pedido recebido!</h2>
+            <p className="text-sm sm:text-base text-gray-700">Seu pedido foi recebido e está sendo processado.<br className="hidden sm:block" /><span className="sm:hidden"> </span>Avisaremos quando o entregador sair!</p>
             
             {/* Aviso de segurança */}
-            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-2">
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3 sm:p-4 mb-1 sm:mb-2">
               <div className="flex items-start gap-2">
-                <span className="text-yellow-600 text-lg">⚠️</span>
+                <span className="text-yellow-600 text-base sm:text-lg">⚠️</span>
                 <div className="text-left">
-                  <h3 className="font-bold text-yellow-800 mb-1">Confirmação Necessária</h3>
-                  <p className="text-sm text-yellow-700">
-                    <strong>Por segurança, confirme seu pedido no WhatsApp da pizzaria.</strong><br />
-                    Isso garante que seu pedido seja realmente processado e entregue corretamente.
+                  <h3 className="text-sm sm:text-base font-bold text-yellow-800 mb-1">Confirmação Necessária</h3>
+                  <p className="text-xs sm:text-sm text-yellow-700">
+                    <strong>Por segurança, confirme seu pedido no WhatsApp.</strong><br className="hidden sm:block" />
+                    <span className="hidden sm:inline">Isso garante que seu pedido seja processado corretamente.</span>
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-2 w-full">
               <a
                 href={waLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold shadow-lg text-sm cursor-pointer animate-pulse"
+                className="inline-flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-green-500 hover:bg-green-600 text-white font-bold shadow-lg text-xs sm:text-sm cursor-pointer animate-pulse w-full max-w-xs"
               >
                 <span>📱</span>
-                Confirmar Pedido no WhatsApp
+                <span className="hidden sm:inline">Confirmar Pedido no WhatsApp</span>
+                <span className="sm:hidden">Confirmar no WhatsApp</span>
               </a>
 
               {lastOrder && lastOrder.id ? (
-                <div className="text-sm text-gray-500">Comprovante disponível no painel de administração.</div>
+                <div className="text-xs sm:text-sm text-gray-500 px-2">Comprovante disponível no painel.</div>
               ) : (
-                <div className="text-sm text-gray-500">O comprovante estará disponível assim que o pedido for confirmado.</div>
+                <div className="text-xs sm:text-sm text-gray-500 px-2">Comprovante disponível após confirmação.</div>
               )}
 
               {/* Link para acompanhar pedido */}
               <Link
                 href="/meus-pedidos"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow text-sm"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow text-xs sm:text-sm w-full max-w-xs"
               >
                 Ver Meus Pedidos
               </Link>
             </div>
-            <Button className="mt-2 bg-orange-600 hover:bg-orange-700" onClick={() => setShowConfirm(false)}>
+            <Button className="mt-2 bg-orange-600 hover:bg-orange-700 text-sm w-full max-w-xs" onClick={() => setShowConfirm(false)}>
               Fechar
             </Button>
           </div>

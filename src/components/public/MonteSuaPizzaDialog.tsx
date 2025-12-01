@@ -120,15 +120,18 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-2xl">
-            <Pizza className="w-8 h-8 text-orange-600" />
+          <DialogTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-2xl">
+            <Pizza className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
             Monte sua Pizza
           </DialogTitle>
-          <div className="text-sm text-gray-600 mt-2">
-            <p className="mb-2">Tamanhos P e M: até 2 sabores | Tamanho G: 3 ou 4 sabores. O preço será do sabor mais caro.</p>
-            <div className="flex gap-4 text-xs bg-blue-50 p-2 rounded border">
+          <div className="text-xs sm:text-sm text-gray-600 mt-2">
+            <p className="mb-2">
+              <span className="hidden sm:inline">Tamanhos P e M: até 2 sabores | Tamanho G: 3 ou 4 sabores. O preço será do sabor mais caro.</span>
+              <span className="sm:hidden">P/M: até 2 sabores | G: 3-4 sabores</span>
+            </p>
+            <div className="flex flex-wrap gap-2 sm:gap-4 text-xs bg-blue-50 p-2 rounded border">
               <span><strong>P:</strong> 4 fatias</span>
               <span><strong>M:</strong> 6 fatias</span>
               <span><strong>G:</strong> 8 fatias</span>
@@ -137,11 +140,11 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
         </DialogHeader>
 
         {/* Seleção de Tamanho */}
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
+        <div className="mb-4 sm:mb-6">
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
             Escolha o Tamanho
           </label>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             {TAMANHOS_DISPONIVEIS.map((tamanho) => (
               <button
                 key={tamanho}
@@ -151,18 +154,18 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
                   const novoMax = tamanho === 'P' || tamanho === 'M' ? 2 : 4
                   setSaboresSelecionados(prev => prev.slice(0, novoMax))
                 }}
-                className={`flex-1 py-3 px-4 rounded-lg border-2 font-semibold transition-all cursor-pointer ${
+                className={`flex-1 py-2 sm:py-3 px-2 sm:px-4 rounded-lg border-2 font-semibold transition-all cursor-pointer ${
                   tamanhoSelecionado === tamanho
                     ? 'border-orange-500 bg-orange-50 text-orange-700'
                     : 'border-gray-200 bg-white text-gray-700 hover:border-orange-300'
                 }`}
               >
                 <div className="text-center">
-                  <div>{tamanho}</div>
-                  <div className="text-xs opacity-75">
-                    {tamanho === 'G' ? '3-4 sabores' : 'até 2 sabores'}
+                  <div className="text-base sm:text-lg">{tamanho}</div>
+                  <div className="text-[10px] sm:text-xs opacity-75">
+                    {tamanho === 'G' ? '3-4 sabores' : 'até 2'}
                   </div>
-                  <div className="text-xs text-blue-600 font-semibold">
+                  <div className="text-[10px] sm:text-xs text-blue-600 font-semibold">
                     {tamanho === 'P' ? '4 fatias' : tamanho === 'M' ? '6 fatias' : '8 fatias'}
                   </div>
                 </div>
@@ -174,17 +177,17 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
         {/* Seleção de Borda Recheada removida */}
 
         {/* Contador de Sabores */}
-        <div className="mb-4 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-semibold text-gray-700">
-              Sabores selecionados: {saboresSelecionados.length}/{getMaxSabores()}
+        <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+            <span className="text-xs sm:text-sm font-semibold text-gray-700">
+              Sabores: {saboresSelecionados.length}/{getMaxSabores()}
             </span>
-            <span className="text-lg font-bold text-orange-600">
+            <span className="text-lg sm:text-xl font-bold text-orange-600">
               R$ {precoCalculado.toFixed(2).replace('.', ',')}
             </span>
           </div>
           {saboresSelecionados.length > 0 && (
-            <div className="mt-2 text-xs text-gray-600">
+            <div className="mt-2 text-[10px] sm:text-xs text-gray-600">
               {saboresSelecionados
                 .map((id) => pizzas.find((p) => p.id === id)?.nome)
                 .join(', ')}
@@ -193,7 +196,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
         </div>
 
         {/* Grid de Pizzas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {pizzas.map((pizza) => {
             const selecionado = saboresSelecionados.includes(pizza.id)
             const tamanho = pizza.tamanhos.find((t) => t.tamanho === tamanhoSelecionado)
@@ -202,28 +205,28 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
               <button
                 key={pizza.id}
                 onClick={() => toggleSabor(pizza.id)}
-                className={`relative p-4 rounded-xl border-2 transition-all text-left cursor-pointer ${
+                className={`relative p-3 sm:p-4 rounded-xl border-2 transition-all text-left cursor-pointer ${
                   selecionado
                     ? 'border-orange-500 bg-orange-50 shadow-md'
                     : 'border-gray-200 bg-white hover:border-orange-300'
                 }`}
               >
                 {selecionado && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center shadow-lg">
-                    <Check className="w-4 h-4" />
+                  <div className="absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 bg-orange-500 text-white rounded-full flex items-center justify-center shadow-lg">
+                    <Check className="w-3 h-3 sm:w-4 sm:h-4" />
                   </div>
                 )}
                 
-                <div className="font-bold text-gray-900 mb-1">{pizza.nome}</div>
+                <div className="font-bold text-sm sm:text-base text-gray-900 mb-1">{pizza.nome}</div>
                 
                 {pizza.descricao && (
-                  <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                  <p className="text-[10px] sm:text-xs text-gray-600 mb-2 line-clamp-2">
                     {pizza.descricao}
                   </p>
                 )}
                 
                 {tamanho && (
-                  <div className="text-sm font-semibold text-orange-600">
+                  <div className="text-xs sm:text-sm font-semibold text-orange-600">
                     R$ {Number(tamanho.preco).toFixed(2).replace('.', ',')}
                   </div>
                 )}
@@ -233,20 +236,21 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
         </div>
 
         {/* Botões de Ação */}
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
           <Button
             onClick={handleAddToCart}
             disabled={saboresSelecionados.length < (tamanhoSelecionado === 'G' ? 3 : 2)}
-            className="flex-1 bg-linear-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-6 text-lg"
+            className="flex-1 bg-linear-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-4 sm:py-6 text-sm sm:text-lg"
           >
-            Adicionar ao Carrinho
+            <span className="hidden sm:inline">Adicionar ao Carrinho</span>
+            <span className="sm:hidden">Adicionar</span>
           </Button>
           <Button
             onClick={() => onOpenChange(false)}
             variant="outline"
-            className="px-6"
+            className="px-4 sm:px-6"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
         </div>
       </DialogContent>
