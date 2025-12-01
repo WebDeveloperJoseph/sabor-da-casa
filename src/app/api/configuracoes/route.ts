@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import type { Prisma } from '@/generated/prisma'
+import type { Prisma } from '@prisma/client'
 // import { requireUser } from '@/lib/supabaseServer' // TODO: Reativar em produção
 import { z } from 'zod'
 
