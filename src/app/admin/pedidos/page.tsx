@@ -13,7 +13,8 @@ import {
   Truck,
   Package,
   Eye,
-  Star
+  Star,
+  DollarSign
 } from "lucide-react"
 
 export default async function PedidosPage() {
@@ -83,6 +84,18 @@ export default async function PedidosPage() {
     }
   }
 
+  // Calcular total do mês atual
+  const agora = new Date()
+  const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1)
+  const fimMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0, 23, 59, 59, 999)
+  
+  const pedidosDoMes = pedidos.filter(p => {
+    const dataPedido = new Date(p.createdAt)
+    return dataPedido >= inicioMes && dataPedido <= fimMes && p.status !== 'cancelado'
+  })
+  
+  const totalMes = pedidosDoMes.reduce((acc, p) => acc + Number(p.valorTotal), 0)
+
   const pedidosPorStatus = {
     pendente: pedidos.filter(p => p.status === 'pendente').length,
     em_preparo: pedidos.filter(p => p.status === 'em_preparo').length,
@@ -144,6 +157,20 @@ export default async function PedidosPage() {
           <XCircle className="w-7 h-7 text-red-600 mb-3" />
           <p className="text-3xl font-extrabold text-red-900">{pedidosPorStatus.cancelado}</p>
           <p className="text-sm font-semibold text-red-700 uppercase tracking-wide">Cancelados</p>
+        </div>
+      </div>
+
+      {/* Total do Mês */}
+      <div className="bg-linear-to-br from-orange-500 to-red-500 rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center justify-between text-white">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide opacity-90">Total do Mês ({agora.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })})</p>
+            <p className="text-4xl font-extrabold mt-1">
+              {totalMes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
+            <p className="text-sm mt-2 opacity-90">{pedidosDoMes.length} pedidos (excluindo cancelados)</p>
+          </div>
+          <DollarSign className="w-16 h-16 opacity-20" />
         </div>
       </div>
 
