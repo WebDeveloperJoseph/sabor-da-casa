@@ -9,7 +9,8 @@ import {
   Utensils, 
   User,
   ShoppingCart,
-  Star
+  Star,
+  DollarSign
 } from "lucide-react"
 
 const menuItems = [
@@ -24,6 +25,12 @@ const menuItems = [
     icon: ShoppingCart,
     label: "Pedidos",
     description: "Controle de vendas"
+  },
+  {
+    href: "/admin/financeiro",
+    icon: DollarSign,
+    label: "Financeiro",
+    description: "Receitas e valores"
   },
   {
     href: "/admin/clientes",

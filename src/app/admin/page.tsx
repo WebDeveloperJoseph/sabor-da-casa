@@ -185,13 +185,6 @@ export default async function AdminDashboard() {
       corFundo: "bg-green-50"
     },
     {
-      titulo: "Vendas Hoje",
-      valor: `R$ ${Number(vendasHoje._sum.valorTotal || 0).toFixed(2).replace('.', ',')}`,
-      icone: DollarSign,
-      cor: "text-emerald-600",
-      corFundo: "bg-emerald-50"
-    },
-    {
       titulo: "Pendentes",
       valor: pedidosPendentes,
       icone: Package,
@@ -265,7 +258,7 @@ export default async function AdminDashboard() {
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {estatisticasVendas.map((stat, index) => {
               const Icon = stat.icone
               return (
