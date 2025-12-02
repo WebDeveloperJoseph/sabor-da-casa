@@ -69,7 +69,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
       }
       const maxSabores = getMaxSabores()
       if (prev.length >= maxSabores) {
-        const tamanhoTexto = tamanhoSelecionado === 'G' ? 'Grande (3-4 sabores)' : 'P/M (até 2 sabores)'
+        const tamanhoTexto = tamanhoSelecionado === 'G' ? 'Grande (2-4 sabores)' : 'P/M (até 2 sabores)'
         toast.error(`Tamanho ${tamanhoTexto}`)
         return prev
       }
@@ -78,10 +78,10 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
   }
 
   const handleAddToCart = () => {
-    const minSabores = tamanhoSelecionado === 'G' ? 3 : 2
+    const minSabores = 2
     
     if (saboresSelecionados.length < minSabores) {
-      const texto = tamanhoSelecionado === 'G' ? 'pelo menos 3 sabores' : 'pelo menos 2 sabores'
+      const texto = 'pelo menos 2 sabores'
       toast.error(`Escolha ${texto}`)
       return
     }
@@ -163,7 +163,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
                 <div className="text-center">
                   <div className="text-base sm:text-lg">{tamanho}</div>
                   <div className="text-[10px] sm:text-xs opacity-75">
-                    {tamanho === 'G' ? '3-4 sabores' : 'até 2'}
+                    {tamanho === 'G' ? '2-4 sabores' : 'até 2'}
                   </div>
                   <div className="text-[10px] sm:text-xs text-blue-600 font-semibold">
                     {tamanho === 'P' ? '4 fatias' : tamanho === 'M' ? '6 fatias' : '8 fatias'}
@@ -239,7 +239,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
         <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
           <Button
             onClick={handleAddToCart}
-            disabled={saboresSelecionados.length < (tamanhoSelecionado === 'G' ? 3 : 2)}
+            disabled={saboresSelecionados.length < 2}
             className="flex-1 bg-linear-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-4 sm:py-6 text-sm sm:text-lg"
           >
             <span className="hidden sm:inline">Adicionar ao Carrinho</span>
