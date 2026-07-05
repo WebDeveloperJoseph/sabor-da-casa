@@ -12,15 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import {
-  Banknote,
-  CreditCard,
-  QrCode,
-  ShoppingCart,
-  Minus,
-  Plus,
-  Trash,
-} from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -71,6 +63,23 @@ export function CartDialog() {
   const [clienteId, setClienteId] = useState<number | null>(null);
   const [cartPulse, setCartPulse] = useState(false);
 
+  const handleFormFocus = (event: React.FocusEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    if (
+      !(
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target.getAttribute("role") === "combobox"
+      )
+    ) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+  };
+
   useEffect(() => {
     if (!lastAddTick) return;
     setCartPulse(true);
@@ -80,21 +89,6 @@ export function CartDialog() {
 
   const minOk = subtotal >= Number(settings.pedidoMinimo || 0);
   const itemCount = items.reduce((acc, item) => acc + item.quantidade, 0);
-  const paymentOptions = [
-    { value: "pix", label: "Pix", hint: "Aprovacao imediata", icon: QrCode },
-    {
-      value: "cartao",
-      label: "Cartao",
-      hint: "Credito ou debito",
-      icon: CreditCard,
-    },
-    {
-      value: "dinheiro",
-      label: "Dinheiro",
-      hint: "Na entrega",
-      icon: Banknote,
-    },
-  ] as const;
 
   // link do WhatsApp com mensagem pré-preenchida (quando tivermos o último pedido)
   const waLink = lastOrder
@@ -401,7 +395,10 @@ Obrigado!`,
               <span className="sm:hidden">({itemCount})</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[92vh] w-[96vw] overflow-y-auto rounded-[1.75rem] border-0 bg-[#fff7ea] p-4 shadow-2xl sm:max-w-md sm:p-6 md:max-w-3xl">
+          <DialogContent
+            onFocusCapture={handleFormFocus}
+            className="h-dvh w-screen overflow-y-auto overscroll-contain rounded-none border-0 bg-[#fff7ea] p-4 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] shadow-2xl touch-pan-y sm:h-auto sm:max-h-[92vh] sm:w-[96vw] sm:rounded-[1.75rem] sm:p-6 md:max-w-3xl"
+          >
             <DialogHeader className="mb-2">
               <div className="mx-auto text-center leading-none">
                 <div className="text-2xl font-black text-[#9a0007]">
@@ -520,7 +517,7 @@ Obrigado!`,
                                 item.tamanho,
                               )
                             }
-                            className="min-h-10 w-full max-h-32 resize-y rounded-xl border-[#ead7bd] text-xs sm:min-h-12 sm:text-sm md:min-h-16"
+                            className="min-h-10 w-full max-h-24 resize-none overflow-y-auto rounded-xl border-[#ead7bd] text-xs field-sizing-fixed sm:min-h-12 sm:text-sm md:min-h-16"
                           />
                         </div>
                       </div>
@@ -752,7 +749,7 @@ Obrigado!`,
                   value={observacoes}
                   onChange={(e) => setObs(e.target.value)}
                   placeholder="Ex: entregar pelo portão lateral"
-                  className="text-xs sm:text-sm min-h-20 sm:min-h-24 md:min-h-28 resize-y w-full"
+                  className="h-24 min-h-24 max-h-24 w-full resize-none overflow-y-auto text-xs field-sizing-fixed sm:text-sm"
                 />
               </div>
             </div>

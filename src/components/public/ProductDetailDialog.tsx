@@ -360,7 +360,7 @@ export function ProductDetailDialog({
                 value={observacoes}
                 onChange={(event) => setObservacoes(event.target.value)}
                 placeholder="Ex.: sem cebola, pouco molho, bem passada..."
-                className="min-h-24 rounded-2xl border-[#ead7bd] bg-white text-sm"
+                className="h-24 min-h-24 max-h-24 resize-none overflow-y-auto rounded-2xl border-[#ead7bd] bg-white text-sm field-sizing-fixed"
                 maxLength={160}
               />
               <div className="mt-2 flex items-center gap-2 text-xs font-medium text-[#527a4f]">
