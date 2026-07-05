@@ -6,6 +6,7 @@ import { Check, Heart, Minus, Plus, ShieldCheck, Star, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -23,6 +24,7 @@ type TamanhoType = { tamanho: string; preco: number };
 type ProductDetailDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  categoriaNome?: string;
   prato: {
     id: number;
     nome: string;
@@ -56,9 +58,27 @@ const solicitacoes = [
 const formatCurrency = (value: number) =>
   `R$ ${value.toFixed(2).replace(".", ",")}`;
 
+const normalizeText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const isBebidaContext = (nomeCategoria?: string, nomePrato?: string) => {
+  const texto = normalizeText(`${nomeCategoria || ""} ${nomePrato || ""}`);
+  return (
+    texto.includes("bebida") ||
+    texto.includes("refrigerante") ||
+    texto.includes("suco") ||
+    texto.includes("agua") ||
+    texto.includes("cerveja")
+  );
+};
+
 export function ProductDetailDialog({
   open,
   onOpenChange,
+  categoriaNome,
   prato,
 }: ProductDetailDialogProps) {
   const { add, settings } = useCart();
@@ -84,6 +104,7 @@ export function ProductDetailDialog({
   const total = precoUnitario * quantidade;
   const rating = prato.rating?.avg || 4.8;
   const ratingCount = prato.rating?.count || 0;
+  const isBebida = isBebidaContext(categoriaNome, prato.nome);
 
   const toggleSolicitacao = (item: string) => {
     setSelecionados((prev) =>
@@ -128,7 +149,7 @@ export function ProductDetailDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="h-[94dvh] w-[96vw] overflow-hidden rounded-[1.75rem] border-0 bg-[#fff7ea] p-0 sm:max-w-3xl"
+        className="h-[94dvh] w-[96vw] overflow-y-auto overscroll-contain rounded-[1.75rem] border-0 bg-[#fff7ea] p-0 sm:max-w-3xl"
       >
         <div className="flex h-full flex-col">
           <div className="relative h-[28vh] min-h-52 shrink-0 overflow-hidden bg-[#2b1212]">
@@ -164,12 +185,16 @@ export function ProductDetailDialog({
             </button>
           </div>
 
-          <div className="-mt-7 min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-t-[2rem] bg-[#fff7ea] px-4 pb-28 pt-3 [-webkit-overflow-scrolling:touch]">
+          <div className="-mt-7 min-h-0 flex-1 rounded-t-[2rem] bg-[#fff7ea] px-4 pb-5 pt-3 touch-pan-y [-webkit-overflow-scrolling:touch]">
             <div className="mx-auto mb-4 h-1.5 w-16 rounded-full bg-[#d8c7b3]" />
             <DialogHeader className="text-left">
               <DialogTitle className="text-3xl font-black leading-tight text-[#241313]">
                 {prato.nome}
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                Modal de detalhes do produto com personalizacao e adicao ao
+                carrinho.
+              </DialogDescription>
               <p className="text-base leading-6 text-[#6f6461]">
                 {prato.descricao || "Receita especial da casa."}
               </p>
@@ -223,44 +248,47 @@ export function ProductDetailDialog({
               </section>
             )}
 
-            <section className="mt-6">
-              <h3 className="mb-3 text-lg font-black text-[#241313]">
-                2. Preferencias do preparo
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {solicitacoes.map((item) => {
-                  const checked = selecionados.includes(item);
-                  return (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => toggleSolicitacao(item)}
-                      className={`flex min-h-12 items-center gap-2 rounded-2xl border px-3 text-left text-sm font-bold transition ${
-                        checked
-                          ? "border-[#c90010] bg-[#fff0f0] text-[#c90010]"
-                          : "border-[#ead7bd] bg-white text-[#241313]"
-                      }`}
-                    >
-                      <span
-                        className={`grid h-5 w-5 shrink-0 place-items-center rounded border ${
+            {!isBebida && (
+              <section className="mt-6">
+                <h3 className="mb-3 text-lg font-black text-[#241313]">
+                  2. Preferencias do preparo
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {solicitacoes.map((item) => {
+                    const checked = selecionados.includes(item);
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => toggleSolicitacao(item)}
+                        className={`flex min-h-12 items-center gap-2 rounded-2xl border px-3 text-left text-sm font-bold transition ${
                           checked
-                            ? "border-[#c90010] bg-[#c90010] text-white"
-                            : "border-[#c9b9a7]"
+                            ? "border-[#c90010] bg-[#fff0f0] text-[#c90010]"
+                            : "border-[#ead7bd] bg-white text-[#241313]"
                         }`}
                       >
-                        {checked && <Check className="h-3.5 w-3.5" />}
-                      </span>
-                      {item}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-2 text-xs font-medium text-[#7b706c]">
-                Essas preferencias entram nas observacoes do item para a cozinha.
-              </p>
-            </section>
+                        <span
+                          className={`grid h-5 w-5 shrink-0 place-items-center rounded border ${
+                            checked
+                              ? "border-[#c90010] bg-[#c90010] text-white"
+                              : "border-[#c9b9a7]"
+                          }`}
+                        >
+                          {checked && <Check className="h-3.5 w-3.5" />}
+                        </span>
+                        {item}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-xs font-medium text-[#7b706c]">
+                  Essas preferencias entram nas observacoes do item para a
+                  cozinha.
+                </p>
+              </section>
+            )}
 
-            {prato.ingredientes.length > 0 && (
+            {!isBebida && prato.ingredientes.length > 0 && (
               <section className="mt-6 rounded-2xl border border-[#ead7bd] bg-white p-4">
                 <h3 className="mb-3 text-lg font-black text-[#241313]">
                   Ingredientes
@@ -283,7 +311,7 @@ export function ProductDetailDialog({
 
             <section className="mt-6">
               <h3 className="mb-3 text-lg font-black text-[#241313]">
-                3. Observacoes
+                {isBebida ? "2. Observacoes" : "3. Observacoes"}
               </h3>
               <Textarea
                 value={observacoes}
@@ -299,12 +327,14 @@ export function ProductDetailDialog({
             </section>
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 shrink-0 border-t border-[#ead7bd] bg-white/95 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-[0_-12px_30px_rgba(57,31,22,0.12)] backdrop-blur">
+          <div className="sticky bottom-0 shrink-0 border-t border-[#ead7bd] bg-white/95 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-[0_-12px_30px_rgba(57,31,22,0.12)] backdrop-blur">
             <div className="flex gap-3">
               <div className="flex h-14 items-center rounded-2xl border border-[#ead7bd] bg-white">
                 <button
                   type="button"
-                  onClick={() => setQuantidade((value) => Math.max(1, value - 1))}
+                  onClick={() =>
+                    setQuantidade((value) => Math.max(1, value - 1))
+                  }
                   className="grid h-14 w-12 place-items-center text-[#241313]"
                   aria-label="Diminuir quantidade"
                 >

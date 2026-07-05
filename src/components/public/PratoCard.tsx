@@ -31,11 +31,12 @@ type PratoCardProps = {
 };
 
 const menorPreco = (preco: number | string, tamanhos?: TamanhoType[]) => {
-  if (tamanhos?.length) return Math.min(...tamanhos.map((t) => Number(t.preco)));
+  if (tamanhos?.length)
+    return Math.min(...tamanhos.map((t) => Number(t.preco)));
   return Number(preco);
 };
 
-const PratoCardComponent = ({ prato }: PratoCardProps) => {
+const PratoCardComponent = ({ prato, categoria }: PratoCardProps) => {
   const [detailOpen, setDetailOpen] = useState(false);
   const precoBase = menorPreco(prato.preco, prato.tamanhos);
 
@@ -115,6 +116,7 @@ const PratoCardComponent = ({ prato }: PratoCardProps) => {
       <ProductDetailDialog
         open={detailOpen}
         onOpenChange={setDetailOpen}
+        categoriaNome={categoria.nome}
         prato={prato}
       />
     </>

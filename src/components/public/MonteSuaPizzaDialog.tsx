@@ -6,6 +6,7 @@ import { Check, Pizza, RotateCcw, Search, Sparkles, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -135,7 +136,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[92dvh] w-[96vw] overflow-hidden rounded-2xl border-0 p-0 sm:max-w-4xl">
+      <DialogContent className="h-[92dvh] w-[96vw] overflow-y-auto overscroll-contain rounded-2xl border-0 p-0 sm:max-w-4xl">
         <div className="relative flex h-full flex-col bg-[#fff7ea]">
           <DialogHeader className="shrink-0 border-b border-[#ead7bd] bg-white px-4 py-4">
             <DialogTitle className="flex items-center gap-3 text-xl font-black text-[#241313]">
@@ -144,12 +145,15 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
               </span>
               Monte sua pizza
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Modal para escolher sabores e adicionar pizza mista ao carrinho.
+            </DialogDescription>
             <p className="text-sm font-medium text-[#6f6461]">
               Escolha o tamanho e combine seus sabores favoritos.
             </p>
           </DialogHeader>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-28 pt-4 [-webkit-overflow-scrolling:touch]">
+          <div className="min-h-0 flex-1 px-4 pb-5 pt-4 touch-pan-y [-webkit-overflow-scrolling:touch]">
             <div className="grid grid-cols-3 gap-2">
               {TAMANHOS.map((tamanho) => {
                 const ativo = tamanhoSelecionado === tamanho.id;
@@ -286,7 +290,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
             </div>
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 shrink-0 border-t border-[#ead7bd] bg-white/95 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-[0_-12px_30px_rgba(57,31,22,0.12)] backdrop-blur">
+          <div className="sticky bottom-0 shrink-0 border-t border-[#ead7bd] bg-white/95 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-[0_-12px_30px_rgba(57,31,22,0.12)] backdrop-blur">
             <div className="flex gap-2">
               <Button
                 type="button"
