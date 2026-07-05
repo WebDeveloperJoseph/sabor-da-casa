@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { CupSoda, LayoutGrid, Pizza, Search, X } from "lucide-react";
+import { CakeSlice, CupSoda, Gift, LayoutGrid, Pizza, Search, X } from "lucide-react";
 import { PratoCard } from "./PratoCard";
 
 type IngredienteTag = {
@@ -30,7 +30,7 @@ type CategoriaWithPratos = {
   pratos: PratoWithIngred[];
 };
 
-type TipoFiltro = "todos" | "pizzas" | "bebidas" | "outros";
+type TipoFiltro = "todos" | "pizzas" | "combos" | "bebidas" | "sobremesas" | "outros";
 
 type Props = {
   categorias: CategoriaWithPratos[];
@@ -42,44 +42,45 @@ const normalizeText = (value: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
 
-const getTipoCategoria = (
-  nomeCategoria: string,
-): Exclude<TipoFiltro, "todos"> => {
+const getTipoCategoria = (nomeCategoria: string): TipoFiltro => {
   const nome = normalizeText(nomeCategoria);
+
+  if (nome.includes("bebida") || nome.includes("refrigerante") || nome.includes("suco")) {
+    return "bebidas";
+  }
+
+  if (nome.includes("sobremesa") || nome.includes("doce")) {
+    return "sobremesas";
+  }
+
+  if (nome.includes("combo") || nome.includes("promoc")) {
+    return "combos";
+  }
 
   if (nome.includes("pizza") || nome.includes("tradicional")) {
     return "pizzas";
   }
 
-  if (
-    nome.includes("bebida") ||
-    nome.includes("refrigerante") ||
-    nome.includes("suco")
-  ) {
-    return "bebidas";
-  }
-
   return "outros";
 };
+
+const filtroVisual: Array<{
+  key: TipoFiltro;
+  label: string;
+  icon: ReactNode;
+}> = [
+  { key: "todos", label: "Mais pedidas", icon: <LayoutGrid className="h-5 w-5" /> },
+  { key: "pizzas", label: "Pizzas", icon: <Pizza className="h-5 w-5" /> },
+  { key: "combos", label: "Combos", icon: <Gift className="h-5 w-5" /> },
+  { key: "bebidas", label: "Bebidas", icon: <CupSoda className="h-5 w-5" /> },
+  { key: "sobremesas", label: "Sobremesas", icon: <CakeSlice className="h-5 w-5" /> },
+];
 
 export function CardapioFiltros({ categorias }: Props) {
   const [busca, setBusca] = useState("");
   const [tipoSelecionado, setTipoSelecionado] = useState<TipoFiltro>("todos");
-  const [categoriaAtivaId, setCategoriaAtivaId] = useState<number | null>(null);
 
   const buscaNormalizada = normalizeText(busca.trim());
-
-  const contadores = useMemo(() => {
-    const base = { todos: 0, pizzas: 0, bebidas: 0, outros: 0 };
-
-    categorias.forEach((categoria) => {
-      const tipo = getTipoCategoria(categoria.nome);
-      base[tipo] += categoria.pratos.length;
-      base.todos += categoria.pratos.length;
-    });
-
-    return base;
-  }, [categorias]);
 
   const categoriasFiltradas = useMemo(() => {
     return categorias
@@ -88,7 +89,8 @@ export function CardapioFiltros({ categorias }: Props) {
 
         const pratosFiltrados = categoria.pratos.filter((prato) => {
           const passaNoTipo =
-            tipoSelecionado === "todos" || tipoSelecionado === tipoCategoria;
+            tipoSelecionado === "todos" ||
+            tipoSelecionado === tipoCategoria;
 
           if (!passaNoTipo) return false;
           if (!buscaNormalizada) return true;
@@ -97,191 +99,123 @@ export function CardapioFiltros({ categorias }: Props) {
             .map((item) => item.ingrediente.nome)
             .join(" ");
           const alvoBusca = normalizeText(
-            [
-              prato.nome,
-              prato.descricao ?? "",
-              categoria.nome,
-              ingredientes,
-            ].join(" "),
+            [prato.nome, prato.descricao ?? "", categoria.nome, ingredientes].join(" "),
           );
 
           return alvoBusca.includes(buscaNormalizada);
         });
 
-        return {
-          ...categoria,
-          pratos: pratosFiltrados,
-        };
+        return { ...categoria, pratos: pratosFiltrados };
       })
-      .filter((categoria) => categoria.pratos.length > 0);
+      .filter((categoria) => categoria.pratos.length > 0)
+      .sort((a, b) => {
+        const prioridade: Record<TipoFiltro, number> = {
+          pizzas: 0,
+          combos: 1,
+          bebidas: 2,
+          sobremesas: 3,
+          outros: 4,
+          todos: 5,
+        };
+        return prioridade[getTipoCategoria(a.nome)] - prioridade[getTipoCategoria(b.nome)];
+      });
   }, [categorias, tipoSelecionado, buscaNormalizada]);
 
-  const filtros: Array<{
-    key: TipoFiltro;
-    label: string;
-    icon: ReactNode;
-    count: number;
-  }> = [
-    {
-      key: "todos",
-      label: "Todos",
-      icon: <LayoutGrid className="h-4 w-4" />,
-      count: contadores.todos,
-    },
-    {
-      key: "pizzas",
-      label: "Pizzas",
-      icon: <Pizza className="h-4 w-4" />,
-      count: contadores.pizzas,
-    },
-    {
-      key: "bebidas",
-      label: "Bebidas",
-      icon: <CupSoda className="h-4 w-4" />,
-      count: contadores.bebidas,
-    },
-    {
-      key: "outros",
-      label: "Outros",
-      icon: <span className="text-xs">+</span>,
-      count: contadores.outros,
-    },
-  ];
-
-  const categoriasNavegacao = categoriasFiltradas.map((categoria) => ({
-    id: categoria.id,
-    nome: categoria.nome,
-    total: categoria.pratos.length,
-  }));
-
-  const scrollToCategoria = (categoriaId: number) => {
-    const alvo = document.getElementById(`categoria-${categoriaId}`);
-    if (!alvo) return;
-
-    setCategoriaAtivaId(categoriaId);
-    alvo.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const titulo =
+    tipoSelecionado === "todos"
+      ? "Mais pedidas"
+      : filtroVisual.find((item) => item.key === tipoSelecionado)?.label || "Cardapio";
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-16 z-20 -mx-2 rounded-2xl border border-orange-200 bg-white/95 p-3 shadow-lg backdrop-blur md:static md:mx-0 md:bg-orange-50/70 md:shadow-none">
-        <div className="relative mb-3">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orange-500" />
-          <input
-            type="text"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar pizza, bebida ou ingrediente..."
-            className="h-11 w-full rounded-xl border border-orange-300 bg-white pl-10 pr-10 text-sm text-gray-800 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
-          />
-          {busca && (
-            <button
-              type="button"
-              onClick={() => setBusca("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-500 hover:bg-orange-100 hover:text-orange-700"
-              aria-label="Limpar busca"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {filtros.map((filtro) => {
-            const ativo = tipoSelecionado === filtro.key;
-            return (
+    <div className="space-y-7">
+      <div className="rounded-[2rem] bg-[#fff7ea] px-1 pt-1">
+        <div className="sticky top-0 z-20 -mx-1 border-b border-[#f0dfc9] bg-[#fff7ea]/96 px-1 pb-4 pt-4 backdrop-blur md:static md:border-b-0">
+          <div className="relative mx-auto max-w-3xl">
+            <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[#5f5250]" />
+            <input
+              type="text"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar pizzas, sabores e mais..."
+              className="h-14 w-full rounded-full border border-[#eadfd3] bg-white pl-14 pr-12 text-base text-[#231313] shadow-[0_8px_22px_rgba(57,31,22,0.08)] outline-none transition focus:border-[#c90010] focus:ring-2 focus:ring-[#ffd15a]/50"
+            />
+            {busca && (
               <button
-                key={filtro.key}
                 type="button"
-                onClick={() => setTipoSelecionado(filtro.key)}
-                className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
-                  ativo
-                    ? "border-orange-500 bg-orange-500 text-white shadow"
-                    : "border-orange-200 bg-white text-orange-700 hover:border-orange-300 hover:bg-orange-50"
-                }`}
+                onClick={() => setBusca("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-2 text-[#7b706c] hover:bg-[#fff0f0] hover:text-[#c90010]"
+                aria-label="Limpar busca"
               >
-                {filtro.icon}
-                <span>{filtro.label}</span>
-                <span
-                  className={`rounded-full px-1.5 py-0.5 text-[10px] ${
-                    ativo
-                      ? "bg-white/25 text-white"
-                      : "bg-orange-100 text-orange-700"
-                  }`}
-                >
-                  {filtro.count}
-                </span>
+                <X className="h-4 w-4" />
               </button>
-            );
-          })}
-        </div>
+            )}
+          </div>
 
-        {categoriasNavegacao.length > 0 && (
-          <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-            {categoriasNavegacao.map((categoria) => {
-              const ativa = categoriaAtivaId === categoria.id;
+          <div className="mt-5 flex gap-3 overflow-x-auto px-1 pb-1">
+            {filtroVisual.map((filtro) => {
+              const ativo = tipoSelecionado === filtro.key;
               return (
                 <button
-                  key={categoria.id}
+                  key={filtro.key}
                   type="button"
-                  onClick={() => scrollToCategoria(categoria.id)}
-                  className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                    ativa
-                      ? "border-red-500 bg-red-500 text-white"
-                      : "border-red-200 bg-white text-red-700 hover:border-red-300 hover:bg-red-50"
+                  onClick={() => setTipoSelecionado(filtro.key)}
+                  className={`inline-flex min-h-14 shrink-0 items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-black transition ${
+                    ativo
+                      ? "border-[#c90010] bg-[#c90010] text-white shadow-lg"
+                      : "border-[#ead7bd] bg-white text-[#9a0007] hover:border-[#c90010]"
                   }`}
                 >
-                  <span>{categoria.nome}</span>
-                  <span
-                    className={`rounded-full px-1.5 py-0.5 text-[10px] ${
-                      ativa
-                        ? "bg-white/20 text-white"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {categoria.total}
-                  </span>
+                  {filtro.icon}
+                  <span>{filtro.label}</span>
                 </button>
               );
             })}
           </div>
-        )}
-      </div>
+        </div>
 
-      <div className="space-y-16">
-        {categoriasFiltradas.map((categoria) => (
-          <section
-            key={categoria.id}
-            id={`categoria-${categoria.id}`}
-            className="relative overflow-hidden rounded-3xl border-2 border-orange-100 bg-linear-to-br from-white to-orange-50/30 p-8 shadow-xl md:p-10"
-          >
-            <div className="absolute right-0 top-0 z-0 h-64 w-64 rounded-full bg-linear-to-br from-orange-200/20 to-red-200/20 blur-3xl" />
-
-            <h2 className="relative mb-3 bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-center text-3xl font-bold text-transparent md:text-left md:text-4xl">
-              {categoria.nome}
-            </h2>
-            <p className="relative mb-8 text-center text-base text-gray-700 md:text-left md:text-lg">
-              {categoria.descricao}
-            </p>
-
-            <div className="relative grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {categoria.pratos.map((prato) => (
-                <PratoCard key={prato.id} prato={prato} categoria={categoria} />
-              ))}
+        <div className="px-3 pb-10 pt-2 sm:px-5">
+          <div className="mb-5 flex items-end justify-between">
+            <div>
+              <h2 className="text-3xl font-black text-[#241313]">{titulo}</h2>
+              <div className="mt-2 h-1 w-16 rounded-full bg-[#c90010]" />
             </div>
-          </section>
-        ))}
-
-        {categoriasFiltradas.length === 0 && (
-          <div className="rounded-2xl border-2 border-orange-200 bg-orange-50 px-4 py-10 text-center">
-            <p className="font-semibold text-orange-800">
-              Nenhum item encontrado para os filtros selecionados.
-            </p>
-            <p className="mt-2 text-sm text-orange-700">
-              Tente limpar a busca ou mudar o tipo de produto.
-            </p>
+            {tipoSelecionado !== "todos" && (
+              <button
+                type="button"
+                onClick={() => setTipoSelecionado("todos")}
+                className="text-sm font-bold text-[#c90010]"
+              >
+                Ver todas
+              </button>
+            )}
           </div>
-        )}
+
+          <div className="space-y-8">
+            {categoriasFiltradas.map((categoria) => (
+              <section key={categoria.id} id={`categoria-${categoria.id}`} className="scroll-mt-40">
+                {tipoSelecionado === "todos" && (
+                  <h3 className="mb-3 text-xl font-black text-[#3a1b18]">{categoria.nome}</h3>
+                )}
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  {categoria.pratos.map((prato) => (
+                    <PratoCard key={prato.id} prato={prato} categoria={categoria} />
+                  ))}
+                </div>
+              </section>
+            ))}
+
+            {categoriasFiltradas.length === 0 && (
+              <div className="rounded-2xl border border-[#ead7bd] bg-white px-4 py-10 text-center shadow-sm">
+                <p className="font-semibold text-[#9a0007]">
+                  Nenhum item encontrado para os filtros selecionados.
+                </p>
+                <p className="mt-2 text-sm text-[#6f6461]">
+                  Tente limpar a busca ou escolher outra categoria.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

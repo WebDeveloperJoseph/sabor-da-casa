@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pizza } from "lucide-react";
+import { ChevronRight, Pizza } from "lucide-react";
 import { MonteSuaPizzaDialog } from "./MonteSuaPizzaDialog";
 
 type PratoTamanho = {
@@ -30,18 +30,24 @@ export function MonteSuaPizzaButton({ pizzas }: Props) {
   return (
     <>
       <button
+        type="button"
+        data-testid="monte-sua-pizza"
+        aria-label="Abrir montagem de pizza personalizada"
         onClick={() => setOpen(true)}
-        className="w-full md:w-auto px-6 py-4 bg-linear-to-r from-orange-500 to-red-500 text-white rounded-2xl shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-3 border-2 border-white cursor-pointer"
+        className="flex w-full max-w-3xl cursor-pointer items-center gap-4 rounded-2xl border border-[#ffd15a] bg-linear-to-r from-[#ffd15a] to-[#ffc329] p-4 text-left text-[#2b1212] shadow-[0_12px_28px_rgba(127,41,0,0.16)] transition hover:-translate-y-0.5 hover:shadow-2xl"
       >
-        <Pizza className="w-6 h-6 shrink-0" />
-        <div className="flex flex-col items-start leading-tight text-left">
-          <span className="text-base sm:text-lg font-bold">
-            Monte sua Pizza
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#b50008] text-white shadow-lg">
+          <Pizza className="h-7 w-7" />
+        </span>
+        <span className="min-w-0 flex-1 leading-tight">
+          <span className="block text-base font-black sm:text-lg">
+            Monte sua pizza
           </span>
-          <span className="text-[11px] sm:text-xs text-orange-100">
-            P/M até 2 sabores • G até 2 sabores
+          <span className="mt-1 block text-xs font-semibold leading-4 text-[#7a2900] sm:text-sm">
+            P/M ate 2 sabores • G ate 2 sabores
           </span>
-        </div>
+        </span>
+        <ChevronRight className="h-6 w-6 shrink-0" />
       </button>
 
       <MonteSuaPizzaDialog open={open} onOpenChange={setOpen} pizzas={pizzas} />

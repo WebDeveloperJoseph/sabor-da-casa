@@ -7,8 +7,8 @@ import { CartProvider } from "@/components/public/CartProvider";
 import { LazyCartDialog } from "@/components/public/LazyCartDialog";
 import { HeroSection } from "@/components/public/HeroSection";
 import { MonteSuaPizzaButton } from "@/components/public/MonteSuaPizzaButton";
-import { AvaliacoesDestaques } from "@/components/public/AvaliacoesDestaques";
 import { CardapioFiltros } from "@/components/public/CardapioFiltros";
+import { getPublicPizzaImage } from "@/lib/publicImages";
 // Tipos auxiliares para evitar uso de `any` e padronizar o shape usado aqui
 type IngredienteTag = {
   ingrediente: { id: number; nome: string; alergenico: boolean };
@@ -50,7 +50,6 @@ export default async function Home() {
     createdAt: Date;
     pedido: { nomeCliente: string };
   }> = [];
-
   try {
     const categoriasRaw = await prisma.categoria.findMany({
       where: { ativo: true },
@@ -83,7 +82,7 @@ export default async function Home() {
         nome: p.nome,
         descricao: p.descricao,
         preco: Number(p.preco),
-        imagem: p.imagem,
+        imagem: getPublicPizzaImage(p.nome, p.imagem),
         ativo: p.ativo,
         destaque: p.destaque,
         ingredientes: p.ingredientes,
@@ -182,14 +181,15 @@ export default async function Home() {
   }
   const isOpenNow =
     openStart >= 0 && minutesNow >= openStart && minutesNow <= openEnd;
+  void avaliacoesDestaque;
 
   return (
     <CartProvider settings={settings}>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-[#fff7ea]">
         {/* Hero Section Modernizada */}
         <HeroSection isOpenNow={isOpenNow} />
 
-        <div className="container mx-auto px-4 py-8 pb-28 sm:pb-8">
+        <div className="mx-auto max-w-6xl px-3 pb-28 sm:px-5 sm:pb-10">
           {/* Aviso pedidos pausados */}
           {!settings.aceitarPedidos && (
             <div className="mb-8 rounded-2xl border-2 border-orange-300 bg-linear-to-r from-orange-50 to-red-50 p-6 text-center shadow-lg">
@@ -202,7 +202,7 @@ export default async function Home() {
 
           {/* Botão Monte sua Pizza */}
           {categorias.some((c) => c.pratos && c.pratos.length > 0) && (
-            <div className="mb-12 flex justify-center">
+            <div className="mb-5 flex justify-center">
               <MonteSuaPizzaButton
                 pizzas={categorias
                   .flatMap((c) => c.pratos)
@@ -226,7 +226,7 @@ export default async function Home() {
 
           {/* Cardápio por categorias */}
           <div id="bordas" className="scroll-mt-24"></div>
-          <section className="relative bg-yellow-50 rounded-3xl shadow-xl p-8 md:p-10 border-2 border-yellow-200 mb-12 flex flex-col items-center text-center max-w-3xl mx-auto">
+          <section className="hidden">
             <h2 className="text-3xl md:text-4xl font-extrabold text-yellow-700 mb-2 flex items-center gap-2">
               <span role="img" aria-label="borda">
                 🧀
@@ -272,10 +272,9 @@ export default async function Home() {
           </div>
 
           {/* Avaliações em Destaque */}
-          <AvaliacoesDestaques avaliacoes={avaliacoesDestaque} />
 
           {/* Footer */}
-          <footer className="relative mt-24 py-12 bg-linear-to-br from-orange-50 to-red-50 rounded-3xl border-2 border-orange-100">
+          <footer className="hidden">
             <div className="text-center space-y-6">
               {/* Redes Sociais com ícones */}
               <div className="flex justify-center gap-6">

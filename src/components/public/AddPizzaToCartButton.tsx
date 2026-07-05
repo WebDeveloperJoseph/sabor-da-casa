@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "./CartProvider";
-import { Check, ShoppingCart } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 
 export function AddPizzaToCartButton({
   pratoId,
@@ -48,19 +48,19 @@ export function AddPizzaToCartButton({
   };
 
   return (
-    <div className="flex flex-col gap-3 w-full">
+    <div className="flex w-full flex-col gap-3">
       {/* Seleção de Tamanho */}
       {temTamanhos && (
-        <div className="flex gap-2 justify-center">
+        <div className="grid grid-cols-2 gap-1.5 min-[420px]:grid-cols-3">
           {tamanhos.map((t) => (
             <button
               key={t.tamanho}
               type="button"
               onClick={() => setTamanhoSelecionado(t.tamanho)}
-              className={`px-3 py-1 text-sm font-medium rounded border transition-all duration-300 transform cursor-pointer flex flex-col items-center ${
+              className={`flex cursor-pointer flex-col items-center rounded-xl border px-2 py-1 text-[11px] font-bold transition ${
                 tamanhoSelecionado === t.tamanho
-                  ? "bg-orange-500 text-white border-orange-500 scale-105 shadow-md"
-                  : "bg-white text-gray-700 border-gray-300 hover:border-orange-500 hover:scale-105 hover:shadow-md hover:bg-orange-50"
+                  ? "border-[#c90010] bg-[#fff0f0] text-[#c90010]"
+                  : "border-[#eadfd3] bg-white text-[#5f5250] hover:border-[#c90010]"
               }`}
             >
               <span>
@@ -69,8 +69,8 @@ export function AddPizzaToCartButton({
               <span
                 className={`text-xs ${
                   tamanhoSelecionado === t.tamanho
-                    ? "text-orange-100"
-                    : "text-blue-600"
+                    ? "text-[#c90010]"
+                    : "text-[#8b807c]"
                 }`}
               >
                 {t.tamanho === "P"
@@ -88,20 +88,18 @@ export function AddPizzaToCartButton({
       <Button
         onClick={handleAdd}
         disabled={disabled}
-        className={`w-full cursor-pointer transition-colors ${
+        className={`h-11 w-full cursor-pointer rounded-xl text-sm font-black shadow-md transition hover:shadow-lg ${
           adicionado
             ? "bg-green-600 hover:bg-green-700"
-            : "bg-orange-600 hover:bg-orange-700"
+            : "bg-[#d71920] hover:bg-[#b50008]"
         }`}
       >
         {adicionado ? (
-          <Check className="w-4 h-4 mr-2" />
+          <Check className="mr-1 h-5 w-5" />
         ) : (
-          <ShoppingCart className="w-4 h-4 mr-2" />
+          <Plus className="mr-1 h-5 w-5" />
         )}
-        {adicionado
-          ? "Adicionado!"
-          : `R$ ${precoFinal.toFixed(2).replace(".", ",")}`}
+        {adicionado ? "Adicionado!" : "Adicionar"}
       </Button>
     </div>
   );

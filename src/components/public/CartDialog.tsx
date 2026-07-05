@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ShoppingCart, Minus, Plus, Trash } from "lucide-react";
+import { Banknote, CreditCard, QrCode, ShoppingCart, Minus, Plus, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -63,6 +63,11 @@ export function CartDialog() {
 
   const minOk = subtotal >= Number(settings.pedidoMinimo || 0);
   const itemCount = items.reduce((acc, item) => acc + item.quantidade, 0);
+  const paymentOptions = [
+    { value: "pix", label: "Pix", hint: "Aprovacao imediata", icon: QrCode },
+    { value: "cartao", label: "Cartao", hint: "Credito ou debito", icon: CreditCard },
+    { value: "dinheiro", label: "Dinheiro", hint: "Na entrega", icon: Banknote },
+  ] as const;
 
   // link do WhatsApp com mensagem pré-preenchida (quando tivermos o último pedido)
   const waLink = lastOrder
@@ -337,7 +342,7 @@ Obrigado!`,
       <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 hidden sm:flex flex-col gap-2 sm:gap-3 z-50">
         {/* Botão Meus Pedidos */}
         <Link href="/meus-pedidos">
-          <Button className="w-full bg-blue-600 hover:bg-blue-700 shadow-lg gap-1 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5">
+            <Button className="w-full gap-1 bg-[#b50008] px-3 py-2 text-xs shadow-lg hover:bg-[#970006] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm">
             <svg
               className="w-4 h-4 sm:w-5 sm:h-5"
               fill="none"
@@ -359,17 +364,28 @@ Obrigado!`,
         {/* Botão Carrinho */}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-orange-600 hover:bg-orange-700 shadow-lg gap-1 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5">
+            <Button className="gap-1 bg-[#d71920] px-3 py-2 text-xs shadow-lg hover:bg-[#b50008] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm">
               <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">Carrinho ({itemCount})</span>
               <span className="sm:hidden">({itemCount})</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-[95vw] sm:max-w-md md:max-w-3xl p-3 sm:p-6 rounded-2xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-base sm:text-lg">
-                Seu Pedido
+          <DialogContent className="max-h-[92vh] w-[96vw] overflow-y-auto rounded-[1.75rem] border-0 bg-[#fff7ea] p-4 shadow-2xl sm:max-w-md sm:p-6 md:max-w-3xl">
+            <DialogHeader className="mb-2">
+              <div className="mx-auto text-center leading-none">
+                <div className="text-2xl font-black text-[#9a0007]">
+                  Sabor da Casa
+                </div>
+                <div className="text-xs font-black tracking-[0.35em] text-[#b6782b]">
+                  PIZZARIA
+                </div>
+              </div>
+              <DialogTitle className="mt-3 text-left text-3xl font-black text-[#4b0909] sm:text-4xl">
+                Meu pedido
               </DialogTitle>
+              <p className="text-left text-sm font-medium text-[#6f6461]">
+                Confira seus itens e finalize com seguranca.
+              </p>
             </DialogHeader>
 
             <div className="grid md:grid-cols-5 gap-4 sm:gap-6">
@@ -386,19 +402,19 @@ Obrigado!`,
                     return (
                       <div
                         key={chave}
-                        className="border rounded-lg p-2 sm:p-3 overflow-hidden grid gap-2 sm:gap-3 md:gap-4 md:grid-cols-1"
+                        className="grid gap-3 overflow-hidden rounded-2xl border border-[#ead7bd] bg-white p-3 shadow-sm"
                       >
                         {/* Linha superior: nome, valor, controles de quantidade */}
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <p
-                              className="font-medium text-sm sm:text-base text-gray-900 truncate"
+                              className="truncate text-base font-black text-[#241313]"
                               title={item.nome}
                             >
                               {item.nome}
                             </p>
                             {item.tamanho && (
-                              <span className="inline-block mt-1 text-[10px] sm:text-xs bg-orange-100 text-orange-700 px-1.5 sm:px-2 py-0.5 rounded">
+                              <span className="mt-1 inline-block rounded-full bg-[#fff0f0] px-2 py-0.5 text-[10px] font-bold text-[#c90010] sm:text-xs">
                                 {item.tamanho} -{" "}
                                 {item.tamanho === "P"
                                   ? "4 fatias"
@@ -407,7 +423,7 @@ Obrigado!`,
                                     : "8 fatias"}
                               </span>
                             )}
-                            <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
+                            <p className="mt-1 text-sm font-bold text-[#6f6461]">
                               R$ {item.preco.toFixed(2).replace(".", ",")}
                             </p>
                           </div>
@@ -415,7 +431,7 @@ Obrigado!`,
                             <Button
                               size="icon"
                               variant="outline"
-                              className="h-7 w-7 sm:h-8 sm:w-8"
+                              className="h-8 w-8 rounded-xl border-[#ead7bd]"
                               onClick={() =>
                                 updateQty(
                                   item.pratoId,
@@ -433,7 +449,7 @@ Obrigado!`,
                             <Button
                               size="icon"
                               variant="outline"
-                              className="h-7 w-7 sm:h-8 sm:w-8"
+                              className="h-8 w-8 rounded-xl border-[#ead7bd]"
                               onClick={() =>
                                 updateQty(
                                   item.pratoId,
@@ -448,7 +464,7 @@ Obrigado!`,
                             <Button
                               size="icon"
                               variant="destructive"
-                              className="h-7 w-7 sm:h-8 sm:w-8"
+                              className="h-8 w-8 rounded-xl bg-[#fff0f0] text-[#d71920] hover:bg-[#ffd9d9]"
                               onClick={() =>
                                 remove(
                                   item.pratoId,
@@ -473,7 +489,7 @@ Obrigado!`,
                                 item.tamanho,
                               )
                             }
-                            className="text-xs sm:text-sm min-h-10 sm:min-h-12 md:min-h-16 max-h-32 sm:max-h-40 resize-y w-full"
+                            className="min-h-10 w-full max-h-32 resize-y rounded-xl border-[#ead7bd] text-xs sm:min-h-12 sm:text-sm md:min-h-16"
                           />
                         </div>
                       </div>
@@ -481,12 +497,12 @@ Obrigado!`,
                   })
                 )}
 
-                <div className="border-t pt-2 sm:pt-3 text-xs sm:text-sm text-gray-700 space-y-0.5 sm:space-y-1">
-                  <p>
+                <div className="space-y-2 rounded-2xl border border-[#ead7bd] bg-white p-4 text-sm text-[#241313] shadow-sm">
+                  <p className="flex justify-between">
                     Subtotal:{" "}
                     <strong>R$ {subtotal.toFixed(2).replace(".", ",")}</strong>
                   </p>
-                  <p>
+                  <p className="flex justify-between">
                     Taxa de entrega:{" "}
                     <strong>
                       R${" "}
@@ -495,9 +511,9 @@ Obrigado!`,
                         .replace(".", ",")}
                     </strong>
                   </p>
-                  <p className="text-sm sm:text-base">
+                  <p className="flex justify-between border-t border-[#ead7bd] pt-3 text-lg font-black">
                     Total:{" "}
-                    <strong className="text-orange-600">
+                    <strong className="text-[#c90010]">
                       R$ {total.toFixed(2).replace(".", ",")}
                     </strong>
                   </p>
@@ -714,29 +730,63 @@ Obrigado!`,
       </div>
 
       {/* Barra fixa mobile */}
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-orange-200 bg-white/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-2xl backdrop-blur sm:hidden">
-        <div className="mx-auto flex max-w-3xl items-center gap-2">
-          <Link href="/meus-pedidos" className="shrink-0">
+      {itemCount > 0 && (
+      <div className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.6rem)] pt-2 sm:hidden">
+        <div className="mx-auto flex max-w-3xl items-center gap-3 rounded-[1.7rem] bg-[#b50008] p-3 text-white shadow-2xl">
+          <button
+            type="button"
+            onClick={() =>
+              itemCount > 0
+                ? setOpen(true)
+                : toast.info("Escolha uma pizza para comecar seu pedido")
+            }
+            className="relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white text-[#b50008] hover:bg-[#fff5e6]"
+            aria-label="Carrinho"
+          >
+            <ShoppingCart className="h-7 w-7" />
+            {itemCount > 0 && (
+              <span className="absolute -right-1 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-[#ffd15a] px-1 text-xs font-black text-[#2b1212]">
+                {itemCount}
+              </span>
+            )}
+          </button>
+          <Link href="/meus-pedidos" className="hidden">
             <Button
               variant="outline"
-              className="h-11 border-blue-200 bg-blue-50 px-3 text-blue-700 hover:bg-blue-100"
+              className="relative h-14 w-14 rounded-2xl border-0 bg-white p-0 text-[#b50008] hover:bg-[#fff5e6]"
+              aria-label="Meus pedidos"
             >
-              Pedidos
+              <ShoppingCart className="h-7 w-7" />
+              {itemCount > 0 && (
+                <span className="absolute -right-1 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-[#ffd15a] px-1 text-xs font-black text-[#2b1212]">
+                  {itemCount}
+                </span>
+              )}
             </Button>
           </Link>
 
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-base font-black">
+              {itemCount} {itemCount === 1 ? "item" : "itens"} no carrinho
+            </p>
+            <p className="text-sm font-semibold text-white/85">
+              R$ {total.toFixed(2).replace(".", ",")}
+            </p>
+          </div>
+
           <Button
-            onClick={() => setOpen(true)}
-            className="h-11 flex-1 justify-between bg-orange-600 px-4 text-sm font-semibold text-white hover:bg-orange-700"
+            onClick={() =>
+              itemCount > 0
+                ? setOpen(true)
+                : toast.info("Escolha uma pizza para comecar seu pedido")
+            }
+            className="h-14 shrink-0 rounded-2xl bg-[#ffd15a] px-5 text-base font-black text-[#241313] hover:bg-[#ffc329]"
           >
-            <span className="inline-flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
-              Carrinho ({itemCount})
-            </span>
-            <span>R$ {total.toFixed(2).replace(".", ",")}</span>
+            {itemCount > 0 ? "Ver carrinho" : "Escolher"}
           </Button>
         </div>
       </div>
+      )}
 
       {/* Modal de confirmação pós-pedido */}
       {showConfirm && (

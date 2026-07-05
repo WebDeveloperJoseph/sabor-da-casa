@@ -1,265 +1,111 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import { Clock, MapPin, Star } from "lucide-react"
-import { useState, useEffect } from "react"
+import Image from "next/image";
+import Link from "next/link";
+import { Clock, MapPin, Menu, ShieldCheck, Truck, UserRound } from "lucide-react";
 
 type Props = {
-  isOpenNow: boolean
-}
+  isOpenNow: boolean;
+};
 
 export function HeroSection({ isOpenNow }: Props) {
-  const [scrollY, setScrollY] = useState(0)
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY)
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
   return (
-    <section className="relative mb-16 overflow-hidden">
-      {/* Background com gradiente animado */}
-      <div className="absolute inset-0 bg-linear-to-br from-orange-100 via-red-50 to-pink-100 opacity-60"></div>
-      
-      <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-20">
-        {/* Grid layout para desktop */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Coluna esquerda: Texto e CTAs */}
-          <div className="text-center lg:text-left space-y-6 z-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 rounded-full border-2 border-orange-300 shadow-sm">
-              <Star className="w-5 h-5 text-orange-500 fill-orange-500" />
-              <span className="text-sm font-bold text-orange-800">Sabor Artesanal</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
-              <span className="bg-linear-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                👨‍🍳 Pizza Moda da Casa
-              </span>
-              <br />
-              <span className="text-gray-900">Feitas com Amor</span>
-            </h1>
-            
-            <p className="text-xl text-gray-700 max-w-2xl mx-auto lg:mx-0">
-              Massa de Longa Fermentação, Molho Artesanal, Você vai comer uma Pizza Leve e Saborosa, Feita com Muito Amor 🍕
-            </p>
-            
-            {/* Badges de info */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start flex-wrap">
-              <div className="inline-flex items-center gap-2 px-5 py-3 bg-white rounded-xl border-2 border-gray-200 shadow-md hover:shadow-lg transition-all">
-                <Clock className="w-5 h-5 text-orange-500" />
-                <div className="text-left">
-                  <p className="text-xs text-gray-500 font-medium">Horário</p>
-                  <p className="text-sm font-bold text-gray-900">Seg-Sex: 18h-22:30</p>
-                </div>
-              </div>
-              
-              <div className="inline-flex items-center gap-2 px-5 py-3 bg-white rounded-xl border-2 border-gray-200 shadow-md hover:shadow-lg transition-all">
-                <MapPin className="w-5 h-5 text-red-500" />
-                <div className="text-left">
-                  <p className="text-xs text-gray-500 font-medium">Entrega</p>
-                  <p className="text-sm font-bold text-gray-900">Só em Nova Floresta</p>
-                </div>
-              </div>
-              
-              <div className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl border-2 shadow-md ${
-                isOpenNow 
-                  ? 'bg-green-50 border-green-300' 
-                  : 'bg-red-50 border-red-300'
-              }`}>
-                <div className={`w-3 h-3 rounded-full animate-pulse ${
-                  isOpenNow ? 'bg-green-500' : 'bg-red-500'
-                }`}></div>
-                <span className={`text-sm font-bold ${
-                  isOpenNow ? 'text-green-800' : 'text-red-800'
-                }`}>
-                  {isOpenNow ? 'Aberto Agora!' : 'Fechado'}
-                </span>
-              </div>
-            </div>
-            
-            {/* CTA Buttons */}
-            <div className="pt-4 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center lg:justify-start">
-              <a 
-                href="#cardapio" 
-                className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                <span>Ver Cardápio</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </a>
-              <a
-                href="#bordas"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-yellow-400 to-orange-400 text-orange-900 font-bold rounded-full shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-yellow-300"
-              >
-                <span>Ver Bordas Recheadas</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </a>
-            </div>
-          </div>
-          
-          {/* Coluna direita: Imagem da equipe + Logo */}
-          <div className="relative z-10">
-            {/* Versão Desktop: Com animação de carrossel e scroll */}
-            <div 
-              className="relative rounded-3xl overflow-hidden bg-white shadow-2xl border-4 border-white hidden lg:block"
-              style={{
-                transform: `translateY(${scrollY * 0.1}px)`,
-                transition: 'transform 0.1s ease-out'
-              }}
-            >
-              <div className="relative h-96 md:h-[500px] w-full overflow-hidden">
-                {/* Container do carrossel com animação infinita */}
-                <div className="sliding-carousel absolute inset-0 flex">
-                  {/* Imagem original */}
-                  <div className="shrink-0 h-full relative" style={{ width: '150%' }}>
-                    <Image
-                      src="/img/equipe.png"
-                      alt="Nossa Equipe"
-                      fill
-                      priority
-                      sizes="75vw"
-                      className="object-cover object-left"
-                    />
-                  </div>
-                  {/* Imagem duplicada para loop sem falhas */}
-                  <div className="shrink-0 h-full relative" style={{ width: '150%' }}>
-                    <Image
-                      src="/img/equipe.png"
-                      alt="Nossa Equipe"
-                      fill
-                      sizes="75vw"
-                      className="object-cover object-left"
-                    />
-                  </div>
-                </div>
-                
-                {/* Overlay gradient */}
-                <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent pointer-events-none z-10"></div>
-                
-                {/* Logo flutuante */}
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-6 md:bottom-10 z-20">
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-linear-to-r from-orange-500 to-red-500 rounded-full blur-2xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="relative w-32 h-32 md:w-44 md:h-44 rounded-full bg-white p-3 shadow-2xl ring-4 ring-white/50 transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-12">
-                      <Image
-                        src="/img/logoSaborDaCasa.jpg"
-                        alt="Sabor da Casa"
-                        fill
-                        sizes="200px"
-                        className="object-contain rounded-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Versão Mobile: Com carrossel mas sem parallax scroll */}
-            <div className="relative rounded-3xl overflow-hidden bg-white shadow-2xl border-4 border-white lg:hidden">
-              <div className="relative h-80 w-full overflow-hidden">
-                {/* Container do carrossel com animação infinita */}
-                <div className="sliding-carousel absolute inset-0 flex">
-                  {/* Imagem original */}
-                  <div className="shrink-0 h-full relative" style={{ width: '150%' }}>
-                    <Image
-                      src="/img/equipe.png"
-                      alt="Nossa Equipe"
-                      fill
-                      priority
-                      sizes="150vw"
-                      className="object-cover object-left"
-                    />
-                  </div>
-                  {/* Imagem duplicada para loop sem falhas */}
-                  <div className="shrink-0 h-full relative" style={{ width: '150%' }}>
-                    <Image
-                      src="/img/equipe.png"
-                      alt="Nossa Equipe"
-                      fill
-                      sizes="150vw"
-                      className="object-cover object-left"
-                    />
-                  </div>
-                </div>
-                
-                {/* Overlay gradient */}
-                <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent pointer-events-none z-10"></div>
-                
-                {/* Logo sobre a imagem */}
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-6 z-20">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-linear-to-r from-orange-500 to-red-500 rounded-full blur-2xl opacity-75"></div>
-                    <div className="relative w-32 h-32 rounded-full bg-white p-3 shadow-2xl ring-4 ring-white/50">
-                      <Image
-                        src="/img/logoSaborDaCasa.jpg"
-                        alt="Sabor da Casa"
-                        fill
-                        sizes="150px"
-                        className="object-contain rounded-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Elementos decorativos flutuantes */}
-            <div className="absolute -top-6 -right-6 w-24 h-24 bg-orange-400 rounded-full blur-3xl opacity-50 animate-pulse"></div>
-            <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-red-400 rounded-full blur-3xl opacity-50 animate-pulse animation-delay-1000"></div>
-          </div>
-        </div>
-        
-        {/* Detalhes de horário expandido */}
-        <div className="mt-12 max-w-3xl mx-auto">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border-2 border-orange-200 p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-4">
-              <Clock className="w-6 h-6 text-orange-600" />
-              <h3 className="text-lg font-bold text-gray-900">Horários de Funcionamento</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
-                <span className="font-semibold text-gray-700">Segunda, Quarta, Quinta e Sexta</span>
-                <span className="font-bold text-orange-600">18:00 - 22:30</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
-                <span className="font-semibold text-gray-700">Sábado e Domingo</span>
-                <span className="font-bold text-orange-600">17:00 - 23:00</span>
-              </div>
-              <div className="md:col-span-2 flex justify-center items-center p-3 bg-gray-100 rounded-lg">
-                <span className="font-semibold text-gray-700">Terça-feira</span>
-                <span className="ml-3 font-bold text-red-600">Fechado</span>
-              </div>
-            </div>
-          </div>
-        </div>
+    <section className="relative overflow-hidden bg-[#b50008] text-white">
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-linear-to-b from-[#c90010]/95 via-[#b50008]/92 to-[#970006]/96" />
+        <div className="absolute -right-16 top-8 h-52 w-52 rounded-full border border-white/10" />
+        <div className="absolute -left-16 bottom-8 h-48 w-48 rounded-full border border-white/10" />
       </div>
 
-      <style jsx>{`
-        .animation-delay-1000 {
-          animation-delay: 1s;
-        }
-        
-        @keyframes slide-carousel {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-100%);
-          }
-        }
-        
-        .sliding-carousel {
-          animation: slide-carousel 25s linear infinite;
-        }
-        
-        .sliding-carousel:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
+      <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-6 sm:px-6 md:pb-18 md:pt-8">
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            className="grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white shadow-sm backdrop-blur transition hover:bg-white/20"
+            aria-label="Abrir menu"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+
+          <div className="flex items-center gap-3">
+            <div className="relative h-16 w-16 overflow-hidden rounded-full border-4 border-white bg-white shadow-xl">
+              <Image
+                src="/img/logo-sabor-red.jpeg"
+                alt="Sabor da Casa Pizzaria"
+                fill
+                priority
+                sizes="64px"
+                className="object-cover"
+              />
+            </div>
+            <div className="hidden text-left leading-none min-[380px]:block">
+              <div className="text-2xl font-black tracking-tight text-white drop-shadow sm:text-3xl">
+                Sabor da Casa
+              </div>
+              <div className="mt-1 text-lg font-black italic tracking-wide text-[#ffd15a] sm:text-xl">
+                Pizzaria
+              </div>
+            </div>
+          </div>
+
+          <Link
+            href="/meus-pedidos"
+            className="grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-white text-[#b50008] shadow-sm transition hover:bg-[#fff5e6]"
+            aria-label="Minha conta"
+          >
+            <UserRound className="h-6 w-6" />
+          </Link>
+        </div>
+
+        <div className="mx-auto mt-8 max-w-3xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[#ffd15a]">
+            Pizzaria artesanal
+          </p>
+          <h1 className="mt-2 text-3xl font-black leading-tight sm:text-5xl md:text-6xl">
+            Pizza quentinha, pedido facil.
+          </h1>
+          <p className="mx-auto mt-3 max-w-xl text-sm font-medium leading-6 text-white/88 sm:text-base">
+            Massa de longa fermentacao, molho artesanal e pizzas assadas com cuidado para chegar quentinhas na sua mesa.
+          </p>
+        </div>
+
+        <div className="mx-auto mt-6 grid max-w-2xl grid-cols-2 overflow-hidden rounded-2xl border border-white/20 bg-[#fff7ea] text-[#2b1212] shadow-2xl">
+          <div className="flex items-center gap-3 border-r border-[#ead7bd] px-4 py-3">
+            <span
+              className={`h-3 w-3 rounded-full ${isOpenNow ? "bg-[#28c76f]" : "bg-[#d71920]"}`}
+            />
+            <div className="min-w-0">
+              <p className={`text-sm font-black ${isOpenNow ? "text-[#11783b]" : "text-[#9a0007]"}`}>
+                {isOpenNow ? "Aberto agora" : "Fechado agora"}
+              </p>
+              <p className="truncate text-xs text-[#5f5250]">Atendemos ate 23:30</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 px-4 py-3">
+            <Truck className="h-7 w-7 shrink-0 text-[#b50008]" />
+            <div>
+              <p className="text-sm font-black">30-45 min</p>
+              <p className="text-xs text-[#5f5250]">Entrega estimada</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-5 flex max-w-3xl flex-wrap justify-center gap-2 text-xs font-semibold text-white/90 sm:text-sm">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur">
+            <MapPin className="h-4 w-4 text-[#ffd15a]" />
+            Entrega em Nova Floresta
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur">
+            <ShieldCheck className="h-4 w-4 text-[#ffd15a]" />
+            Pedido seguro
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur">
+            <Clock className="h-4 w-4 text-[#ffd15a]" />
+            Terça fechado
+          </span>
+        </div>
+      </div>
     </section>
-  )
+  );
 }
