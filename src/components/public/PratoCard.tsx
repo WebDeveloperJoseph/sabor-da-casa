@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Heart, Plus, Star } from "lucide-react";
 import { ProductDetailDialog } from "./ProductDetailDialog";
@@ -28,6 +28,9 @@ type PratoCardProps = {
     nome: string;
     descricao: string | null;
   };
+  animationDelay?: number;
+  isFavorite?: boolean;
+  onToggleFavorite?: (pratoId: number) => void;
 };
 
 const menorPreco = (preco: number | string, tamanhos?: TamanhoType[]) => {
@@ -36,18 +39,84 @@ const menorPreco = (preco: number | string, tamanhos?: TamanhoType[]) => {
   return Number(preco);
 };
 
-const PratoCardComponent = ({ prato, categoria }: PratoCardProps) => {
+const PratoCardComponent = ({
+  prato,
+  categoria,
+  animationDelay = 0,
+  isFavorite,
+  onToggleFavorite,
+}: PratoCardProps) => {
   const [detailOpen, setDetailOpen] = useState(false);
+  const [localFavorite, setLocalFavorite] = useState(false);
+  const [heartBurst, setHeartBurst] = useState(0);
+  const [plusPulse, setPlusPulse] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const cardRef = useRef<HTMLElement | null>(null);
   const precoBase = menorPreco(prato.preco, prato.tamanhos);
+  const favorite = isFavorite ?? localFavorite;
+  const delayClass =
+    animationDelay <= 0
+      ? ""
+      : animationDelay <= 90
+        ? "anim-d-90"
+        : animationDelay <= 135
+          ? "anim-d-135"
+          : animationDelay <= 180
+            ? "anim-d-180"
+            : animationDelay <= 225
+              ? "anim-d-225"
+              : "anim-d-240";
+
+  useEffect(() => {
+    const node = cardRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.16 },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  const triggerFavorite = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    event.preventDefault();
+    if (onToggleFavorite) {
+      onToggleFavorite(prato.id);
+    } else {
+      setLocalFavorite((value) => !value);
+    }
+    setHeartBurst((value) => value + 1);
+  };
+
+  const handleOpenDetail = () => {
+    setPlusPulse(true);
+    window.setTimeout(() => setPlusPulse(false), 280);
+    setDetailOpen(true);
+  };
 
   return (
     <>
-      <article className="group relative overflow-hidden rounded-2xl border border-[#eadfd3] bg-white shadow-[0_10px_30px_rgba(57,31,22,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(57,31,22,0.14)]">
+      <article
+        ref={cardRef}
+        className={`group relative overflow-hidden rounded-2xl border border-[#eadfd3] bg-white shadow-[0_10px_30px_rgba(57,31,22,0.08)] transition duration-250 hover:-translate-y-1.5 hover:shadow-[0_18px_40px_rgba(57,31,22,0.14)] active:scale-[0.985] ${
+          isVisible ? "anim-fade-up" : "opacity-0 translate-y-5 scale-95"
+        } ${delayClass}`}
+      >
         <button
           type="button"
           data-testid={`produto-${prato.id}`}
           aria-label={`Ver detalhes de ${prato.nome}`}
-          onClick={() => setDetailOpen(true)}
+          onClick={handleOpenDetail}
           className="grid min-h-[164px] w-full grid-cols-[42%_1fr] text-left sm:grid-cols-[220px_1fr]"
         >
           <div className="relative bg-[#fff3e2]">
@@ -57,7 +126,7 @@ const PratoCardComponent = ({ prato, categoria }: PratoCardProps) => {
                 alt={prato.nome}
                 fill
                 sizes="(max-width: 640px) 42vw, 220px"
-                className="object-cover transition duration-500 group-hover:scale-105"
+                className="object-cover transition duration-300 group-hover:scale-[1.04]"
                 loading="lazy"
               />
             ) : (
@@ -74,7 +143,7 @@ const PratoCardComponent = ({ prato, categoria }: PratoCardProps) => {
 
           <div className="flex min-w-0 flex-col p-4 sm:p-5">
             <div className="flex items-start gap-3">
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 pr-10">
                 <h3 className="line-clamp-2 text-lg font-black leading-tight text-[#241313] sm:text-2xl">
                   {prato.nome}
                 </h3>
@@ -82,9 +151,6 @@ const PratoCardComponent = ({ prato, categoria }: PratoCardProps) => {
                   {prato.descricao || "Receita especial da casa."}
                 </p>
               </div>
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#5b5552] transition group-hover:bg-[#fff3f3] group-hover:text-[#c90010]">
-                <Heart className="h-6 w-6" />
-              </span>
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium text-[#6f6461]">
@@ -104,12 +170,38 @@ const PratoCardComponent = ({ prato, categoria }: PratoCardProps) => {
               <div className="whitespace-nowrap text-xl font-black text-[#c90010] sm:text-3xl">
                 R$ {precoBase.toFixed(2).replace(".", ",")}
               </div>
-              <span className="inline-flex h-11 shrink-0 items-center gap-1 rounded-xl bg-[#d71920] px-3 text-sm font-black text-white shadow-md transition group-hover:bg-[#b50008] sm:gap-2 sm:px-4">
-                <Plus className="h-5 w-5" />
+              <span
+                className={`relative inline-flex h-11 shrink-0 items-center gap-1 rounded-xl bg-[#d71920] px-3 text-sm font-black text-white shadow-md transition group-hover:bg-[#b50008] sm:gap-2 sm:px-4 ${
+                  plusPulse ? "anim-soft-bounce anim-ripple" : ""
+                }`}
+              >
+                <Plus
+                  className={`h-5 w-5 transition-transform duration-250 ${plusPulse ? "rotate-90" : "rotate-0"}`}
+                />
                 <span className="hidden min-[430px]:inline">Adicionar</span>
               </span>
             </div>
           </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={triggerFavorite}
+          className="absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-white/85 text-[#5b5552] shadow-sm backdrop-blur transition group-hover:bg-[#fff3f3] group-hover:text-[#c90010]"
+          aria-label={`Favoritar ${prato.nome}`}
+        >
+          <Heart
+            className={`h-6 w-6 ${favorite ? "fill-[#d71920] text-[#d71920]" : ""} ${heartBurst > 0 ? "anim-heart-pop" : ""}`}
+          />
+          {heartBurst > 0 &&
+            [0, 1, 2, 3].map((index) => (
+              <span
+                key={`${heartBurst}-${index}`}
+                className={`pointer-events-none absolute text-[10px] text-[#d71920] anim-heart-float heart-particle-${index}`}
+              >
+                ❤
+              </span>
+            ))}
         </button>
       </article>
 

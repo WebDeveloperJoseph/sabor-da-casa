@@ -82,13 +82,20 @@ export function ProductDetailDialog({
   prato,
 }: ProductDetailDialogProps) {
   const { add, settings } = useCart();
-  const tamanhos = prato.tamanhos?.length ? prato.tamanhos : [];
+  const tamanhos = useMemo(
+    () => (prato.tamanhos?.length ? prato.tamanhos : []),
+    [prato.tamanhos],
+  );
   const [tamanhoSelecionado, setTamanhoSelecionado] = useState(
     tamanhos[0]?.tamanho || "",
   );
   const [quantidade, setQuantidade] = useState(1);
+  const [qtyAnim, setQtyAnim] = useState<"up" | "down">("up");
   const [observacoes, setObservacoes] = useState("");
   const [selecionados, setSelecionados] = useState<string[]>([]);
+  const [favorite, setFavorite] = useState(false);
+  const [heartBurst, setHeartBurst] = useState(0);
+  const [isAdding, setIsAdding] = useState(false);
 
   const precoUnitario = useMemo(() => {
     if (tamanhos.length) {
@@ -127,6 +134,7 @@ export function ProductDetailDialog({
       .filter(Boolean)
       .join(" | ");
 
+    setIsAdding(true);
     add(
       {
         pratoId: prato.id,
@@ -139,17 +147,33 @@ export function ProductDetailDialog({
     );
 
     toast.success(`${prato.nome} adicionado ao carrinho`);
+    if (typeof window !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(18);
+    }
     setQuantidade(1);
     setObservacoes("");
     setSelecionados([]);
-    onOpenChange(false);
+    window.setTimeout(() => {
+      setIsAdding(false);
+      onOpenChange(false);
+    }, 240);
+  };
+
+  const changeQty = (next: number, direction: "up" | "down") => {
+    setQtyAnim(direction);
+    setQuantidade(next);
+  };
+
+  const triggerFavorite = () => {
+    setFavorite((value) => !value);
+    setHeartBurst((value) => value + 1);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="h-[94dvh] w-[96vw] overflow-y-auto overscroll-contain rounded-[1.75rem] border-0 bg-[#fff7ea] p-0 sm:max-w-3xl"
+        className="bottom-0 top-auto left-1/2 h-[94dvh] w-[96vw] translate-x-[-50%] translate-y-0 overflow-y-auto overscroll-contain rounded-t-[1.75rem] rounded-b-none border-0 bg-[#fff7ea] p-0 data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom sm:bottom-4 sm:max-w-3xl sm:rounded-[1.75rem]"
       >
         <div className="flex h-full flex-col">
           <div className="relative h-[28vh] min-h-52 shrink-0 overflow-hidden bg-[#2b1212]">
@@ -178,14 +202,26 @@ export function ProductDetailDialog({
             </button>
             <button
               type="button"
+              onClick={triggerFavorite}
               className="absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full bg-white text-[#241313] shadow-lg"
               aria-label={`Favoritar ${prato.nome}`}
             >
-              <Heart className="h-5 w-5" />
+              <Heart
+                className={`h-5 w-5 ${favorite ? "anim-heart-pop fill-[#d71920] text-[#d71920]" : ""}`}
+              />
+              {heartBurst > 0 &&
+                [0, 1, 2, 3].map((index) => (
+                  <span
+                    key={`${heartBurst}-${index}`}
+                    className={`pointer-events-none absolute text-[11px] text-[#d71920] anim-heart-float heart-particle-${index}`}
+                  >
+                    ❤
+                  </span>
+                ))}
             </button>
           </div>
 
-          <div className="-mt-7 min-h-0 flex-1 rounded-t-[2rem] bg-[#fff7ea] px-4 pb-5 pt-3 touch-pan-y [-webkit-overflow-scrolling:touch]">
+          <div className="-mt-7 min-h-0 flex-1 rounded-t-4xl bg-[#fff7ea] px-4 pb-5 pt-3 touch-pan-y [-webkit-overflow-scrolling:touch]">
             <div className="mx-auto mb-4 h-1.5 w-16 rounded-full bg-[#d8c7b3]" />
             <DialogHeader className="text-left">
               <DialogTitle className="text-3xl font-black leading-tight text-[#241313]">
@@ -225,13 +261,18 @@ export function ProductDetailDialog({
                       <button
                         key={tamanho.tamanho}
                         type="button"
-                        onClick={() => setTamanhoSelecionado(tamanho.tamanho)}
+                        onClick={() => {
+                          setTamanhoSelecionado(tamanho.tamanho);
+                        }}
                         className={`rounded-2xl border p-3 text-center transition ${
                           ativo
-                            ? "border-[#c90010] bg-white text-[#c90010] shadow-md ring-2 ring-[#c90010]/10"
+                            ? "border-[#c90010] bg-white text-[#c90010] shadow-md ring-2 ring-[#c90010]/10 scale-[1.03]"
                             : "border-[#ead7bd] bg-white text-[#241313]"
                         }`}
                       >
+                        {ativo && (
+                          <span className="mx-auto mb-1 block h-0.5 w-8 rounded-full bg-[#ffd15a] anim-fade-up" />
+                        )}
                         <span className="block text-xl font-black">
                           {tamanho.tamanho}
                         </span>
@@ -274,7 +315,9 @@ export function ProductDetailDialog({
                               : "border-[#c9b9a7]"
                           }`}
                         >
-                          {checked && <Check className="h-3.5 w-3.5" />}
+                          {checked && (
+                            <Check className="h-3.5 w-3.5 anim-check-pop" />
+                          )}
                         </span>
                         {item}
                       </button>
@@ -332,20 +375,21 @@ export function ProductDetailDialog({
               <div className="flex h-14 items-center rounded-2xl border border-[#ead7bd] bg-white">
                 <button
                   type="button"
-                  onClick={() =>
-                    setQuantidade((value) => Math.max(1, value - 1))
-                  }
+                  onClick={() => changeQty(Math.max(1, quantidade - 1), "down")}
                   className="grid h-14 w-12 place-items-center text-[#241313]"
                   aria-label="Diminuir quantidade"
                 >
                   <Minus className="h-5 w-5" />
                 </button>
-                <span className="w-8 text-center text-lg font-black">
+                <span
+                  key={`${quantidade}-${qtyAnim}`}
+                  className={`w-8 text-center text-lg font-black ${qtyAnim === "up" ? "anim-qty-up" : "anim-qty-down"}`}
+                >
                   {quantidade}
                 </span>
                 <button
                   type="button"
-                  onClick={() => setQuantidade((value) => value + 1)}
+                  onClick={() => changeQty(quantidade + 1, "up")}
                   className="grid h-14 w-12 place-items-center text-[#241313]"
                   aria-label="Aumentar quantidade"
                 >
@@ -355,9 +399,20 @@ export function ProductDetailDialog({
               <Button
                 type="button"
                 onClick={handleAdd}
-                className="h-14 flex-1 rounded-2xl bg-[#d71920] text-base font-black text-white shadow-lg hover:bg-[#b50008]"
+                className={`h-14 flex-1 rounded-2xl text-base font-black text-white shadow-lg transition ${
+                  isAdding
+                    ? "anim-soft-bounce bg-[#21a358]"
+                    : "bg-[#d71920] hover:bg-[#b50008]"
+                }`}
               >
-                Adicionar • {formatCurrency(total)}
+                <span className="inline-flex items-center gap-2">
+                  {isAdding ? (
+                    <Check className="h-5 w-5 anim-check-pop" />
+                  ) : null}
+                  {isAdding
+                    ? "Adicionado"
+                    : `Adicionar • ${formatCurrency(total)}`}
+                </span>
               </Button>
             </div>
           </div>

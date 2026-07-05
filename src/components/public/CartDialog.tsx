@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "./CartProvider";
 import {
@@ -12,7 +12,15 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Banknote, CreditCard, QrCode, ShoppingCart, Minus, Plus, Trash } from "lucide-react";
+import {
+  Banknote,
+  CreditCard,
+  QrCode,
+  ShoppingCart,
+  Minus,
+  Plus,
+  Trash,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -33,6 +41,7 @@ export function CartDialog() {
     total,
     clear,
     settings,
+    lastAddTick,
   } = useCart();
   const [open, setOpen] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -60,13 +69,31 @@ export function CartDialog() {
   const [nascimento, setNascimento] = useState(""); // formato YYYY-MM-DD
   const [checandoCliente, setChecandoCliente] = useState(false);
   const [clienteId, setClienteId] = useState<number | null>(null);
+  const [cartPulse, setCartPulse] = useState(false);
+
+  useEffect(() => {
+    if (!lastAddTick) return;
+    setCartPulse(true);
+    const timer = window.setTimeout(() => setCartPulse(false), 280);
+    return () => window.clearTimeout(timer);
+  }, [lastAddTick]);
 
   const minOk = subtotal >= Number(settings.pedidoMinimo || 0);
   const itemCount = items.reduce((acc, item) => acc + item.quantidade, 0);
   const paymentOptions = [
     { value: "pix", label: "Pix", hint: "Aprovacao imediata", icon: QrCode },
-    { value: "cartao", label: "Cartao", hint: "Credito ou debito", icon: CreditCard },
-    { value: "dinheiro", label: "Dinheiro", hint: "Na entrega", icon: Banknote },
+    {
+      value: "cartao",
+      label: "Cartao",
+      hint: "Credito ou debito",
+      icon: CreditCard,
+    },
+    {
+      value: "dinheiro",
+      label: "Dinheiro",
+      hint: "Na entrega",
+      icon: Banknote,
+    },
   ] as const;
 
   // link do WhatsApp com mensagem pré-preenchida (quando tivermos o último pedido)
@@ -342,7 +369,7 @@ Obrigado!`,
       <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 hidden sm:flex flex-col gap-2 sm:gap-3 z-50">
         {/* Botão Meus Pedidos */}
         <Link href="/meus-pedidos">
-            <Button className="w-full gap-1 bg-[#b50008] px-3 py-2 text-xs shadow-lg hover:bg-[#970006] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm">
+          <Button className="w-full gap-1 bg-[#b50008] px-3 py-2 text-xs shadow-lg hover:bg-[#970006] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm">
             <svg
               className="w-4 h-4 sm:w-5 sm:h-5"
               fill="none"
@@ -364,8 +391,12 @@ Obrigado!`,
         {/* Botão Carrinho */}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-1 bg-[#d71920] px-3 py-2 text-xs shadow-lg hover:bg-[#b50008] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm">
-              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Button
+              className={`gap-1 bg-[#d71920] px-3 py-2 text-xs shadow-lg hover:bg-[#b50008] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm ${cartPulse ? "anim-soft-bounce" : ""}`}
+            >
+              <ShoppingCart
+                className={`w-4 h-4 sm:w-5 sm:h-5 ${cartPulse ? "anim-soft-bounce" : ""}`}
+              />
               <span className="hidden sm:inline">Carrinho ({itemCount})</span>
               <span className="sm:hidden">({itemCount})</span>
             </Button>
@@ -731,61 +762,63 @@ Obrigado!`,
 
       {/* Barra fixa mobile */}
       {itemCount > 0 && (
-      <div className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.6rem)] pt-2 sm:hidden">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 rounded-[1.7rem] bg-[#b50008] p-3 text-white shadow-2xl">
-          <button
-            type="button"
-            onClick={() =>
-              itemCount > 0
-                ? setOpen(true)
-                : toast.info("Escolha uma pizza para comecar seu pedido")
-            }
-            className="relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white text-[#b50008] hover:bg-[#fff5e6]"
-            aria-label="Carrinho"
-          >
-            <ShoppingCart className="h-7 w-7" />
-            {itemCount > 0 && (
-              <span className="absolute -right-1 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-[#ffd15a] px-1 text-xs font-black text-[#2b1212]">
-                {itemCount}
-              </span>
-            )}
-          </button>
-          <Link href="/meus-pedidos" className="hidden">
-            <Button
-              variant="outline"
-              className="relative h-14 w-14 rounded-2xl border-0 bg-white p-0 text-[#b50008] hover:bg-[#fff5e6]"
-              aria-label="Meus pedidos"
+        <div className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.6rem)] pt-2 sm:hidden">
+          <div className="mx-auto flex max-w-3xl items-center gap-3 rounded-[1.7rem] bg-[#b50008] p-3 text-white shadow-2xl">
+            <button
+              type="button"
+              onClick={() =>
+                itemCount > 0
+                  ? setOpen(true)
+                  : toast.info("Escolha uma pizza para comecar seu pedido")
+              }
+              className={`relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white text-[#b50008] hover:bg-[#fff5e6] ${cartPulse ? "anim-soft-bounce" : ""}`}
+              aria-label="Carrinho"
             >
               <ShoppingCart className="h-7 w-7" />
               {itemCount > 0 && (
-                <span className="absolute -right-1 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-[#ffd15a] px-1 text-xs font-black text-[#2b1212]">
+                <span
+                  className={`absolute -right-1 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-[#ffd15a] px-1 text-xs font-black text-[#2b1212] ${cartPulse ? "anim-soft-bounce" : ""}`}
+                >
                   {itemCount}
                 </span>
               )}
+            </button>
+            <Link href="/meus-pedidos" className="hidden">
+              <Button
+                variant="outline"
+                className="relative h-14 w-14 rounded-2xl border-0 bg-white p-0 text-[#b50008] hover:bg-[#fff5e6]"
+                aria-label="Meus pedidos"
+              >
+                <ShoppingCart className="h-7 w-7" />
+                {itemCount > 0 && (
+                  <span className="absolute -right-1 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-[#ffd15a] px-1 text-xs font-black text-[#2b1212]">
+                    {itemCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
+
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-base font-black">
+                {itemCount} {itemCount === 1 ? "item" : "itens"} no carrinho
+              </p>
+              <p className="text-sm font-semibold text-white/85">
+                R$ {total.toFixed(2).replace(".", ",")}
+              </p>
+            </div>
+
+            <Button
+              onClick={() =>
+                itemCount > 0
+                  ? setOpen(true)
+                  : toast.info("Escolha uma pizza para comecar seu pedido")
+              }
+              className="h-14 shrink-0 rounded-2xl bg-[#ffd15a] px-5 text-base font-black text-[#241313] hover:bg-[#ffc329]"
+            >
+              {itemCount > 0 ? "Ver carrinho" : "Escolher"}
             </Button>
-          </Link>
-
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-black">
-              {itemCount} {itemCount === 1 ? "item" : "itens"} no carrinho
-            </p>
-            <p className="text-sm font-semibold text-white/85">
-              R$ {total.toFixed(2).replace(".", ",")}
-            </p>
           </div>
-
-          <Button
-            onClick={() =>
-              itemCount > 0
-                ? setOpen(true)
-                : toast.info("Escolha uma pizza para comecar seu pedido")
-            }
-            className="h-14 shrink-0 rounded-2xl bg-[#ffd15a] px-5 text-base font-black text-[#241313] hover:bg-[#ffc329]"
-          >
-            {itemCount > 0 ? "Ver carrinho" : "Escolher"}
-          </Button>
         </div>
-      </div>
       )}
 
       {/* Modal de confirmação pós-pedido */}

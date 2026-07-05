@@ -13,36 +13,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://sabor-da-casa.vercel.app'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://sabor-da-casa.vercel.app",
+  ),
   title: "Sabor da Casa",
   description: "Cardápio digital - Sabor da Casa",
   icons: {
-    icon: '/img/logoSaborDaCasa.jpg',
-    apple: '/img/logoSaborDaCasa.jpg',
-    shortcut: '/img/logoSaborDaCasa.jpg'
+    icon: "/img/logoSaborDaCasa.jpg",
+    apple: "/img/logoSaborDaCasa.jpg",
+    shortcut: "/img/logoSaborDaCasa.jpg",
   },
   openGraph: {
-    title: 'Sabor da Casa',
-    description: 'Cardápio digital - Sabor da Casa',
-    url: '/',
-    siteName: 'Sabor da Casa',
+    title: "Sabor da Casa",
+    description: "Cardápio digital - Sabor da Casa",
+    url: "/",
+    siteName: "Sabor da Casa",
     images: [
       {
-        url: '/img/logoSaborDaCasa.jpg',
+        url: "/img/logoSaborDaCasa.jpg",
         width: 1200,
         height: 630,
-        alt: 'Logo Sabor da Casa'
-      }
+        alt: "Logo Sabor da Casa",
+      },
     ],
-    type: 'website',
-    locale: 'pt_BR'
+    type: "website",
+    locale: "pt_BR",
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'Sabor da Casa',
-    description: 'Cardápio digital - Sabor da Casa',
-    images: ['/img/logoSaborDaCasa.jpg']
-  }
+    card: "summary_large_image",
+    title: "Sabor da Casa",
+    description: "Cardápio digital - Sabor da Casa",
+    images: ["/img/logoSaborDaCasa.jpg"],
+  },
 };
 
 export default function RootLayout({
@@ -51,7 +53,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

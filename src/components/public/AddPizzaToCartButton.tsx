@@ -25,6 +25,7 @@ export function AddPizzaToCartButton({
     temTamanhos ? tamanhos[0].tamanho : "",
   );
   const [adicionado, setAdicionado] = useState(false);
+  const [ripple, setRipple] = useState(false);
 
   const precoBase = temTamanhos
     ? (tamanhos.find((t) => t.tamanho === tamanhoSelecionado)?.preco ?? preco)
@@ -33,6 +34,7 @@ export function AddPizzaToCartButton({
   const precoFinal = Number(precoBase);
 
   const handleAdd = () => {
+    setRipple(true);
     add(
       {
         pratoId,
@@ -44,6 +46,7 @@ export function AddPizzaToCartButton({
     );
 
     setAdicionado(true);
+    window.setTimeout(() => setRipple(false), 280);
     window.setTimeout(() => setAdicionado(false), 900);
   };
 
@@ -88,16 +91,18 @@ export function AddPizzaToCartButton({
       <Button
         onClick={handleAdd}
         disabled={disabled}
-        className={`h-11 w-full cursor-pointer rounded-xl text-sm font-black shadow-md transition hover:shadow-lg ${
+        className={`relative h-11 w-full cursor-pointer rounded-xl text-sm font-black shadow-md transition hover:shadow-lg ${
           adicionado
             ? "bg-green-600 hover:bg-green-700"
             : "bg-[#d71920] hover:bg-[#b50008]"
-        }`}
+        } ${ripple ? "anim-ripple anim-soft-bounce" : ""}`}
       >
         {adicionado ? (
-          <Check className="mr-1 h-5 w-5" />
+          <Check className="mr-1 h-5 w-5 anim-check-pop" />
         ) : (
-          <Plus className="mr-1 h-5 w-5" />
+          <Plus
+            className={`mr-1 h-5 w-5 transition-transform duration-200 ${ripple ? "rotate-90" : "rotate-0"}`}
+          />
         )}
         {adicionado ? "Adicionado!" : "Adicionar"}
       </Button>

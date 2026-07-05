@@ -24,12 +24,14 @@ export function AddToCartButton({
     temTamanhos ? tamanhos[0].tamanho : "",
   );
   const [adicionado, setAdicionado] = useState(false);
+  const [ripple, setRipple] = useState(false);
 
   const precoFinal = temTamanhos
     ? (tamanhos.find((t) => t.tamanho === tamanhoSelecionado)?.preco ?? preco)
     : preco;
 
   const handleAdd = () => {
+    setRipple(true);
     add(
       {
         pratoId,
@@ -41,6 +43,7 @@ export function AddToCartButton({
     );
 
     setAdicionado(true);
+    window.setTimeout(() => setRipple(false), 280);
     window.setTimeout(() => setAdicionado(false), 900);
   };
 
@@ -82,14 +85,20 @@ export function AddToCartButton({
 
       <Button
         onClick={handleAdd}
-        className={`h-11 w-full rounded-xl text-sm font-black shadow-md transition hover:shadow-lg ${
+        className={`relative h-11 w-full rounded-xl text-sm font-black shadow-md transition hover:shadow-lg ${
           adicionado
             ? "bg-green-600 hover:bg-green-700"
             : "bg-[#d71920] hover:bg-[#b50008]"
-        }`}
+        } ${ripple ? "anim-ripple anim-soft-bounce" : ""}`}
         disabled={disabled}
       >
-        {adicionado ? <Check className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+        {adicionado ? (
+          <Check className="h-5 w-5 anim-check-pop" />
+        ) : (
+          <Plus
+            className={`h-5 w-5 transition-transform duration-200 ${ripple ? "rotate-90" : "rotate-0"}`}
+          />
+        )}
         {disabled
           ? "Pedidos pausados"
           : adicionado

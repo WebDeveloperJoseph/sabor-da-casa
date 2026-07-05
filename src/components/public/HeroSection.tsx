@@ -2,7 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, MapPin, Menu, ShieldCheck, Truck, UserRound } from "lucide-react";
+import {
+  Clock,
+  MapPin,
+  Menu,
+  ShieldCheck,
+  Truck,
+  UserRound,
+} from "lucide-react";
 
 type Props = {
   isOpenNow: boolean;
@@ -18,7 +25,7 @@ export function HeroSection({ isOpenNow }: Props) {
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-6 sm:px-6 md:pb-18 md:pt-8">
-        <div className="flex items-center justify-between">
+        <div className="anim-fade-up anim-d-70 flex items-center justify-between">
           <button
             type="button"
             className="grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white shadow-sm backdrop-blur transition hover:bg-white/20"
@@ -28,7 +35,7 @@ export function HeroSection({ isOpenNow }: Props) {
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="relative h-16 w-16 overflow-hidden rounded-full border-4 border-white bg-white shadow-xl">
+            <div className="anim-logo-breathe anim-d-160 relative h-16 w-16 overflow-hidden rounded-full border-4 border-white bg-white shadow-xl">
               <Image
                 src="/img/logo-sabor-red.jpeg"
                 alt="Sabor da Casa Pizzaria"
@@ -57,7 +64,7 @@ export function HeroSection({ isOpenNow }: Props) {
           </Link>
         </div>
 
-        <div className="mx-auto mt-8 max-w-3xl text-center">
+        <div className="anim-fade-up anim-d-150 mx-auto mt-8 max-w-3xl text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[#ffd15a]">
             Pizzaria artesanal
           </p>
@@ -65,20 +72,25 @@ export function HeroSection({ isOpenNow }: Props) {
             Pizza quentinha, pedido facil.
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm font-medium leading-6 text-white/88 sm:text-base">
-            Massa de longa fermentacao, molho artesanal e pizzas assadas com cuidado para chegar quentinhas na sua mesa.
+            Massa de longa fermentacao, molho artesanal e pizzas assadas com
+            cuidado para chegar quentinhas na sua mesa.
           </p>
         </div>
 
-        <div className="mx-auto mt-6 grid max-w-2xl grid-cols-2 overflow-hidden rounded-2xl border border-white/20 bg-[#fff7ea] text-[#2b1212] shadow-2xl">
+        <div className="anim-fade-up anim-d-220 mx-auto mt-6 grid max-w-2xl grid-cols-2 overflow-hidden rounded-2xl border border-white/20 bg-[#fff7ea] text-[#2b1212] shadow-2xl">
           <div className="flex items-center gap-3 border-r border-[#ead7bd] px-4 py-3">
             <span
               className={`h-3 w-3 rounded-full ${isOpenNow ? "bg-[#28c76f]" : "bg-[#d71920]"}`}
             />
             <div className="min-w-0">
-              <p className={`text-sm font-black ${isOpenNow ? "text-[#11783b]" : "text-[#9a0007]"}`}>
+              <p
+                className={`text-sm font-black ${isOpenNow ? "text-[#11783b]" : "text-[#9a0007]"}`}
+              >
                 {isOpenNow ? "Aberto agora" : "Fechado agora"}
               </p>
-              <p className="truncate text-xs text-[#5f5250]">Atendemos ate 23:30</p>
+              <p className="truncate text-xs text-[#5f5250]">
+                Atendemos ate 23:30
+              </p>
             </div>
           </div>
 
@@ -91,7 +103,7 @@ export function HeroSection({ isOpenNow }: Props) {
           </div>
         </div>
 
-        <div className="mx-auto mt-5 flex max-w-3xl flex-wrap justify-center gap-2 text-xs font-semibold text-white/90 sm:text-sm">
+        <div className="anim-fade-up anim-d-280 mx-auto mt-5 flex max-w-3xl flex-wrap justify-center gap-2 text-xs font-semibold text-white/90 sm:text-sm">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur">
             <MapPin className="h-4 w-4 text-[#ffd15a]" />
             Entrega em Nova Floresta
