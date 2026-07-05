@@ -1,39 +1,48 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { useCart } from "./CartProvider"
-import { ShoppingCart } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useCart } from "./CartProvider";
+import { Check, ShoppingCart } from "lucide-react";
 
 export function AddToCartButton({
   pratoId,
   nome,
   preco,
-  tamanhos
+  tamanhos,
 }: {
-  pratoId: number
-  nome: string
-  preco: number
-  tamanhos?: Array<{ tamanho: string; preco: number }>
+  pratoId: number;
+  nome: string;
+  preco: number;
+  tamanhos?: Array<{ tamanho: string; preco: number }>;
 }) {
-  const { add, settings } = useCart()
-  const disabled = !settings.aceitarPedidos
-  
-  const temTamanhos = tamanhos && tamanhos.length > 0
-  const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string>(temTamanhos ? tamanhos[0].tamanho : '')
+  const { add, settings } = useCart();
+  const disabled = !settings.aceitarPedidos;
 
-  const precoFinal = temTamanhos 
-    ? tamanhos.find(t => t.tamanho === tamanhoSelecionado)?.preco ?? preco
-    : preco
+  const temTamanhos = tamanhos && tamanhos.length > 0;
+  const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string>(
+    temTamanhos ? tamanhos[0].tamanho : "",
+  );
+  const [adicionado, setAdicionado] = useState(false);
+
+  const precoFinal = temTamanhos
+    ? (tamanhos.find((t) => t.tamanho === tamanhoSelecionado)?.preco ?? preco)
+    : preco;
 
   const handleAdd = () => {
-    add({ 
-      pratoId, 
-      nome, 
-      preco: precoFinal,
-      tamanho: temTamanhos ? tamanhoSelecionado : undefined
-    }, 1)
-  }
+    add(
+      {
+        pratoId,
+        nome,
+        preco: precoFinal,
+        tamanho: temTamanhos ? tamanhoSelecionado : undefined,
+      },
+      1,
+    );
+
+    setAdicionado(true);
+    window.setTimeout(() => setAdicionado(false), 900);
+  };
 
   return (
     <div className="flex flex-col gap-2 w-full">
@@ -46,30 +55,47 @@ export function AddToCartButton({
               onClick={() => setTamanhoSelecionado(t.tamanho)}
               className={`px-3 py-1 text-sm font-medium rounded border transition-all duration-300 transform cursor-pointer flex flex-col items-center ${
                 tamanhoSelecionado === t.tamanho
-                  ? 'bg-orange-500 text-white border-orange-500 scale-105 shadow-md'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-orange-500 hover:scale-105 hover:shadow-md hover:bg-orange-50'
+                  ? "bg-orange-500 text-white border-orange-500 scale-105 shadow-md"
+                  : "bg-white text-gray-700 border-gray-300 hover:border-orange-500 hover:scale-105 hover:shadow-md hover:bg-orange-50"
               }`}
             >
-              <span>{t.tamanho} - R$ {t.preco.toFixed(2)}</span>
-              <span className={`text-xs ${
-                tamanhoSelecionado === t.tamanho ? 'text-orange-100' : 'text-blue-600'
-              }`}>
-                {t.tamanho === 'P' ? '4 fatias' : t.tamanho === 'M' ? '6 fatias' : '8 fatias'}
+              <span>
+                {t.tamanho} - R$ {t.preco.toFixed(2)}
+              </span>
+              <span
+                className={`text-xs ${
+                  tamanhoSelecionado === t.tamanho
+                    ? "text-orange-100"
+                    : "text-blue-600"
+                }`}
+              >
+                {t.tamanho === "P"
+                  ? "4 fatias"
+                  : t.tamanho === "M"
+                    ? "6 fatias"
+                    : "8 fatias"}
               </span>
             </button>
           ))}
         </div>
       )}
-      
+
       <Button
         onClick={handleAdd}
-        className="bg-orange-500 hover:bg-orange-600 w-full transition-all duration-300 hover:scale-105 hover:shadow-lg"
+        className={`w-full transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+          adicionado
+            ? "bg-green-600 hover:bg-green-700"
+            : "bg-orange-500 hover:bg-orange-600"
+        }`}
         disabled={disabled}
       >
-        <ShoppingCart />
-        {disabled ? 'Pedidos pausados' : `Adicionar ${temTamanhos ? `(${tamanhoSelecionado})` : ''}`}
+        {adicionado ? <Check /> : <ShoppingCart />}
+        {disabled
+          ? "Pedidos pausados"
+          : adicionado
+            ? "Adicionado!"
+            : `Adicionar ${temTamanhos ? `(${tamanhoSelecionado})` : ""}`}
       </Button>
     </div>
-  )
+  );
 }
-

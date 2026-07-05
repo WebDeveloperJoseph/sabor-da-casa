@@ -1,45 +1,51 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { useCart } from "./CartProvider"
-import { ShoppingCart } from "lucide-react"
-
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useCart } from "./CartProvider";
+import { Check, ShoppingCart } from "lucide-react";
 
 export function AddPizzaToCartButton({
   pratoId,
   nome,
   preco,
   tamanhos,
-  categoriaNome
 }: {
-  pratoId: number
-  nome: string
-  preco: number
-  tamanhos?: Array<{ tamanho: string; preco: number }>
-  categoriaNome?: string
+  pratoId: number;
+  nome: string;
+  preco: number;
+  tamanhos?: Array<{ tamanho: string; preco: number }>;
+  categoriaNome?: string;
 }) {
-  const { add, settings } = useCart()
-  const disabled = !settings.aceitarPedidos
-  
-  const temTamanhos = tamanhos && tamanhos.length > 0
-  const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string>(temTamanhos ? tamanhos[0].tamanho : '')
+  const { add, settings } = useCart();
+  const disabled = !settings.aceitarPedidos;
 
+  const temTamanhos = tamanhos && tamanhos.length > 0;
+  const [tamanhoSelecionado, setTamanhoSelecionado] = useState<string>(
+    temTamanhos ? tamanhos[0].tamanho : "",
+  );
+  const [adicionado, setAdicionado] = useState(false);
 
-  const precoBase = temTamanhos 
-    ? tamanhos.find(t => t.tamanho === tamanhoSelecionado)?.preco ?? preco
-    : preco
+  const precoBase = temTamanhos
+    ? (tamanhos.find((t) => t.tamanho === tamanhoSelecionado)?.preco ?? preco)
+    : preco;
 
-  const precoFinal = Number(precoBase)
+  const precoFinal = Number(precoBase);
 
   const handleAdd = () => {
-    add({ 
-      pratoId, 
-      nome, 
-      preco: precoFinal,
-      tamanho: temTamanhos ? tamanhoSelecionado : undefined,
-    }, 1)
-  }
+    add(
+      {
+        pratoId,
+        nome,
+        preco: precoFinal,
+        tamanho: temTamanhos ? tamanhoSelecionado : undefined,
+      },
+      1,
+    );
+
+    setAdicionado(true);
+    window.setTimeout(() => setAdicionado(false), 900);
+  };
 
   return (
     <div className="flex flex-col gap-3 w-full">
@@ -53,31 +59,50 @@ export function AddPizzaToCartButton({
               onClick={() => setTamanhoSelecionado(t.tamanho)}
               className={`px-3 py-1 text-sm font-medium rounded border transition-all duration-300 transform cursor-pointer flex flex-col items-center ${
                 tamanhoSelecionado === t.tamanho
-                  ? 'bg-orange-500 text-white border-orange-500 scale-105 shadow-md'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-orange-500 hover:scale-105 hover:shadow-md hover:bg-orange-50'
+                  ? "bg-orange-500 text-white border-orange-500 scale-105 shadow-md"
+                  : "bg-white text-gray-700 border-gray-300 hover:border-orange-500 hover:scale-105 hover:shadow-md hover:bg-orange-50"
               }`}
             >
-              <span>{t.tamanho} - R$ {t.preco.toFixed(2).replace('.', ',')}</span>
-              <span className={`text-xs ${
-                tamanhoSelecionado === t.tamanho ? 'text-orange-100' : 'text-blue-600'
-              }`}>
-                {t.tamanho === 'P' ? '4 fatias' : t.tamanho === 'M' ? '6 fatias' : '8 fatias'}
+              <span>
+                {t.tamanho} - R$ {t.preco.toFixed(2).replace(".", ",")}
+              </span>
+              <span
+                className={`text-xs ${
+                  tamanhoSelecionado === t.tamanho
+                    ? "text-orange-100"
+                    : "text-blue-600"
+                }`}
+              >
+                {t.tamanho === "P"
+                  ? "4 fatias"
+                  : t.tamanho === "M"
+                    ? "6 fatias"
+                    : "8 fatias"}
               </span>
             </button>
           ))}
         </div>
       )}
 
-
       {/* Botão Adicionar ao Carrinho */}
-      <Button 
+      <Button
         onClick={handleAdd}
         disabled={disabled}
-        className="w-full bg-orange-600 hover:bg-orange-700 cursor-pointer"
+        className={`w-full cursor-pointer transition-colors ${
+          adicionado
+            ? "bg-green-600 hover:bg-green-700"
+            : "bg-orange-600 hover:bg-orange-700"
+        }`}
       >
-        <ShoppingCart className="w-4 h-4 mr-2" />
-        {`R$ ${precoFinal.toFixed(2).replace('.', ',')}`}
+        {adicionado ? (
+          <Check className="w-4 h-4 mr-2" />
+        ) : (
+          <ShoppingCart className="w-4 h-4 mr-2" />
+        )}
+        {adicionado
+          ? "Adicionado!"
+          : `R$ ${precoFinal.toFixed(2).replace(".", ",")}`}
       </Button>
     </div>
-  )
+  );
 }
