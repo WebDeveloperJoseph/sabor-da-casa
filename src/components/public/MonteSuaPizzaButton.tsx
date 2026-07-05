@@ -39,7 +39,7 @@ export function MonteSuaPizzaButton({ pizzas }: Props) {
             Monte sua Pizza
           </span>
           <span className="text-[11px] sm:text-xs text-orange-100">
-            P/M até 2 sabores • G de 1 a 3 sabores
+            P/M até 2 sabores • G até 2 sabores
           </span>
         </div>
       </button>

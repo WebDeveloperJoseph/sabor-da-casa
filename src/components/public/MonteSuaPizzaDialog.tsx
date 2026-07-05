@@ -35,7 +35,7 @@ type Props = {
 
 const TAMANHOS_DISPONIVEIS = ["P", "M", "G"] as const;
 const MAX_SABORES_P = 2;
-const MAX_SABORES_G = 3;
+const MAX_SABORES_G = 2;
 
 export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
   const { add } = useCart();
@@ -106,7 +106,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
       if (prev.length >= maxSabores) {
         const tamanhoTexto =
           tamanhoSelecionado === "G"
-            ? "Grande (1-3 sabores)"
+            ? "Grande (até 2 sabores)"
             : "P/M (até 2 sabores)";
         toast.error(`Tamanho ${tamanhoTexto}`);
         return prev;
@@ -168,11 +168,11 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
           <div className="text-xs sm:text-sm text-gray-600 mt-2">
             <p className="mb-2">
               <span className="hidden sm:inline">
-                Tamanhos P e M: até 2 sabores | Tamanho G: 1 a 3 sabores. O
+                Tamanhos P e M: até 2 sabores | Tamanho G: até 2 sabores. O
                 preço será do sabor mais caro.
               </span>
               <span className="sm:hidden">
-                P/M: até 2 sabores | G: 1-3 sabores
+                P/M: até 2 sabores | G: até 2 sabores
               </span>
             </p>
             <div className="flex flex-wrap gap-2 sm:gap-4 text-xs bg-blue-50 p-2 rounded border">
@@ -201,7 +201,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
                 onClick={() => {
                   setTamanhoSelecionado(tamanho);
                   // Resetar sabores se exceder o novo limite
-                  const novoMax = tamanho === "P" || tamanho === "M" ? 2 : 3;
+                  const novoMax = 2;
                   setSaboresSelecionados((prev) => prev.slice(0, novoMax));
                 }}
                 className={`flex-1 py-2 sm:py-3 px-2 sm:px-4 rounded-lg border-2 font-semibold transition-all cursor-pointer ${
@@ -213,7 +213,7 @@ export function MonteSuaPizzaDialog({ open, onOpenChange, pizzas }: Props) {
                 <div className="text-center">
                   <div className="text-base sm:text-lg">{tamanho}</div>
                   <div className="text-[10px] sm:text-xs opacity-75">
-                    {tamanho === "G" ? "1-3 sabores" : "até 2"}
+                    {tamanho === "G" ? "até 2" : "até 2"}
                   </div>
                   <div className="text-[10px] sm:text-xs text-blue-600 font-semibold">
                     {tamanho === "P"
