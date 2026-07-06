@@ -109,6 +109,14 @@ export function HeroSection({ isOpenNow }: Props) {
             Entrega em Nova Floresta
           </span>
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur">
+            <MapPin className="h-4 w-4 text-[#ffd15a]" />
+            Entrega em Jaçanã-RN
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur">
+            <Truck className="h-4 w-4 text-[#ffd15a]" />
+            Cobramos taxa de entrega
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 backdrop-blur">
             <ShieldCheck className="h-4 w-4 text-[#ffd15a]" />
             Pedido seguro
           </span>
