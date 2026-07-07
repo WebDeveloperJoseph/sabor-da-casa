@@ -15,6 +15,7 @@ type IngredienteTag = {
 };
 type PrecoLike = number | string;
 type TamanhoType = { tamanho: string; preco: number };
+type BordaExtraOption = { id: number; nome: string; preco: number };
 type PratoWithIngred = {
   id: number;
   nome: string;
@@ -50,6 +51,7 @@ export default async function Home() {
     createdAt: Date;
     pedido: { nomeCliente: string };
   }> = [];
+  let bordasExtras: BordaExtraOption[] = [];
   try {
     const categoriasRaw = await prisma.categoria.findMany({
       where: { ativo: true },
@@ -92,6 +94,24 @@ export default async function Home() {
         })),
       })),
     }));
+
+    const normalizeText = (value: string) =>
+      value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+
+    bordasExtras = categorias
+      .filter((cat) => {
+        const nome = normalizeText(cat.nome || "");
+        return nome.includes("borda") && nome.includes("extra");
+      })
+      .flatMap((cat) => cat.pratos)
+      .map((prato) => ({
+        id: prato.id,
+        nome: prato.nome,
+        preco: Number(prato.preco),
+      }));
 
     const cfg = await prisma.configuracao.findFirst();
     settings = {
@@ -256,7 +276,10 @@ export default async function Home() {
             </span>
           </section>
           <div id="cardapio" className="scroll-mt-24">
-            <CardapioFiltros categorias={categorias} />
+            <CardapioFiltros
+              categorias={categorias}
+              bordasExtras={bordasExtras}
+            />
             {categorias.length === 0 && (
               <div className="text-center py-12 rounded-2xl border-2 border-orange-200 bg-orange-50">
                 <p className="text-orange-800 font-semibold">

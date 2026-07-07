@@ -20,11 +20,13 @@ type IngredienteTag = {
 };
 
 type TamanhoType = { tamanho: string; preco: number };
+type BordaExtraOption = { id: number; nome: string; preco: number };
 
 type ProductDetailDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categoriaNome?: string;
+  bordasExtras?: BordaExtraOption[];
   prato: {
     id: number;
     nome: string;
@@ -75,10 +77,16 @@ const isBebidaContext = (nomeCategoria?: string, nomePrato?: string) => {
   );
 };
 
+const isPizzaCategory = (nomeCategoria?: string) => {
+  const categoria = normalizeText(nomeCategoria || "");
+  return categoria.includes("pizza") || categoria.includes("tradicional");
+};
+
 export function ProductDetailDialog({
   open,
   onOpenChange,
   categoriaNome,
+  bordasExtras = [],
   prato,
 }: ProductDetailDialogProps) {
   const { add, settings } = useCart();
@@ -93,6 +101,9 @@ export function ProductDetailDialog({
   const [qtyAnim, setQtyAnim] = useState<"up" | "down">("up");
   const [observacoes, setObservacoes] = useState("");
   const [selecionados, setSelecionados] = useState<string[]>([]);
+  const [bordaExtraSelecionadaId, setBordaExtraSelecionadaId] = useState<
+    number | null
+  >(null);
   const [favorite, setFavorite] = useState(false);
   const [heartBurst, setHeartBurst] = useState(0);
   const [isAdding, setIsAdding] = useState(false);
@@ -108,10 +119,19 @@ export function ProductDetailDialog({
     return Number(prato.preco);
   }, [prato.preco, tamanhoSelecionado, tamanhos]);
 
-  const total = precoUnitario * quantidade;
   const rating = prato.rating?.avg || 4.8;
   const ratingCount = prato.rating?.count || 0;
   const isBebida = isBebidaContext(categoriaNome, prato.nome);
+  const isPizza = useMemo(() => isPizzaCategory(categoriaNome), [categoriaNome]);
+  const bordaExtraSelecionada = useMemo(
+    () =>
+      bordasExtras.find((borda) => borda.id === bordaExtraSelecionadaId) ||
+      null,
+    [bordasExtras, bordaExtraSelecionadaId],
+  );
+  const precoBordaExtra = bordaExtraSelecionada?.preco || 0;
+  const totalComBorda = (precoUnitario + precoBordaExtra) * quantidade;
+  const exibirBordasExtras = !isBebida && isPizza && bordasExtras.length > 0;
 
   const toggleSolicitacao = (item: string) => {
     setSelecionados((prev) =>
@@ -129,6 +149,9 @@ export function ProductDetailDialog({
 
     const obs = [
       selecionados.length ? `Solicitacoes: ${selecionados.join(", ")}` : "",
+      bordaExtraSelecionada
+        ? `Borda extra: ${bordaExtraSelecionada.nome} (+${formatCurrency(bordaExtraSelecionada.preco)})`
+        : "",
       observacoes.trim(),
     ]
       .filter(Boolean)
@@ -153,6 +176,7 @@ export function ProductDetailDialog({
     setQuantidade(1);
     setObservacoes("");
     setSelecionados([]);
+    setBordaExtraSelecionadaId(null);
     window.setTimeout(() => {
       setIsAdding(false);
       onOpenChange(false);
@@ -331,6 +355,56 @@ export function ProductDetailDialog({
               </section>
             )}
 
+            {exibirBordasExtras && (
+              <section className="mt-6">
+                <h3 className="mb-3 text-lg font-black text-[#241313]">
+                  3. Bordas extras
+                </h3>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => setBordaExtraSelecionadaId(null)}
+                    className={`flex min-h-12 items-center justify-between gap-2 rounded-2xl border px-3 text-left text-sm font-bold transition ${
+                      bordaExtraSelecionadaId === null
+                        ? "border-[#c90010] bg-[#fff0f0] text-[#c90010]"
+                        : "border-[#ead7bd] bg-white text-[#241313]"
+                    }`}
+                  >
+                    <span>Sem borda extra</span>
+                    {bordaExtraSelecionadaId === null && (
+                      <Check className="h-4 w-4" />
+                    )}
+                  </button>
+
+                  {bordasExtras.map((borda) => {
+                    const checked = bordaExtraSelecionadaId === borda.id;
+                    return (
+                      <button
+                        key={borda.id}
+                        type="button"
+                        onClick={() => setBordaExtraSelecionadaId(borda.id)}
+                        className={`flex min-h-12 items-center justify-between gap-2 rounded-2xl border px-3 text-left text-sm font-bold transition ${
+                          checked
+                            ? "border-[#c90010] bg-[#fff0f0] text-[#c90010]"
+                            : "border-[#ead7bd] bg-white text-[#241313]"
+                        }`}
+                      >
+                        <span>{borda.nome}</span>
+                        <span className="inline-flex items-center gap-1">
+                          +{formatCurrency(borda.preco)}
+                          {checked && <Check className="h-4 w-4" />}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-xs font-medium text-[#7b706c]">
+                  As bordas extras sao carregadas automaticamente do painel
+                  administrativo.
+                </p>
+              </section>
+            )}
+
             {!isBebida && prato.ingredientes.length > 0 && (
               <section className="mt-6 rounded-2xl border border-[#ead7bd] bg-white p-4">
                 <h3 className="mb-3 text-lg font-black text-[#241313]">
@@ -346,15 +420,16 @@ export function ProductDetailDialog({
                     </span>
                   ))}
                 </div>
-                <p className="mt-3 text-xs font-medium text-[#7b706c]">
-                  Ingredientes cadastrados no painel administrativo.
-                </p>
               </section>
             )}
 
             <section className="mt-6">
               <h3 className="mb-3 text-lg font-black text-[#241313]">
-                {isBebida ? "2. Observacoes" : "3. Observacoes"}
+                {isBebida
+                  ? "2. Observacoes"
+                  : exibirBordasExtras
+                    ? "4. Observacoes"
+                    : "3. Observacoes"}
               </h3>
               <Textarea
                 value={observacoes}
@@ -411,7 +486,7 @@ export function ProductDetailDialog({
                   ) : null}
                   {isAdding
                     ? "Adicionado"
-                    : `Adicionar • ${formatCurrency(total)}`}
+                    : `Adicionar • ${formatCurrency(totalComBorda)}`}
                 </span>
               </Button>
             </div>

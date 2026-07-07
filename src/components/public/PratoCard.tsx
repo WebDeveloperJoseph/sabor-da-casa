@@ -9,6 +9,7 @@ type IngredienteTag = {
   ingrediente: { id: number; nome: string; alergenico: boolean };
 };
 type TamanhoType = { tamanho: string; preco: number };
+type BordaExtraOption = { id: number; nome: string; preco: number };
 
 type PratoCardProps = {
   prato: {
@@ -28,6 +29,7 @@ type PratoCardProps = {
     nome: string;
     descricao: string | null;
   };
+  bordasExtras: BordaExtraOption[];
   animationDelay?: number;
   isFavorite?: boolean;
   onToggleFavorite?: (pratoId: number) => void;
@@ -42,6 +44,7 @@ const menorPreco = (preco: number | string, tamanhos?: TamanhoType[]) => {
 const PratoCardComponent = ({
   prato,
   categoria,
+  bordasExtras,
   animationDelay = 0,
   isFavorite,
   onToggleFavorite,
@@ -210,6 +213,7 @@ const PratoCardComponent = ({
         onOpenChange={setDetailOpen}
         categoriaNome={categoria.nome}
         prato={prato}
+        bordasExtras={bordasExtras}
       />
     </>
   );

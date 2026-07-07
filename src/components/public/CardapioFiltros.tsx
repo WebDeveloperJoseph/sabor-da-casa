@@ -32,6 +32,8 @@ type PratoWithIngred = {
   rating?: { avg: number; count: number };
 };
 
+type BordaExtraOption = { id: number; nome: string; preco: number };
+
 type CategoriaWithPratos = {
   id: number;
   nome: string;
@@ -50,6 +52,7 @@ type TipoFiltro =
 
 type Props = {
   categorias: CategoriaWithPratos[];
+  bordasExtras: BordaExtraOption[];
 };
 
 const normalizeText = (value: string) =>
@@ -109,7 +112,7 @@ const filtroVisual: Array<{
   },
 ];
 
-export function CardapioFiltros({ categorias }: Props) {
+export function CardapioFiltros({ categorias, bordasExtras }: Props) {
   const [busca, setBusca] = useState("");
   const [tipoSelecionado, setTipoSelecionado] = useState<TipoFiltro>("todos");
   const [slideClass, setSlideClass] = useState("");
@@ -387,6 +390,7 @@ export function CardapioFiltros({ categorias }: Props) {
                       key={prato.id}
                       prato={prato}
                       categoria={categoria}
+                      bordasExtras={bordasExtras}
                       animationDelay={Math.min(index * 45, 240)}
                       isFavorite={favoritosIds.includes(prato.id)}
                       onToggleFavorite={toggleFavorito}
