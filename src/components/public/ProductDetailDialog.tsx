@@ -48,13 +48,22 @@ const fatiasByTamanho: Record<string, string> = {
   F: "12 fatias",
 };
 
-const solicitacoes = [
-  "Extra de queijo",
-  "Azeitona",
-  "Bacon",
-  "Milho",
-  "Pouco oregano",
-  "Sem cebola",
+const adicionais = [
+  { nome: "Bacon", preco: 3 },
+  { nome: "Azeitona", preco: 2 },
+  { nome: "Milho", preco: 2 },
+  { nome: "Requeijao cremoso", preco: 8 },
+  { nome: "Creme cheese", preco: 8 },
+  { nome: "Requeijao cheddar", preco: 8 },
+  { nome: "Fatia de chocolate ao leite", preco: 6 },
+  { nome: "Fatia de 2 amores", preco: 6 },
+  { nome: "Fatia de banana nevada", preco: 6 },
+  { nome: "Fatia de Romeu e julieta", preco: 6 },
+  { nome: "Fatia de banana com chocolate", preco: 6 },
+  { nome: "Nata", preco: 5 },
+  { nome: "Molho barbecue", preco: 3 },
+  { nome: "Carne de sol", preco: 10 },
+  { nome: "Calabresa", preco: 5 },
 ];
 
 const formatCurrency = (value: number) =>
@@ -122,15 +131,32 @@ export function ProductDetailDialog({
   const rating = prato.rating?.avg || 4.8;
   const ratingCount = prato.rating?.count || 0;
   const isBebida = isBebidaContext(categoriaNome, prato.nome);
-  const isPizza = useMemo(() => isPizzaCategory(categoriaNome), [categoriaNome]);
+  const isPizza = useMemo(
+    () => isPizzaCategory(categoriaNome),
+    [categoriaNome],
+  );
   const bordaExtraSelecionada = useMemo(
     () =>
       bordasExtras.find((borda) => borda.id === bordaExtraSelecionadaId) ||
       null,
     [bordasExtras, bordaExtraSelecionadaId],
   );
+  const adicionaisSelecionados = useMemo(
+    () =>
+      adicionais.filter((adicional) => selecionados.includes(adicional.nome)),
+    [selecionados],
+  );
+  const precoAdicionais = useMemo(
+    () =>
+      adicionaisSelecionados.reduce(
+        (acc, adicional) => acc + adicional.preco,
+        0,
+      ),
+    [adicionaisSelecionados],
+  );
   const precoBordaExtra = bordaExtraSelecionada?.preco || 0;
-  const totalComBorda = (precoUnitario + precoBordaExtra) * quantidade;
+  const precoUnitarioFinal = precoUnitario + precoBordaExtra + precoAdicionais;
+  const totalComExtras = precoUnitarioFinal * quantidade;
   const exibirBordasExtras = !isBebida && isPizza && bordasExtras.length > 0;
 
   const toggleSolicitacao = (item: string) => {
@@ -148,7 +174,9 @@ export function ProductDetailDialog({
     }
 
     const obs = [
-      selecionados.length ? `Solicitacoes: ${selecionados.join(", ")}` : "",
+      adicionaisSelecionados.length
+        ? `Adicionais: ${adicionaisSelecionados.map((item) => `${item.nome} (+${formatCurrency(item.preco)})`).join(", ")}`
+        : "",
       bordaExtraSelecionada
         ? `Borda extra: ${bordaExtraSelecionada.nome} (+${formatCurrency(bordaExtraSelecionada.preco)})`
         : "",
@@ -162,7 +190,7 @@ export function ProductDetailDialog({
       {
         pratoId: prato.id,
         nome: prato.nome,
-        preco: precoUnitario,
+        preco: precoUnitarioFinal,
         tamanho: tamanhos.length ? tamanhoSelecionado : undefined,
         observacoes: obs || undefined,
       },
@@ -316,16 +344,16 @@ export function ProductDetailDialog({
             {!isBebida && (
               <section className="mt-6">
                 <h3 className="mb-3 text-lg font-black text-[#241313]">
-                  2. Preferencias do preparo
+                  2. Adicionais
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {solicitacoes.map((item) => {
-                    const checked = selecionados.includes(item);
+                  {adicionais.map((item) => {
+                    const checked = selecionados.includes(item.nome);
                     return (
                       <button
-                        key={item}
+                        key={item.nome}
                         type="button"
-                        onClick={() => toggleSolicitacao(item)}
+                        onClick={() => toggleSolicitacao(item.nome)}
                         className={`flex min-h-12 items-center gap-2 rounded-2xl border px-3 text-left text-sm font-bold transition ${
                           checked
                             ? "border-[#c90010] bg-[#fff0f0] text-[#c90010]"
@@ -343,14 +371,17 @@ export function ProductDetailDialog({
                             <Check className="h-3.5 w-3.5 anim-check-pop" />
                           )}
                         </span>
-                        {item}
+                        <span className="flex-1">{item.nome}</span>
+                        <span className="text-xs font-black">
+                          +{formatCurrency(item.preco)}
+                        </span>
                       </button>
                     );
                   })}
                 </div>
                 <p className="mt-2 text-xs font-medium text-[#7b706c]">
-                  Essas preferencias entram nas observacoes do item para a
-                  cozinha.
+                  Os adicionais escolhidos entram no valor do item e nas
+                  observacoes para a cozinha.
                 </p>
               </section>
             )}
@@ -486,7 +517,7 @@ export function ProductDetailDialog({
                   ) : null}
                   {isAdding
                     ? "Adicionado"
-                    : `Adicionar • ${formatCurrency(totalComBorda)}`}
+                    : `Adicionar • ${formatCurrency(totalComExtras)}`}
                 </span>
               </Button>
             </div>
