@@ -267,6 +267,10 @@ Obrigado!`,
             quantidade: i.quantidade,
             observacoes: i.observacoes,
             tamanho: i.tamanho,
+            adicionais: i.adicionais,
+            bordaId: i.bordaId,
+            bordaNome: i.bordaNome,
+            bordaPreco: i.bordaPreco,
             // Para pizzas mistas (pratoId = 999), incluir nome e preço
             ...(i.pratoId === 999 ? { nome: i.nome, preco: i.preco } : {}),
           })),
@@ -425,8 +429,7 @@ Obrigado!`,
                   </p>
                 ) : (
                   items.map((item) => {
-                    // Gerar chave única considerando apenas pratoId e tamanho
-                    const chave = `${item.pratoId}-${item.tamanho || ""}`;
+                    const chave = `${item.pratoId}-${item.tamanho || ""}-${item.observacoes || ""}`;
                     return (
                       <div
                         key={chave}
@@ -515,6 +518,7 @@ Obrigado!`,
                                 item.pratoId,
                                 e.target.value,
                                 item.tamanho,
+                                item.observacoes,
                               )
                             }
                             className="min-h-10 w-full max-h-24 resize-none overflow-y-auto rounded-xl border-[#ead7bd] text-xs field-sizing-fixed sm:min-h-12 sm:text-sm md:min-h-16"

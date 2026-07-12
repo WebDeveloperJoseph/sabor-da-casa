@@ -193,6 +193,10 @@ export function ProductDetailDialog({
         preco: precoUnitarioFinal,
         tamanho: tamanhos.length ? tamanhoSelecionado : undefined,
         observacoes: obs || undefined,
+        adicionais: adicionaisSelecionados,
+        bordaId: bordaExtraSelecionada?.id,
+        bordaNome: bordaExtraSelecionada?.nome,
+        bordaPreco: bordaExtraSelecionada?.preco,
       },
       quantidade,
     );
