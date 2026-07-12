@@ -40,6 +40,8 @@ const criarPedidoSchema = z.object({
       { message: "Telefone deve ter entre 8 e 15 dígitos" },
     ),
   endereco: z.string().min(5, "Endereço deve ter pelo menos 5 caracteres"),
+  cidade: z.string().min(3, "Cidade é obrigatória"),
+  taxaEntrega: z.number().min(0),
   observacoes: z.string().optional(),
   itens: z
     .array(itemPedidoSchema)
@@ -78,8 +80,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { nomeCliente, telefone, endereco, observacoes, itens, clienteId } =
-      validacao.data;
+    const {
+      nomeCliente,
+      telefone,
+      endereco,
+      cidade,
+      taxaEntrega,
+      observacoes,
+      itens,
+      clienteId,
+    } = validacao.data;
 
     // Separar pizzas mistas (pratoId=999) de pratos normais
     const itensMistos = itens.filter((item) => item.pratoId === 999);
@@ -186,6 +196,10 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    valorTotal += Number(taxaEntrega || 0);
+
+    const enderecoCompleto = `${endereco} - ${cidade}`;
+
     // Criar pedido com itens e atribuir dailyNumber de forma atômica
     // Usamos o timezone 'America/Recife' para calcular a chave do dia (YYYY-MM-DD)
     const dateKey = new Date().toLocaleDateString("en-CA", {
@@ -212,7 +226,7 @@ export async function POST(request: NextRequest) {
         const data: any = {
           nomeCliente,
           telefone,
-          endereco,
+          endereco: enderecoCompleto,
           observacoes,
           valorTotal,
           status: "pendente",
@@ -249,7 +263,7 @@ export async function POST(request: NextRequest) {
       const fallbackData: any = {
         nomeCliente,
         telefone,
-        endereco,
+        endereco: enderecoCompleto,
         observacoes,
         valorTotal,
         status: "pendente",

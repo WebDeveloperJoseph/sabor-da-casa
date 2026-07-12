@@ -23,6 +23,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const CIDADES_ENTREGA = {
+  nova_floresta_pb: { nome: "Nova Floresta - PB", taxa: 2 },
+  jacana_rn: { nome: "Jaçanã - RN", taxa: 5 },
+} as const;
+
 export function CartDialog() {
   const {
     items,
@@ -30,7 +35,6 @@ export function CartDialog() {
     updateObs,
     remove,
     subtotal,
-    total,
     clear,
     settings,
     lastAddTick,
@@ -48,6 +52,9 @@ export function CartDialog() {
   const [nomeCliente, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [endereco, setEndereco] = useState("");
+  const [cidadeEntrega, setCidadeEntrega] = useState<
+    keyof typeof CIDADES_ENTREGA | ""
+  >("");
   const [observacoes, setObs] = useState("");
   const [loading, setLoading] = useState(false);
   const [payment, setPayment] = useState<"dinheiro" | "cartao" | "pix" | "">(
@@ -86,6 +93,11 @@ export function CartDialog() {
     const timer = window.setTimeout(() => setCartPulse(false), 280);
     return () => window.clearTimeout(timer);
   }, [lastAddTick]);
+
+  const taxaEntregaCidade = cidadeEntrega
+    ? CIDADES_ENTREGA[cidadeEntrega].taxa
+    : 0;
+  const totalComEntrega = subtotal + taxaEntregaCidade;
 
   const minOk = subtotal >= Number(settings.pedidoMinimo || 0);
   const itemCount = items.reduce((acc, item) => acc + item.quantidade, 0);
@@ -191,6 +203,11 @@ Obrigado!`,
         return;
       }
 
+      if (!cidadeEntrega) {
+        toast.error("Selecione a cidade para calcular a taxa de entrega");
+        return;
+      }
+
       // Validar forma de pagamento (obrigatória)
       if (!payment) {
         toast.error("Selecione a forma de pagamento");
@@ -200,7 +217,7 @@ Obrigado!`,
       // Validar troco se pagamento for dinheiro
       if (payment === "dinheiro" && troco) {
         const valorTroco = Number(troco);
-        if (isNaN(valorTroco) || valorTroco <= total) {
+        if (isNaN(valorTroco) || valorTroco <= totalComEntrega) {
           toast.error("Valor do troco deve ser maior que o total do pedido");
           return;
         }
@@ -245,6 +262,8 @@ Obrigado!`,
       // compor observações com forma de pagamento e troco (se houver)
       const obsComPagamento = [
         observacoes?.trim() || "",
+        cidadeEntrega ? `Cidade: ${CIDADES_ENTREGA[cidadeEntrega].nome}` : "",
+        `Taxa de entrega: R$ ${taxaEntregaCidade.toFixed(2).replace(".", ",")}`,
         payment ? `Pagamento: ${payment.toUpperCase()}` : "",
         payment === "dinheiro" && troco
           ? `Troco para R$ ${Number(troco).toFixed(2).replace(".", ",")}`
@@ -260,6 +279,8 @@ Obrigado!`,
           nomeCliente: nomeTrim,
           telefone,
           endereco,
+          cidade: CIDADES_ENTREGA[cidadeEntrega].nome,
+          taxaEntrega: taxaEntregaCidade,
           observacoes: obsComPagamento,
           clienteId: cid ?? undefined,
           itens: items.map((i) => ({
@@ -330,7 +351,7 @@ Obrigado!`,
         dailyNumber: body.dailyNumber ?? null,
         nome: nomeCliente,
         telefone,
-        total: total.toFixed(2),
+        total: totalComEntrega.toFixed(2),
         itens: itensResumo,
       });
 
@@ -346,6 +367,7 @@ Obrigado!`,
       setNome("");
       setTelefone("");
       setEndereco("");
+      setCidadeEntrega("");
       setObs("");
       setPayment("");
       setTroco("");
@@ -537,16 +559,13 @@ Obrigado!`,
                   <p className="flex justify-between">
                     Taxa de entrega:{" "}
                     <strong>
-                      R${" "}
-                      {Number(settings.taxaEntrega || 0)
-                        .toFixed(2)
-                        .replace(".", ",")}
+                      R$ {taxaEntregaCidade.toFixed(2).replace(".", ",")}
                     </strong>
                   </p>
                   <p className="flex justify-between border-t border-[#ead7bd] pt-3 text-lg font-black">
                     Total:{" "}
                     <strong className="text-[#c90010]">
-                      R$ {total.toFixed(2).replace(".", ",")}
+                      R$ {totalComEntrega.toFixed(2).replace(".", ",")}
                     </strong>
                   </p>
                   {!minOk && (
@@ -638,6 +657,37 @@ Obrigado!`,
                       onChange={(e) => setEndereco(e.target.value)}
                       placeholder="Rua, número, bairro"
                       className="text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                      Cidade <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                      value={cidadeEntrega}
+                      onValueChange={(v) =>
+                        setCidadeEntrega(v as keyof typeof CIDADES_ENTREGA)
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione a cidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="nova_floresta_pb">
+                          Nova Floresta - PB
+                        </SelectItem>
+                        <SelectItem value="jacana_rn">Jaçanã - RN</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                      Taxa de entrega
+                    </label>
+                    <Input
+                      value={`R$ ${taxaEntregaCidade.toFixed(2).replace(".", ",")}`}
+                      readOnly
+                      className="text-sm bg-gray-50"
                     />
                   </div>
                 </div>
@@ -804,7 +854,7 @@ Obrigado!`,
                 {itemCount} {itemCount === 1 ? "item" : "itens"} no carrinho
               </p>
               <p className="text-sm font-semibold text-white/85">
-                R$ {total.toFixed(2).replace(".", ",")}
+                R$ {totalComEntrega.toFixed(2).replace(".", ",")}
               </p>
             </div>
 
