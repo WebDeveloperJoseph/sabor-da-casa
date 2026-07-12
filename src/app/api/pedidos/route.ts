@@ -157,7 +157,6 @@ export async function POST(request: NextRequest) {
           subtotal: subtotal,
           observacoes: item.observacoes,
           tamanho: item.tamanho,
-          bordaId: item.bordaId,
           bordaNome: item.bordaNome,
           bordaPreco: item.bordaPreco,
         };
@@ -190,7 +189,6 @@ export async function POST(request: NextRequest) {
         subtotal: subtotal,
         observacoes: item.observacoes,
         tamanho: item.tamanho,
-        bordaId: item.bordaId,
         bordaNome: item.bordaNome,
         bordaPreco: item.bordaPreco,
       };
