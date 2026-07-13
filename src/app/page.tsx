@@ -240,6 +240,7 @@ export default async function Home() {
                       preco: t.preco,
                     })),
                   }))}
+                bordasExtras={bordasExtras}
               />
             </div>
           )}

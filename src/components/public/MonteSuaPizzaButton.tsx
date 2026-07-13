@@ -22,9 +22,10 @@ type Prato = {
 
 type Props = {
   pizzas: Prato[];
+  bordasExtras: Array<{ id: number; nome: string; preco: number }>;
 };
 
-export function MonteSuaPizzaButton({ pizzas }: Props) {
+export function MonteSuaPizzaButton({ pizzas, bordasExtras }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -50,7 +51,12 @@ export function MonteSuaPizzaButton({ pizzas }: Props) {
         <ChevronRight className="h-6 w-6 shrink-0" />
       </button>
 
-      <MonteSuaPizzaDialog open={open} onOpenChange={setOpen} pizzas={pizzas} />
+      <MonteSuaPizzaDialog
+        open={open}
+        onOpenChange={setOpen}
+        pizzas={pizzas}
+        bordasExtras={bordasExtras}
+      />
     </>
   );
 }
