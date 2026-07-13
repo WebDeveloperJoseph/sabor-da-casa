@@ -1,58 +1,94 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import { Input } from '@/components/ui/input'
-import { toast } from 'sonner'
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 type Props = {
-  onUploaded: (url: string) => void
-  bucket?: string
-  prefix?: string
-}
+  onUploaded: (url: string) => void;
+  bucket?: string;
+  prefix?: string;
+};
 
-export default function UploadImagem({ onUploaded, bucket = 'pratos', prefix = 'uploads' }: Props) {
-  const [uploading, setUploading] = useState(false)
+export default function UploadImagem({
+  onUploaded,
+  bucket = "pratos",
+  prefix = "uploads",
+}: Props) {
+  const [uploading, setUploading] = useState(false);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const input = e.currentTarget;
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione apenas arquivos de imagem");
+      input.value = "";
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("A imagem excede o limite de 10MB");
+      input.value = "";
+      return;
+    }
 
     try {
-      setUploading(true)
+      setUploading(true);
 
       // Criar FormData para enviar o arquivo
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('bucket', bucket)
-      formData.append('prefix', prefix)
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bucket", bucket);
+      formData.append("prefix", prefix);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
       // Fazer upload via API
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Falha no upload')
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || "Falha no upload");
       }
 
-      const { url } = await response.json()
-      onUploaded(url)
-      toast.success('Imagem enviada!')
+      const { url } = await response.json();
+      onUploaded(url);
+      toast.success("Imagem enviada!");
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Falha no upload'
-      toast.error(message)
-      console.error(err)
+      const message =
+        err instanceof Error
+          ? err.name === "AbortError"
+            ? "Upload demorou demais. Tente novamente com imagem menor."
+            : err.message
+          : "Falha no upload";
+      toast.error(message);
+      console.error(err);
     } finally {
-      setUploading(false)
+      setUploading(false);
+      // Permite selecionar o mesmo arquivo novamente e disparar onChange.
+      input.value = "";
     }
   }
 
   return (
     <div className="flex gap-2 items-center">
-      <Input type="file" accept="image/*" onChange={handleFile} disabled={uploading} />
+      <Input
+        type="file"
+        accept="image/*"
+        onChange={handleFile}
+        disabled={uploading}
+      />
       {uploading && <span className="text-sm text-gray-600">Enviando...</span>}
     </div>
-  )
+  );
 }
