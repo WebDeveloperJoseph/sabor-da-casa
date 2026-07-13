@@ -2,7 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { createClient } from "@supabase/supabase-js";
 
+export const runtime = "nodejs";
+
 const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+  "image/svg+xml",
+]);
 
 function sanitizeSegment(value: string) {
   return value
@@ -69,6 +79,16 @@ export async function POST(request: NextRequest) {
     if (!file.type.startsWith("image/")) {
       return NextResponse.json(
         { message: "Apenas arquivos de imagem são permitidos" },
+        { status: 400 },
+      );
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      return NextResponse.json(
+        {
+          message:
+            "Formato não suportado. Use JPG, PNG, WEBP, GIF, AVIF ou SVG.",
+        },
         { status: 400 },
       );
     }

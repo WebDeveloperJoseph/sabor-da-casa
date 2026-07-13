@@ -6,12 +6,14 @@ import { toast } from "sonner";
 
 type Props = {
   onUploaded: (url: string) => void;
+  onUploadingChange?: (uploading: boolean) => void;
   bucket?: string;
   prefix?: string;
 };
 
 export default function UploadImagem({
   onUploaded,
+  onUploadingChange,
   bucket = "pratos",
   prefix = "uploads",
 }: Props) {
@@ -36,6 +38,7 @@ export default function UploadImagem({
 
     try {
       setUploading(true);
+      onUploadingChange?.(true);
 
       // Criar FormData para enviar o arquivo
       const formData = new FormData();
@@ -44,17 +47,20 @@ export default function UploadImagem({
       formData.append("prefix", prefix);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30_000);
+      const timeoutId = setTimeout(() => controller.abort(), 90_000);
 
       // Fazer upload via API
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
+      let response: Response;
+      try {
+        response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
@@ -75,6 +81,7 @@ export default function UploadImagem({
       console.error(err);
     } finally {
       setUploading(false);
+      onUploadingChange?.(false);
       // Permite selecionar o mesmo arquivo novamente e disparar onChange.
       input.value = "";
     }
@@ -84,7 +91,7 @@ export default function UploadImagem({
     <div className="flex gap-2 items-center">
       <Input
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml"
         onChange={handleFile}
         disabled={uploading}
       />
