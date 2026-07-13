@@ -16,6 +16,7 @@ type IngredienteTag = {
 type PrecoLike = number | string;
 type TamanhoType = { tamanho: string; preco: number };
 type BordaExtraOption = { id: number; nome: string; preco: number };
+type BebidaOption = { id: number; nome: string; preco: number };
 type PratoWithIngred = {
   id: number;
   nome: string;
@@ -52,6 +53,7 @@ export default async function Home() {
     pedido: { nomeCliente: string };
   }> = [];
   let bordasExtras: BordaExtraOption[] = [];
+  let bebidas: BebidaOption[] = [];
   try {
     const categoriasRaw = await prisma.categoria.findMany({
       where: { ativo: true },
@@ -105,6 +107,18 @@ export default async function Home() {
       .filter((cat) => {
         const nome = normalizeText(cat.nome || "");
         return nome.includes("borda") && nome.includes("extra");
+      })
+      .flatMap((cat) => cat.pratos)
+      .map((prato) => ({
+        id: prato.id,
+        nome: prato.nome,
+        preco: Number(prato.preco),
+      }));
+
+    bebidas = categorias
+      .filter((cat) => {
+        const nome = normalizeText(cat.nome || "");
+        return nome.includes("bebida") || nome.includes("drink");
       })
       .flatMap((cat) => cat.pratos)
       .map((prato) => ({
@@ -241,6 +255,7 @@ export default async function Home() {
                     })),
                   }))}
                 bordasExtras={bordasExtras}
+                bebidas={bebidas}
               />
             </div>
           )}

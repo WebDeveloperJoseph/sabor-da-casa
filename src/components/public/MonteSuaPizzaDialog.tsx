@@ -2,7 +2,17 @@
 
 import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Check, Pizza, RotateCcw, Search, Sparkles, X } from "lucide-react";
+import {
+  Check,
+  CupSoda,
+  Minus,
+  Pizza,
+  Plus,
+  RotateCcw,
+  Search,
+  Sparkles,
+  X,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +44,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   pizzas: (Prato & { tamanhos: PratoTamanho[] })[];
   bordasExtras: Array<{ id: number; nome: string; preco: number }>;
+  bebidas: Array<{ id: number; nome: string; preco: number }>;
 };
 
 const TAMANHOS = [
@@ -69,6 +80,7 @@ export function MonteSuaPizzaDialog({
   onOpenChange,
   pizzas,
   bordasExtras,
+  bebidas,
 }: Props) {
   const { add } = useCart();
   const [saboresSelecionados, setSaboresSelecionados] = useState<number[]>([]);
@@ -80,8 +92,12 @@ export function MonteSuaPizzaDialog({
   const [bordaExtraSelecionadaId, setBordaExtraSelecionadaId] = useState<
     number | null
   >(null);
+  const [bebidasSelecionadas, setBebidasSelecionadas] = useState<
+    Record<number, number>
+  >({});
   const saboresRef = useRef<HTMLElement | null>(null);
   const adicionaisRef = useRef<HTMLElement | null>(null);
+  const bebidasRef = useRef<HTMLElement | null>(null);
   const bordasRef = useRef<HTMLElement | null>(null);
 
   const maxSabores = 2;
@@ -123,8 +139,34 @@ export function MonteSuaPizzaDialog({
     [adicionaisEscolhidos],
   );
 
+  const bebidasEscolhidas = useMemo(
+    () =>
+      bebidas
+        .map((bebida) => ({
+          ...bebida,
+          quantidade: bebidasSelecionadas[bebida.id] || 0,
+        }))
+        .filter((bebida) => bebida.quantidade > 0),
+    [bebidas, bebidasSelecionadas],
+  );
+
+  const quantidadeBebidas = useMemo(
+    () => bebidasEscolhidas.reduce((acc, bebida) => acc + bebida.quantidade, 0),
+    [bebidasEscolhidas],
+  );
+
+  const precoBebidas = useMemo(
+    () =>
+      bebidasEscolhidas.reduce(
+        (acc, bebida) => acc + bebida.preco * bebida.quantidade,
+        0,
+      ),
+    [bebidasEscolhidas],
+  );
+
   const precoBordaExtra = bordaExtraSelecionada?.preco || 0;
-  const precoCalculado = precoBaseCalculado + precoAdicionais + precoBordaExtra;
+  const precoCalculado =
+    precoBaseCalculado + precoAdicionais + precoBordaExtra + precoBebidas;
 
   const pizzasFiltradas = useMemo(() => {
     const termo = normalizeText(buscaSabor.trim());
@@ -169,6 +211,19 @@ export function MonteSuaPizzaDialog({
     );
   };
 
+  const updateBebidaQuantidade = (bebidaId: number, delta: number) => {
+    setBebidasSelecionadas((prev) => {
+      const atual = prev[bebidaId] || 0;
+      const proxima = Math.max(0, Math.min(20, atual + delta));
+      if (proxima === 0) {
+        const clone = { ...prev };
+        delete clone[bebidaId];
+        return clone;
+      }
+      return { ...prev, [bebidaId]: proxima };
+    });
+  };
+
   const handleAddToCart = () => {
     if (saboresSelecionados.length < minSabores) {
       toast.error(
@@ -190,6 +245,9 @@ export function MonteSuaPizzaDialog({
       bordaExtraSelecionada
         ? `Borda extra: ${bordaExtraSelecionada.nome} (+${formatCurrency(bordaExtraSelecionada.preco)})`
         : "",
+      bebidasEscolhidas.length
+        ? `Bebidas: ${bebidasEscolhidas.map((item) => `${item.nome} x${item.quantidade} (${formatCurrency(item.preco * item.quantidade)})`).join(", ")}`
+        : "",
     ]
       .filter(Boolean)
       .join(" | ");
@@ -206,12 +264,28 @@ export function MonteSuaPizzaDialog({
       bordaPreco: bordaExtraSelecionada?.preco,
     });
 
-    toast.success("Pizza adicionada ao carrinho!");
+    bebidasEscolhidas.forEach((bebida) => {
+      add(
+        {
+          pratoId: bebida.id,
+          nome: bebida.nome,
+          preco: bebida.preco,
+        },
+        bebida.quantidade,
+      );
+    });
+
+    toast.success(
+      bebidasEscolhidas.length > 0
+        ? "Pizza e bebidas adicionadas ao carrinho!"
+        : "Pizza adicionada ao carrinho!",
+    );
     setSaboresSelecionados([]);
     setTamanhoSelecionado("M");
     setBuscaSabor("");
     setAdicionaisSelecionados([]);
     setBordaExtraSelecionadaId(null);
+    setBebidasSelecionadas({});
     onOpenChange(false);
   };
 
@@ -284,11 +358,16 @@ export function MonteSuaPizzaDialog({
                 </div>
               </div>
 
-              {precoAdicionais > 0 || precoBordaExtra > 0 ? (
+              {precoAdicionais > 0 ||
+              precoBebidas > 0 ||
+              precoBordaExtra > 0 ? (
                 <p className="mt-2 text-xs font-semibold text-[#7a2900]">
                   Base: {formatCurrency(precoBaseCalculado)}
                   {precoAdicionais > 0
                     ? ` | Adicionais: +${formatCurrency(precoAdicionais)}`
+                    : ""}
+                  {precoBebidas > 0
+                    ? ` | Bebidas: +${formatCurrency(precoBebidas)}`
                     : ""}
                   {precoBordaExtra > 0
                     ? ` | Borda: +${formatCurrency(precoBordaExtra)}`
@@ -318,7 +397,7 @@ export function MonteSuaPizzaDialog({
             </div>
 
             <div className="sticky top-0 z-20 mt-4 rounded-2xl border border-[#ead7bd] bg-white/95 p-2 shadow-sm backdrop-blur">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <button
                   type="button"
                   onClick={() => scrollToSection(saboresRef)}
@@ -332,6 +411,13 @@ export function MonteSuaPizzaDialog({
                   className="rounded-xl border border-[#ead7bd] bg-[#fff7ea] px-2 py-2 text-xs font-black text-[#7a2900] transition hover:border-[#c90010] hover:text-[#c90010]"
                 >
                   Adicionais ({adicionaisSelecionados.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection(bebidasRef)}
+                  className="rounded-xl border border-[#ead7bd] bg-[#fff7ea] px-2 py-2 text-xs font-black text-[#7a2900] transition hover:border-[#c90010] hover:text-[#c90010]"
+                >
+                  Bebidas ({quantidadeBebidas})
                 </button>
                 <button
                   type="button"
@@ -448,10 +534,67 @@ export function MonteSuaPizzaDialog({
               </div>
             </section>
 
+            {bebidas.length > 0 && (
+              <section ref={bebidasRef} className="mt-6 scroll-mt-28">
+                <h3 className="mb-3 text-lg font-black text-[#241313]">
+                  3. Bebidas
+                </h3>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {bebidas.map((bebida) => {
+                    const quantidade = bebidasSelecionadas[bebida.id] || 0;
+                    return (
+                      <div
+                        key={bebida.id}
+                        className={`flex min-h-12 items-center justify-between gap-2 rounded-2xl border px-3 py-2 text-left text-sm font-bold transition ${
+                          quantidade > 0
+                            ? "border-[#c90010] bg-[#fff0f0] text-[#c90010]"
+                            : "border-[#ead7bd] bg-white text-[#241313]"
+                        }`}
+                      >
+                        <div>
+                          <p className="font-bold">{bebida.nome}</p>
+                          <p className="text-xs">
+                            +{formatCurrency(bebida.preco)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateBebidaQuantidade(bebida.id, -1)
+                            }
+                            className="grid h-8 w-8 place-items-center rounded-full border border-[#d7c3a5] bg-white"
+                            aria-label={`Remover uma unidade de ${bebida.nome}`}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                          <span className="w-5 text-center text-sm font-black">
+                            {quantidade}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateBebidaQuantidade(bebida.id, 1)}
+                            className="grid h-8 w-8 place-items-center rounded-full border border-[#d7c3a5] bg-white"
+                            aria-label={`Adicionar uma unidade de ${bebida.nome}`}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 flex items-center gap-2 text-xs font-semibold text-[#6f6461]">
+                  <CupSoda className="h-4 w-4 text-[#c90010]" />
+                  As bebidas escolhidas entram como itens separados no carrinho.
+                </p>
+              </section>
+            )}
+
             {bordasExtras.length > 0 && (
               <section ref={bordasRef} className="mt-6 scroll-mt-28">
                 <h3 className="mb-3 text-lg font-black text-[#241313]">
-                  3. Bordas extras
+                  4. Bordas extras
                 </h3>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <button

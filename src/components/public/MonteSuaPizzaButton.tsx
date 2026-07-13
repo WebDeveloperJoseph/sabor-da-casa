@@ -23,9 +23,10 @@ type Prato = {
 type Props = {
   pizzas: Prato[];
   bordasExtras: Array<{ id: number; nome: string; preco: number }>;
+  bebidas: Array<{ id: number; nome: string; preco: number }>;
 };
 
-export function MonteSuaPizzaButton({ pizzas, bordasExtras }: Props) {
+export function MonteSuaPizzaButton({ pizzas, bordasExtras, bebidas }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -56,6 +57,7 @@ export function MonteSuaPizzaButton({ pizzas, bordasExtras }: Props) {
         onOpenChange={setOpen}
         pizzas={pizzas}
         bordasExtras={bordasExtras}
+        bebidas={bebidas}
       />
     </>
   );
