@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
+import { revalidatePublicMenu } from "@/lib/revalidate"
 
 // GET - Buscar categoria específica
 export async function GET(
@@ -95,6 +96,7 @@ export async function PUT(
       }
     })
 
+    revalidatePublicMenu()
     return NextResponse.json(categoriaAtualizada)
   } catch (error) {
     console.error('Erro ao atualizar categoria:', error)
@@ -148,6 +150,7 @@ export async function DELETE(
       where: { id: categoriaId }
     })
 
+    revalidatePublicMenu()
     return NextResponse.json(
       { message: 'Categoria excluída com sucesso' }
     )

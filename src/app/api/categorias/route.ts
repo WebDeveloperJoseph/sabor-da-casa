@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/auth"
+import { revalidatePublicMenu } from "@/lib/revalidate"
 
 // GET - Listar categorias
 export async function GET() {
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    revalidatePublicMenu()
     return NextResponse.json(novaCategoria, { status: 201 })
   } catch (error) {
     console.error('Erro ao criar categoria:', error)

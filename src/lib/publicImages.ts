@@ -38,6 +38,7 @@ const pizzaImageByName: Record<string, string> = {
 };
 
 export function getPublicPizzaImage(nome: string, fallback?: string | null) {
+  if (fallback) return fallback;
   const normalized = normalizeImageKey(nome);
-  return pizzaImageByName[normalized] || fallback || null;
+  return pizzaImageByName[normalized] || null;
 }

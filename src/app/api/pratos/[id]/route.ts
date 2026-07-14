@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+import { revalidatePublicMenu } from "@/lib/revalidate";
 
 export async function GET(
   _request: NextRequest,
@@ -118,6 +119,7 @@ export async function PUT(
         tamanhos: { where: { ativo: true }, orderBy: { tamanho: "asc" } },
       },
     });
+    revalidatePublicMenu();
     return NextResponse.json(prato);
   } catch (error) {
     console.error("Erro PUT /pratos/[id]:", error);
@@ -153,6 +155,7 @@ export async function DELETE(
         data: { ativo: false, destaque: false },
       });
 
+      revalidatePublicMenu();
       return NextResponse.json({
         message: "Prato possui histórico de pedidos e foi desativado.",
       });
@@ -164,6 +167,7 @@ export async function DELETE(
       prisma.prato.delete({ where: { id: idNum } }),
     ]);
 
+    revalidatePublicMenu();
     return NextResponse.json({ message: "Prato removido" });
   } catch (error) {
     console.error("Erro DELETE /pratos/[id]:", error);
