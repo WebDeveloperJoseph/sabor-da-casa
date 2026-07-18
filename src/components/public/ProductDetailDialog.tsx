@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import { Check, Heart, Minus, Plus, ShieldCheck, Star, X } from "lucide-react";
 import {
   Dialog,
@@ -116,6 +115,13 @@ export function ProductDetailDialog({
   const [favorite, setFavorite] = useState(false);
   const [heartBurst, setHeartBurst] = useState(0);
   const [isAdding, setIsAdding] = useState(false);
+  const [imageSrc, setImageSrc] = useState(
+    prato.imagem || "/img/pizzas/placeholder-pizza.svg",
+  );
+
+  useEffect(() => {
+    setImageSrc(prato.imagem || "/img/pizzas/placeholder-pizza.svg");
+  }, [prato.imagem]);
 
   const precoUnitario = useMemo(() => {
     if (tamanhos.length) {
@@ -233,20 +239,17 @@ export function ProductDetailDialog({
       >
         <div className="flex h-full flex-col">
           <div className="relative h-[28vh] min-h-52 shrink-0 overflow-hidden bg-[#2b1212]">
-            {prato.imagem ? (
-              <Image
-                src={prato.imagem}
-                alt={prato.nome}
-                fill
-                sizes="(max-width: 768px) 96vw, 768px"
-                className="object-cover"
-                priority
-              />
-            ) : (
-              <div className="grid h-full place-items-center text-white">
-                {prato.nome}
-              </div>
-            )}
+            <img
+              src={imageSrc}
+              alt={prato.nome}
+              className={`h-full w-full ${imageSrc === "/img/pizzas/placeholder-pizza.svg" ? "object-contain p-6" : "object-cover"}`}
+              loading="eager"
+              onError={() => {
+                if (imageSrc !== "/img/pizzas/placeholder-pizza.svg") {
+                  setImageSrc("/img/pizzas/placeholder-pizza.svg");
+                }
+              }}
+            />
             <div className="absolute inset-0 bg-linear-to-b from-black/25 via-black/5 to-black/25" />
             <button
               type="button"

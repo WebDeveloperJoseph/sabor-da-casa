@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { Heart, Plus, Star } from "lucide-react";
 import { ProductDetailDialog } from "./ProductDetailDialog";
 
@@ -54,8 +53,15 @@ const PratoCardComponent = ({
   const [heartBurst, setHeartBurst] = useState(0);
   const [plusPulse, setPlusPulse] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [imageSrc, setImageSrc] = useState(
+    prato.imagem || "/img/pizzas/placeholder-pizza.svg",
+  );
   const cardRef = useRef<HTMLElement | null>(null);
   const precoBase = menorPreco(prato.preco, prato.tamanhos);
+
+  useEffect(() => {
+    setImageSrc(prato.imagem || "/img/pizzas/placeholder-pizza.svg");
+  }, [prato.imagem]);
   const favorite = isFavorite ?? localFavorite;
   const delayClass =
     animationDelay <= 0
@@ -123,25 +129,17 @@ const PratoCardComponent = ({
           className="grid min-h-[164px] w-full grid-cols-[42%_1fr] text-left sm:grid-cols-[220px_1fr]"
         >
           <div className="relative bg-[#fff3e2]">
-            {prato.imagem ? (
-              <Image
-                src={prato.imagem}
-                alt={prato.nome}
-                fill
-                sizes="(max-width: 640px) 42vw, 220px"
-                className="object-cover transition duration-300 group-hover:scale-[1.04]"
-                loading="lazy"
-              />
-            ) : (
-              <Image
-                src="/img/pizzas/placeholder-pizza.svg"
-                alt={prato.nome}
-                fill
-                sizes="(max-width: 640px) 42vw, 220px"
-                className="object-contain p-5"
-                loading="lazy"
-              />
-            )}
+            <img
+              src={imageSrc}
+              alt={prato.nome}
+              className={`h-full w-full transition duration-300 group-hover:scale-[1.04] ${imageSrc === "/img/pizzas/placeholder-pizza.svg" ? "object-contain p-5" : "object-cover"}`}
+              loading="lazy"
+              onError={() => {
+                if (imageSrc !== "/img/pizzas/placeholder-pizza.svg") {
+                  setImageSrc("/img/pizzas/placeholder-pizza.svg");
+                }
+              }}
+            />
           </div>
 
           <div className="flex min-w-0 flex-col p-4 sm:p-5">
