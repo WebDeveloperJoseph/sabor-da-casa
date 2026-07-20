@@ -107,7 +107,7 @@ const filtroVisual: Array<{
   { key: "bebidas", label: "Bebidas", icon: <CupSoda className="h-5 w-5" /> },
   {
     key: "sobremesas",
-    label: "Sobremesas",
+    label: "Pizzas Doces",
     icon: <CakeSlice className="h-5 w-5" />,
   },
 ];

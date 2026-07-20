@@ -208,7 +208,7 @@ export default async function Home() {
   let openEnd = -1;
   if (isSegQuaQuiSex) {
     openStart = 18 * 60; // 18:00
-    openEnd = 22 * 60 + 30; // 22:30
+    openEnd = 22 * 60; // 22:00
   } else if (isSabDom) {
     openStart = 17 * 60; // 17:00
     openEnd = 23 * 60; // 23:00

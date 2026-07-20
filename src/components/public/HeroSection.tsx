@@ -89,7 +89,7 @@ export function HeroSection({ isOpenNow }: Props) {
                 {isOpenNow ? "Aberto agora" : "Fechado agora"}
               </p>
               <p className="truncate text-xs text-[#5f5250]">
-                Atendemos ate 23:30
+                Atendemos ate 22:00
               </p>
             </div>
           </div>

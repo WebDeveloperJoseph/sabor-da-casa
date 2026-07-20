@@ -254,7 +254,7 @@ export function MonteSuaPizzaDialog({
 
     add({
       pratoId: 999,
-      nome: `Pizza Mista (${saboresSelecionados.length} sabores)`,
+      nome: "Pizza de 2 sabores",
       preco: precoCalculado,
       tamanho: tamanhoSelecionado,
       observacoes: obs,
@@ -305,7 +305,8 @@ export function MonteSuaPizzaDialog({
               Monte sua pizza
             </DialogTitle>
             <DialogDescription className="sr-only">
-              Modal para escolher sabores e adicionar pizza mista ao carrinho.
+              Modal para escolher sabores e adicionar pizza de 2 sabores ao
+              carrinho.
             </DialogDescription>
             <p className="text-sm font-medium text-[#6f6461]">
               Escolha o tamanho e combine seus sabores favoritos.
