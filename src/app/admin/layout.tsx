@@ -11,8 +11,8 @@ import {
 import { BotaoSair } from "@/components/admin/BotaoSair"
 import { AdminNav } from "@/components/admin/AdminNav"
 import { RealtimeOrderNotifications } from "@/components/admin/RealtimeOrderNotifications"
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth'
 
 export default async function AdminLayout({
   children,
@@ -20,10 +20,8 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   // Verificar autenticação
-  const cookieStore = await cookies()
-  const adminAuth = cookieStore.get('adminAuth')?.value
-  
-  if (!adminAuth || adminAuth !== 'true') {
+  const { authenticated } = await requireAuth()
+  if (!authenticated) {
     redirect('/login?redirectTo=/admin')
   }
 

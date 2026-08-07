@@ -11,7 +11,6 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/webp",
   "image/gif",
   "image/avif",
-  "image/svg+xml",
 ]);
 
 function sanitizeSegment(value: string) {
@@ -22,20 +21,21 @@ function sanitizeSegment(value: string) {
     .replace(/\/{2,}/g, "/");
 }
 
-function getFileExtension(file: File) {
-  const fromName = file.name.split(".").pop()?.toLowerCase();
-  if (fromName && /^[a-z0-9]{1,10}$/.test(fromName)) {
-    return fromName;
-  }
+const EXTENSION_BY_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "image/avif": "avif",
+};
 
-  if (file.type.startsWith("image/")) {
-    const fromType = file.type.split("/")[1]?.toLowerCase();
-    if (fromType && /^[a-z0-9.+-]{1,15}$/.test(fromType)) {
-      return fromType === "jpeg" ? "jpg" : fromType;
-    }
-  }
-
-  return "bin";
+function temAssinaturaValida(buffer: Buffer, type: string) {
+  if (type === "image/jpeg") return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  if (type === "image/png") return buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  if (type === "image/gif") return ["GIF87a", "GIF89a"].includes(buffer.subarray(0, 6).toString("ascii"));
+  if (type === "image/webp") return buffer.subarray(0, 4).toString("ascii") === "RIFF" && buffer.subarray(8, 12).toString("ascii") === "WEBP";
+  if (type === "image/avif") return buffer.subarray(4, 12).toString("ascii").includes("ftypavif");
+  return false;
 }
 
 export async function POST(request: NextRequest) {
@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
     // Obter arquivo do FormData
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    const bucket = (formData.get("bucket") as string) || "pratos";
-    const prefix = (formData.get("prefix") as string) || "uploads";
+    const bucket = "pratos";
+    const prefix = "uploads";
 
     if (!file) {
       return NextResponse.json(
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           message:
-            "Formato não suportado. Use JPG, PNG, WEBP, GIF, AVIF ou SVG.",
+            "Formato não suportado. Use JPG, PNG, WEBP, GIF ou AVIF.",
         },
         { status: 400 },
       );
@@ -119,10 +119,13 @@ export async function POST(request: NextRequest) {
 
     // Fazer upload
     const safePrefix = sanitizeSegment(prefix) || "uploads";
-    const extension = getFileExtension(file);
-    const path = `${safePrefix}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+    if (!temAssinaturaValida(buffer, file.type)) {
+      return NextResponse.json({ message: "O conteúdo do arquivo não corresponde a uma imagem válida" }, { status: 400 });
+    }
+    const extension = EXTENSION_BY_TYPE[file.type];
+    const path = `${safePrefix}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
 
     console.log("Tentando upload:", {
       bucket,
@@ -150,7 +153,6 @@ export async function POST(request: NextRequest) {
           {
             message:
               'Erro de autenticação com Supabase Storage. Você precisa: 1) Tornar o bucket "pratos" público no Supabase Dashboard, OU 2) Adicionar SUPABASE_SERVICE_ROLE_KEY no .env.local',
-            details: uploadError.message,
           },
           { status: 500 },
         );

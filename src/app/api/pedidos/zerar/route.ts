@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAuth } from '@/lib/auth'
 
 export async function DELETE() {
   try {
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     const result = await prisma.$transaction(async (tx) => {
       // Apaga tudo (cascata cuidará de itens e avaliações)
       const deletedAvaliacao = await tx.avaliacao.deleteMany({})

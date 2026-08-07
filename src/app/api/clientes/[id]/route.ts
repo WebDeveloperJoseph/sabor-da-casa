@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/auth'
 
 const clienteUpdateSchema = z.object({
   nome: z.string().min(2).optional(),
@@ -28,6 +29,8 @@ type Params = {
 // GET /api/clientes/[id] - Detalhes do cliente com histórico
 export async function GET(request: NextRequest, { params }: Params) {
   try {
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
     const { id } = await params
     const clienteId = parseInt(id)
     
@@ -81,6 +84,8 @@ export async function GET(request: NextRequest, { params }: Params) {
 // PUT /api/clientes/[id] - Atualizar cliente
 export async function PUT(request: NextRequest, { params }: Params) {
   try {
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
     const { id } = await params
     const clienteId = parseInt(id)
     
@@ -138,6 +143,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
 // DELETE /api/clientes/[id] - Excluir cliente (LGPD)
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
     const { id } = await params
     const clienteId = parseInt(id)
     

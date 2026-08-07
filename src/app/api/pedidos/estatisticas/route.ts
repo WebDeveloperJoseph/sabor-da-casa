@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireUser } from '@/lib/supabaseServer'
+import { requireAuth } from '@/lib/auth'
 
 // GET /api/pedidos/estatisticas - Estatísticas de vendas (ADMIN)
 export async function GET() {
   try {
-    await requireUser()
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
 
     // Total de pedidos
     const totalPedidos = await prisma.pedido.count()

@@ -1,12 +1,13 @@
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { ADMIN_SESSION_COOKIE } from '@/lib/auth'
 
 export async function POST() {
   try {
     const cookieStore = await cookies()
     
     // Remover cookie de autenticação
-    cookieStore.delete('adminAuth')
+    cookieStore.delete(ADMIN_SESSION_COOKIE)
     
     return NextResponse.json({ message: 'Logout realizado com sucesso' })
   } catch (error) {

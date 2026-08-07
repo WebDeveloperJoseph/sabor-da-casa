@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireUser } from '@/lib/supabaseServer'
+import { requireAuth } from '@/lib/auth'
+import { registrarReceitaDoPedido } from '@/lib/financeiro'
 import { z } from 'zod'
 
 const atualizarStatusSchema = z.object({
@@ -13,7 +14,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireUser()
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
     const { id } = await params
 
     const pedido = await prisma.pedido.findUnique({
@@ -55,7 +57,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireUser()
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
     const { id } = await params
     const body = await request.json()
     
@@ -68,18 +71,26 @@ export async function PUT(
       )
     }
 
-    const pedido = await prisma.pedido.update({
-      where: { id: Number(id) },
-      data: {
-        status: validacao.data.status
-      },
-      include: {
-        itens: {
-          include: {
-            prato: true
+    const pedido = await prisma.$transaction(async (tx) => {
+      const atualizado = await tx.pedido.update({
+        where: { id: Number(id) },
+        data: {
+          status: validacao.data.status
+        },
+        include: {
+          itens: {
+            include: {
+              prato: true
+            }
           }
         }
+      })
+
+      if (validacao.data.status === 'entregue') {
+        await registrarReceitaDoPedido(tx, atualizado)
       }
+
+      return atualizado
     })
 
     return NextResponse.json(pedido)
@@ -103,7 +114,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireUser()
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
     const { id } = await params
 
     await prisma.pedido.delete({

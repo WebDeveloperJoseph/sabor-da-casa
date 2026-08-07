@@ -131,9 +131,30 @@ model Pedido {
   avaliacao   Avaliacao?
   itens       ItemPedido[]
   cliente     Cliente?     @relation(fields: [clienteId], references: [id])
+  lancamentoFinanceiro LancamentoFinanceiro?
 
   @@index([clienteId])
   @@map("pedidos")
+}
+
+model LancamentoFinanceiro {
+  id              Int      @id @default(autoincrement())
+  tipo            String   @db.VarChar(20)
+  origem          String   @default("manual") @db.VarChar(20)
+  descricao       String   @db.VarChar(200)
+  categoria       String   @db.VarChar(100)
+  valor           Decimal  @db.Decimal(12, 2)
+  dataCompetencia DateTime @map("data_competencia") @db.Date
+  observacoes     String?
+  pedidoId        Int?     @unique @map("pedido_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  pedido          Pedido?  @relation(fields: [pedidoId], references: [id], onDelete: SetNull)
+
+  @@index([dataCompetencia])
+  @@index([tipo, dataCompetencia])
+  @@index([categoria])
+  @@map("lancamentos_financeiros")
 }
 
 model ItemPedido {

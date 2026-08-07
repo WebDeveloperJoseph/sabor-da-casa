@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
-// import { requireUser } from '@/lib/supabaseServer' // TODO: Reativar em produção
+import { requireAuth } from '@/lib/auth'
 import { z } from 'zod'
 
 const configuracaoSchema = z.object({
@@ -44,8 +44,8 @@ function toNullIfEmpty(value: unknown) {
 // GET /api/configuracoes - retorna a configuração (cria padrão se não existir)
 export async function GET() {
   try {
-    // TODO: Reativar autenticação em produção
-    // await requireUser()
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
 
     let cfg = await prisma.configuracao.findFirst()
     if (!cfg) {
@@ -76,12 +76,10 @@ export async function GET() {
 // PUT /api/configuracoes - atualiza a configuração
 export async function PUT(request: NextRequest) {
   try {
-    // TODO: Reativar autenticação em produção
-    // await requireUser()
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
     
   const body = await request.json()
-    console.log('[API Configuracoes PUT] Body recebido:', JSON.stringify(body, null, 2))
-
     // Converter possíveis strings em números/booleanos
     const dataToValidate = {
       nomePizzaria: String(body.nomePizzaria ?? '').trim(),
@@ -106,8 +104,6 @@ export async function PUT(request: NextRequest) {
         : toNumber(body.fidelidadeExpiraDias, 0),
     }
     
-    console.log('[API Configuracoes PUT] Dados após conversão:', JSON.stringify(dataToValidate, null, 2))
-
     const parsed = configuracaoSchema.safeParse(dataToValidate)
 
     if (!parsed.success) {

@@ -30,7 +30,7 @@ const menuItems = [
     href: "/admin/financeiro",
     icon: DollarSign,
     label: "Financeiro",
-    description: "Receitas e valores"
+    description: "Caixa e resultados"
   },
   {
     href: "/admin/clientes",

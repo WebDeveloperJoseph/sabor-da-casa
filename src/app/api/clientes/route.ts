@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { requireAuth } from '@/lib/auth'
+import { identificadorCliente, verificarLimite } from '@/lib/rate-limit'
 // Tipagem avançada pode usar o client gerado em src/generated/prisma, mas para simplificar e evitar acoplamento,
 // mantemos o objeto where com mutação controlada e validamos via Zod/Prisma em runtime.
 
@@ -25,6 +27,8 @@ const clienteSchema = z.object({
 // GET /api/clientes - Lista todos os clientes (admin)
 export async function GET(request: NextRequest) {
   try {
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
     const { searchParams } = new URL(request.url)
     const aniversariantes = searchParams.get('aniversariantes') === 'true'
     const busca = searchParams.get('busca')
@@ -89,9 +93,14 @@ export async function GET(request: NextRequest) {
 // POST /api/clientes - Criar novo cliente
 export async function POST(request: NextRequest) {
   try {
+    const { authenticated } = await requireAuth()
+    if (!authenticated) {
+      const limite = verificarLimite(`cliente-create:${identificadorCliente(request)}`, 20, 60 * 60 * 1000)
+      if (!limite.permitido) {
+        return NextResponse.json({ erro: 'Muitas tentativas' }, { status: 429, headers: { 'Retry-After': String(limite.retryAfter) } })
+      }
+    }
     const body = await request.json()
-    console.log('[API Clientes POST] Body recebido:', JSON.stringify(body, null, 2))
-    
     const parsed = clienteSchema.safeParse(body)
     
     if (!parsed.success) {
@@ -131,7 +140,7 @@ export async function POST(request: NextRequest) {
         telefone: data.telefone,
         email: data.email ?? null,
         dataNascimento,
-        cpf: data.cpf ?? null, // TODO: Criptografar se fornecido
+        cpf: authenticated ? (data.cpf ?? null) : null,
         endereco: data.endereco ?? null,
         complemento: data.complemento ?? null,
         bairro: data.bairro ?? null,
@@ -145,7 +154,7 @@ export async function POST(request: NextRequest) {
     })
     
     console.log('[API Clientes POST] Cliente criado:', cliente.id)
-    return NextResponse.json(cliente, { status: 201 })
+    return NextResponse.json(authenticated ? cliente : { id: cliente.id }, { status: 201 })
   } catch (error) {
     console.error('[API Clientes POST] Erro:', error)
     return NextResponse.json({ 

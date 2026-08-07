@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server'
-import { requireUser } from '@/lib/supabaseServer'
+import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 // GET /api/clientes/aniversariantes-hoje - Busca aniversariantes do dia (admin)
 export async function GET() {
   try {
-    await requireUser()
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
 
   const hoje = new Date()
   const dia = hoje.getUTCDate()
@@ -60,7 +61,8 @@ export async function GET() {
 // POST /api/clientes/aniversariantes-hoje - Envia mensagens de parabéns (admin)
 export async function POST(request: NextRequest) {
   try {
-    await requireUser()
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
 
     const body = await request.json()
     const { mensagemTemplate, cupom } = body

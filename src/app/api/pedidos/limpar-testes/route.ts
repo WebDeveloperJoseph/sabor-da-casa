@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAuth } from '@/lib/auth'
 
 export async function DELETE() {
   try {
+    const { authenticated } = await requireAuth()
+    if (!authenticated) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   // Deleta todos os pedidos com ID < 24 (considerados testes)
     const result = await prisma.pedido.deleteMany({
       where: {

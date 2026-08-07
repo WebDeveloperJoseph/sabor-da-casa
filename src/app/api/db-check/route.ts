@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAuth } from '@/lib/auth'
 
 function summarizeDbUrl(raw?: string) {
   try {
@@ -20,6 +21,8 @@ function summarizeDbUrl(raw?: string) {
 }
 
 export async function GET() {
+  const { authenticated } = await requireAuth()
+  if (!authenticated) return NextResponse.json({ ok: false }, { status: 404 })
   const dbUrlInfo = summarizeDbUrl(process.env.DATABASE_URL)
   try {
     // consulta mínima

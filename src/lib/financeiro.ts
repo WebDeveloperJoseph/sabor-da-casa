@@ -1,0 +1,68 @@
+import type { Prisma } from "@prisma/client";
+
+import { prisma } from "@/lib/prisma";
+
+export async function sincronizarPedidosEntregues() {
+  const pedidosSemLancamento = await prisma.pedido.findMany({
+    where: {
+      status: "entregue",
+      lancamentoFinanceiro: null,
+    },
+    select: {
+      id: true,
+      valorTotal: true,
+      createdAt: true,
+    },
+  });
+
+  if (pedidosSemLancamento.length === 0) return;
+
+  await prisma.lancamentoFinanceiro.createMany({
+    data: pedidosSemLancamento.map((pedido) => ({
+      tipo: "entrada",
+      origem: "pedido",
+      descricao: `Pedido #${pedido.id}`,
+      categoria: "Vendas",
+      valor: pedido.valorTotal,
+      dataCompetencia: pedido.createdAt,
+      pedidoId: pedido.id,
+    })),
+    skipDuplicates: true,
+  });
+}
+
+export async function registrarReceitaDoPedido(
+  tx: Prisma.TransactionClient,
+  pedido: { id: number; valorTotal: Prisma.Decimal; updatedAt: Date },
+) {
+  await tx.lancamentoFinanceiro.upsert({
+    where: { pedidoId: pedido.id },
+    create: {
+      tipo: "entrada",
+      origem: "pedido",
+      descricao: `Pedido #${pedido.id}`,
+      categoria: "Vendas",
+      valor: pedido.valorTotal,
+      dataCompetencia: pedido.updatedAt,
+      pedidoId: pedido.id,
+    },
+    update: {
+      valor: pedido.valorTotal,
+      descricao: `Pedido #${pedido.id}`,
+    },
+  });
+}
+
+export function dataUtc(data: string): Date {
+  return new Date(`${data}T00:00:00.000Z`);
+}
+
+export function adicionarDias(data: Date, dias: number): Date {
+  const resultado = new Date(data);
+  resultado.setUTCDate(resultado.getUTCDate() + dias);
+  return resultado;
+}
+
+export function formatarDataIso(data: Date): string {
+  return data.toISOString().slice(0, 10);
+}

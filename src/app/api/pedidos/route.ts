@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/supabaseServer";
+import { requireAuth } from "@/lib/auth";
 import { z } from "zod";
 
 // Schema de validação para criar pedido
@@ -341,7 +341,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Caso contrário, requer autenticação (admin)
-    await requireUser();
+    const { authenticated } = await requireAuth();
+    if (!authenticated) {
+      return NextResponse.json({ erro: "Não autorizado" }, { status: 401 });
+    }
 
     // Construir filtros
     const whereClause: any = {};
