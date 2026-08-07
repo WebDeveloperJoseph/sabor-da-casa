@@ -41,4 +41,10 @@ export type FinanceiroResponse = {
   despesasPorCategoria: TotalPorCategoria[];
   categorias: string[];
   periodo: { inicio: string; fim: string };
+  paginacao: {
+    pagina: number;
+    porPagina: number;
+    total: number;
+    totalPaginas: number;
+  };
 };

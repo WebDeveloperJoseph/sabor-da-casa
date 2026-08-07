@@ -5,6 +5,8 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   CalendarRange,
+  ChevronLeft,
+  ChevronRight,
   Download,
   FileSpreadsheet,
   Loader2,
@@ -59,21 +61,29 @@ export function FinanceiroDashboard() {
   const [exportando, setExportando] = useState(false);
   const [dialogAberto, setDialogAberto] = useState(false);
   const [editando, setEditando] = useState<LancamentoFinanceiroDTO | null>(null);
+  const [pagina, setPagina] = useState(1);
+  const porPagina = 25;
 
   const carregar = useCallback(async () => {
     setCarregando(true);
     try {
       const params = new URLSearchParams(filtrosAplicados);
+      params.set("pagina", String(pagina));
+      params.set("porPagina", String(porPagina));
       const resposta = await fetch(`/api/admin/financeiro?${params}`, { cache: "no-store" });
       const corpo = await resposta.json();
       if (!resposta.ok) throw new Error(corpo.erro ?? "Não foi possível carregar os dados");
+      if (pagina > corpo.paginacao.totalPaginas) {
+        setPagina(corpo.paginacao.totalPaginas);
+        return;
+      }
       setDados(corpo);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao carregar financeiro");
     } finally {
       setCarregando(false);
     }
-  }, [filtrosAplicados]);
+  }, [filtrosAplicados, pagina]);
 
   useEffect(() => {
     void carregar();
@@ -92,14 +102,34 @@ export function FinanceiroDashboard() {
     }
   }
 
+  async function carregarDadosParaExportacao() {
+    const params = new URLSearchParams(filtrosAplicados);
+    params.set("exportar", "todos");
+    const resposta = await fetch(`/api/admin/financeiro?${params}`, { cache: "no-store" });
+    const corpo = await resposta.json();
+    if (!resposta.ok) throw new Error(corpo.erro ?? "Não foi possível preparar o relatório");
+    return corpo as FinanceiroResponse;
+  }
+
   async function gerarPdf() {
-    if (!dados) return;
     setExportando(true);
     try {
-      await exportarFinanceiroPdf(dados);
+      await exportarFinanceiroPdf(await carregarDadosParaExportacao());
       toast.success("Relatório PDF gerado");
-    } catch {
-      toast.error("Não foi possível gerar o PDF");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível gerar o PDF");
+    } finally {
+      setExportando(false);
+    }
+  }
+
+  async function gerarCsv() {
+    setExportando(true);
+    try {
+      exportarFinanceiroCsv(await carregarDadosParaExportacao());
+      toast.success("Relatório CSV gerado");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível gerar o CSV");
     } finally {
       setExportando(false);
     }
@@ -121,7 +151,7 @@ export function FinanceiroDashboard() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => dados && exportarFinanceiroCsv(dados)} disabled={!dados} className="border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white">
+            <Button variant="outline" onClick={gerarCsv} disabled={!dados || exportando} className="border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white">
               <FileSpreadsheet /> Excel/CSV
             </Button>
             <Button variant="outline" onClick={gerarPdf} disabled={!dados || exportando} className="border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white">
@@ -137,7 +167,7 @@ export function FinanceiroDashboard() {
       <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
         <form
           className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_1.4fr_auto]"
-          onSubmit={(event) => { event.preventDefault(); setFiltrosAplicados(filtros); }}
+          onSubmit={(event) => { event.preventDefault(); setPagina(1); setFiltrosAplicados(filtros); }}
         >
           <Filtro label="Data inicial"><Input type="date" value={filtros.inicio} onChange={(event) => setFiltros({ ...filtros, inicio: event.target.value })} /></Filtro>
           <Filtro label="Data final"><Input type="date" value={filtros.fim} onChange={(event) => setFiltros({ ...filtros, fim: event.target.value })} /></Filtro>
@@ -200,6 +230,26 @@ export function FinanceiroDashboard() {
                 </tbody>
               </table>
             </div>
+            {dados.paginacao.total > 0 && (
+              <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+                <p className="text-sm text-slate-500">
+                  Exibindo <strong className="text-slate-700">{(dados.paginacao.pagina - 1) * dados.paginacao.porPagina + 1}</strong> a{" "}
+                  <strong className="text-slate-700">{Math.min(dados.paginacao.pagina * dados.paginacao.porPagina, dados.paginacao.total)}</strong> de{" "}
+                  <strong className="text-slate-700">{dados.paginacao.total}</strong> lançamentos
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setPagina((atual) => Math.max(1, atual - 1))} disabled={carregando || dados.paginacao.pagina <= 1}>
+                    <ChevronLeft /> Anterior
+                  </Button>
+                  <span className="min-w-24 text-center text-sm font-bold text-slate-700">
+                    {dados.paginacao.pagina} de {dados.paginacao.totalPaginas}
+                  </span>
+                  <Button variant="outline" size="sm" onClick={() => setPagina((atual) => Math.min(dados.paginacao.totalPaginas, atual + 1))} disabled={carregando || dados.paginacao.pagina >= dados.paginacao.totalPaginas}>
+                    Próxima <ChevronRight />
+                  </Button>
+                </div>
+              </div>
+            )}
           </section>
         </>
       )}

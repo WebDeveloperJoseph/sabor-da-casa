@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { requireAuth } from "@/lib/auth";
+import { requireFinanceAuth } from "@/lib/auth";
 import { dataUtc } from "@/lib/financeiro";
 import { prisma } from "@/lib/prisma";
 
@@ -18,7 +18,7 @@ type RouteParams = { params: Promise<{ id: string }> };
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const { authenticated } = await requireAuth();
+    const { authenticated } = await requireFinanceAuth();
     if (!authenticated) {
       return NextResponse.json({ erro: "Não autorizado" }, { status: 401 });
     }
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(_: NextRequest, { params }: RouteParams) {
   try {
-    const { authenticated } = await requireAuth();
+    const { authenticated } = await requireFinanceAuth();
     if (!authenticated) {
       return NextResponse.json({ erro: "Não autorizado" }, { status: 401 });
     }
