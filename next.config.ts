@@ -42,8 +42,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Não exportar páginas /admin como estáticas - forçar SSR
-  output: "standalone",
+  // A Vercel possui seu próprio adaptador de output. O modo standalone é
+  // mantido apenas para a imagem Docker, que consome `.next/standalone`.
+  output: process.env.VERCEL ? undefined : "standalone",
   // Evita warning de lockfiles múltiplos durante o build definindo explicitamente a raiz do Turbopack
   turbopack: { root: process.cwd() },
 };
