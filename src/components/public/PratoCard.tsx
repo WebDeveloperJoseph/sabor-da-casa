@@ -34,12 +34,6 @@ type PratoCardProps = {
   onToggleFavorite?: (pratoId: number) => void;
 };
 
-const menorPreco = (preco: number | string, tamanhos?: TamanhoType[]) => {
-  if (tamanhos?.length)
-    return Math.min(...tamanhos.map((t) => Number(t.preco)));
-  return Number(preco);
-};
-
 const PratoCardComponent = ({
   prato,
   categoria,
@@ -53,15 +47,12 @@ const PratoCardComponent = ({
   const [heartBurst, setHeartBurst] = useState(0);
   const [plusPulse, setPlusPulse] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [imageSrc, setImageSrc] = useState(
-    prato.imagem || "/img/pizzas/placeholder-pizza.svg",
-  );
+  const [imagemComErro, setImagemComErro] = useState<string | null>(null);
   const cardRef = useRef<HTMLElement | null>(null);
-  const precoBase = menorPreco(prato.preco, prato.tamanhos);
-
-  useEffect(() => {
-    setImageSrc(prato.imagem || "/img/pizzas/placeholder-pizza.svg");
-  }, [prato.imagem]);
+  const imageSrc =
+    prato.imagem && imagemComErro !== prato.imagem
+      ? prato.imagem
+      : "/img/pizzas/placeholder-pizza.svg";
   const favorite = isFavorite ?? localFavorite;
   const delayClass =
     animationDelay <= 0
@@ -135,9 +126,7 @@ const PratoCardComponent = ({
               className={`h-full w-full transition duration-300 group-hover:scale-[1.04] ${imageSrc === "/img/pizzas/placeholder-pizza.svg" ? "object-contain p-5" : "object-cover"}`}
               loading="lazy"
               onError={() => {
-                if (imageSrc !== "/img/pizzas/placeholder-pizza.svg") {
-                  setImageSrc("/img/pizzas/placeholder-pizza.svg");
-                }
+                if (prato.imagem) setImagemComErro(prato.imagem);
               }}
             />
           </div>
@@ -168,8 +157,13 @@ const PratoCardComponent = ({
             </div>
 
             <div className="mt-auto flex items-end justify-between gap-2 pt-4">
-              <div className="whitespace-nowrap text-xl font-black text-[#c90010] sm:text-3xl">
-                R$ {precoBase.toFixed(2).replace(".", ",")}
+              <div className="min-w-0">
+                <p className="text-sm font-black leading-tight text-[#c90010] sm:text-base">
+                  {prato.tamanhos?.length ? "Escolha seu tamanho" : "Peça do seu jeito"}
+                </p>
+                <p className="mt-0.5 hidden text-xs font-medium text-[#8a7771] sm:block">
+                  Toque para ver os detalhes
+                </p>
               </div>
               <span
                 className={`relative inline-flex h-11 shrink-0 items-center gap-1 rounded-xl bg-[#d71920] px-3 text-sm font-black text-white shadow-md transition group-hover:bg-[#b50008] sm:gap-2 sm:px-4 ${

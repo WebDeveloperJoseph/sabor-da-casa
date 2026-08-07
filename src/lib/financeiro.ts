@@ -2,10 +2,19 @@ import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 
-export async function sincronizarPedidosEntregues() {
+export async function sincronizarPedidos() {
+  // Um pedido cancelado não representa receita, mesmo que tenha sido
+  // contabilizado antes da mudança de status.
+  await prisma.lancamentoFinanceiro.deleteMany({
+    where: {
+      origem: "pedido",
+      pedido: { is: { status: "cancelado" } },
+    },
+  });
+
   const pedidosSemLancamento = await prisma.pedido.findMany({
     where: {
-      status: "entregue",
+      status: { not: "cancelado" },
       lancamentoFinanceiro: null,
     },
     select: {
@@ -50,6 +59,15 @@ export async function registrarReceitaDoPedido(
       valor: pedido.valorTotal,
       descricao: `Pedido #${pedido.id}`,
     },
+  });
+}
+
+export async function removerReceitaDoPedido(
+  tx: Prisma.TransactionClient,
+  pedidoId: number,
+) {
+  await tx.lancamentoFinanceiro.deleteMany({
+    where: { pedidoId, origem: "pedido" },
   });
 }
 

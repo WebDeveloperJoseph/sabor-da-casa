@@ -6,7 +6,7 @@ import {
   adicionarDias,
   dataUtc,
   formatarDataIso,
-  sincronizarPedidosEntregues,
+  sincronizarPedidos,
 } from "@/lib/financeiro";
 import { prisma } from "@/lib/prisma";
 
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ erro: "Não autorizado" }, { status: 401 });
     }
 
-    await sincronizarPedidosEntregues();
+    await sincronizarPedidos();
 
     const padrao = periodoPadrao();
     const inicio = request.nextUrl.searchParams.get("inicio") ?? padrao.inicio;
@@ -88,6 +88,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     let entradas = 0;
+    let entradasDePedidos = 0;
     let despesas = 0;
     let pedidos = 0;
     const porDia = new Map<string, { entradas: number; despesas: number }>();
@@ -101,6 +102,7 @@ export async function GET(request: NextRequest) {
       if (lancamento.tipo === "entrada") {
         entradas += valor;
         dia.entradas += valor;
+        if (lancamento.origem === "pedido") entradasDePedidos += valor;
       } else {
         despesas += valor;
         dia.despesas += valor;
@@ -128,7 +130,7 @@ export async function GET(request: NextRequest) {
         despesas,
         saldo: entradas - despesas,
         pedidos,
-        ticketMedio: pedidos > 0 ? entradas / pedidos : 0,
+        ticketMedio: pedidos > 0 ? entradasDePedidos / pedidos : 0,
         lancamentos: lancamentos.length,
       },
       lancamentos: lancamentos.map((item) => ({

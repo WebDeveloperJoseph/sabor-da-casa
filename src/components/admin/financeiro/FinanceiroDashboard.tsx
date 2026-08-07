@@ -162,7 +162,7 @@ export function FinanceiroDashboard() {
       {carregando && !dados ? <Carregando /> : dados && (
         <>
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <Kpi titulo="Entradas" valor={moeda.format(dados.resumo.entradas)} detalhe={`${dados.resumo.pedidos} pedidos concluídos`} icone={ArrowUpRight} cor="emerald" />
+            <Kpi titulo="Entradas" valor={moeda.format(dados.resumo.entradas)} detalhe={`${dados.resumo.pedidos} pedidos registrados`} icone={ArrowUpRight} cor="emerald" />
             <Kpi titulo="Despesas" valor={moeda.format(dados.resumo.despesas)} detalhe="Custos do período" icone={ArrowDownRight} cor="rose" />
             <Kpi titulo="Resultado líquido" valor={moeda.format(dados.resumo.saldo)} detalhe={dados.resumo.saldo >= 0 ? "Saldo positivo" : "Atenção ao caixa"} icone={TrendingUp} cor={dados.resumo.saldo >= 0 ? "blue" : "rose"} />
             <Kpi titulo="Ticket médio" valor={moeda.format(dados.resumo.ticketMedio)} detalhe={`${dados.resumo.lancamentos} movimentações`} icone={ShoppingBag} cor="orange" />

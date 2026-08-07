@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth'
-import { registrarReceitaDoPedido } from '@/lib/financeiro'
+import { registrarReceitaDoPedido, removerReceitaDoPedido } from '@/lib/financeiro'
 import { z } from 'zod'
 
 const atualizarStatusSchema = z.object({
@@ -86,7 +86,9 @@ export async function PUT(
         }
       })
 
-      if (validacao.data.status === 'entregue') {
+      if (validacao.data.status === 'cancelado') {
+        await removerReceitaDoPedido(tx, atualizado.id)
+      } else {
         await registrarReceitaDoPedido(tx, atualizado)
       }
 
