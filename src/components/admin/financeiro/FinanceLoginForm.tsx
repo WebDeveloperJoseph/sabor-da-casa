@@ -2,13 +2,11 @@
 
 import { useState } from "react";
 import { AlertCircle, Eye, EyeOff, Loader2, LockKeyhole } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export function FinanceLoginForm() {
-  const router = useRouter();
   const [password, setPassword] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [carregando, setCarregando] = useState(false);
@@ -27,8 +25,9 @@ export function FinanceLoginForm() {
       });
       const corpo = await resposta.json();
       if (!resposta.ok) throw new Error(corpo.erro ?? "Não foi possível entrar");
-      router.replace("/admin/financeiro");
-      router.refresh();
+      // A navegação completa garante que a primeira requisição ao
+      // dashboard já inclua o cookie HttpOnly recém-definido na resposta.
+      window.location.replace("/admin/financeiro");
     } catch (error) {
       setErro(error instanceof Error ? error.message : "Falha na autenticação");
       setPassword("");
