@@ -2,6 +2,16 @@ import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 
+function dataCompetenciaDoPedido(data: Date) {
+  const dataLocal = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(data);
+  return dataUtc(dataLocal);
+}
+
 export async function sincronizarPedidos() {
   // Um pedido cancelado não representa receita, mesmo que tenha sido
   // contabilizado antes da mudança de status.
@@ -33,7 +43,7 @@ export async function sincronizarPedidos() {
       descricao: `Pedido #${pedido.id}`,
       categoria: "Vendas",
       valor: pedido.valorTotal,
-      dataCompetencia: pedido.createdAt,
+      dataCompetencia: dataCompetenciaDoPedido(pedido.createdAt),
       pedidoId: pedido.id,
     })),
     skipDuplicates: true,
@@ -42,7 +52,7 @@ export async function sincronizarPedidos() {
 
 export async function registrarReceitaDoPedido(
   tx: Prisma.TransactionClient,
-  pedido: { id: number; valorTotal: Prisma.Decimal; updatedAt: Date },
+  pedido: { id: number; valorTotal: Prisma.Decimal; createdAt: Date },
 ) {
   await tx.lancamentoFinanceiro.upsert({
     where: { pedidoId: pedido.id },
@@ -52,12 +62,13 @@ export async function registrarReceitaDoPedido(
       descricao: `Pedido #${pedido.id}`,
       categoria: "Vendas",
       valor: pedido.valorTotal,
-      dataCompetencia: pedido.updatedAt,
+      dataCompetencia: dataCompetenciaDoPedido(pedido.createdAt),
       pedidoId: pedido.id,
     },
     update: {
       valor: pedido.valorTotal,
       descricao: `Pedido #${pedido.id}`,
+      dataCompetencia: dataCompetenciaDoPedido(pedido.createdAt),
     },
   });
 }

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import DeletePedidoButton from "@/components/admin/DeletePedidoButton";
 import AdminOrderRealtimeNotifier from "@/components/admin/AdminOrderRealtimeNotifier";
@@ -14,10 +15,44 @@ import {
   Package,
   Eye,
   Star,
+  Pencil,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
-export default async function PedidosPage() {
-  const pedidos = await prisma.pedido.findMany({
+type SearchParams = Promise<{
+  pagina?: string;
+  periodo?: string;
+  data?: string;
+}>;
+
+const POR_PAGINA = 20;
+
+function intervaloDoDia(data: string) {
+  const inicio = new Date(`${data}T00:00:00-03:00`);
+  const fim = new Date(inicio);
+  fim.setDate(fim.getDate() + 1);
+  return { gte: inicio, lt: fim };
+}
+
+function dataHoje() {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+}
+
+export default async function PedidosPage({ searchParams }: { searchParams: SearchParams }) {
+  const query = await searchParams;
+  const pagina = Math.max(1, Number(query.pagina) || 1);
+  const periodo = query.periodo === "hoje" || query.periodo === "data" ? query.periodo : "todos";
+  const dataSelecionada = /^\d{4}-\d{2}-\d{2}$/.test(query.data ?? "") ? query.data! : dataHoje();
+  const where: Prisma.PedidoWhereInput =
+    periodo === "todos"
+      ? {}
+      : { createdAt: intervaloDoDia(periodo === "hoje" ? dataHoje() : dataSelecionada) };
+
+  const [pedidos, totalPedidos, statusAgrupados] = await prisma.$transaction([
+    prisma.pedido.findMany({
+    where,
     include: {
       itens: {
         include: {
@@ -29,8 +64,24 @@ export default async function PedidosPage() {
     orderBy: {
       createdAt: "desc",
     },
-    take: 50,
-  });
+    skip: (pagina - 1) * POR_PAGINA,
+    take: POR_PAGINA,
+  }),
+    prisma.pedido.count({ where }),
+    prisma.pedido.groupBy({
+      by: ["status"],
+      where,
+      _count: { status: true },
+      orderBy: { status: "asc" },
+    }),
+  ]);
+  const totalPaginas = Math.max(1, Math.ceil(totalPedidos / POR_PAGINA));
+
+  const urlPagina = (destino: number) => {
+    const params = new URLSearchParams({ pagina: String(destino), periodo });
+    if (periodo === "data") params.set("data", dataSelecionada);
+    return `/admin/pedidos?${params}`;
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -83,12 +134,16 @@ export default async function PedidosPage() {
     }
   };
 
+  const quantidadeStatus = (status: string) => {
+    const contagem = statusAgrupados.find((grupo) => grupo.status === status)?._count;
+    return typeof contagem === "object" ? contagem.status ?? 0 : 0;
+  };
   const pedidosPorStatus = {
-    pendente: pedidos.filter((p) => p.status === "pendente").length,
-    em_preparo: pedidos.filter((p) => p.status === "em_preparo").length,
-    saiu_entrega: pedidos.filter((p) => p.status === "saiu_entrega").length,
-    entregue: pedidos.filter((p) => p.status === "entregue").length,
-    cancelado: pedidos.filter((p) => p.status === "cancelado").length,
+    pendente: quantidadeStatus("pendente"),
+    em_preparo: quantidadeStatus("em_preparo"),
+    saiu_entrega: quantidadeStatus("saiu_entrega"),
+    entregue: quantidadeStatus("entregue"),
+    cancelado: quantidadeStatus("cancelado"),
   };
 
   return (
@@ -113,6 +168,26 @@ export default async function PedidosPage() {
           </div>
         </div>
       </div>
+
+      <form className="rounded-2xl border border-orange-100 bg-white p-4 shadow-sm" method="GET">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end">
+          <label className="flex-1 text-sm font-bold text-gray-700">
+            <span className="mb-1.5 flex items-center gap-2"><CalendarDays className="h-4 w-4 text-orange-500" /> Período</span>
+            <select name="periodo" defaultValue={periodo} className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 font-medium">
+              <option value="todos">Todos os pedidos</option>
+              <option value="hoje">Somente hoje</option>
+              <option value="data">Escolher uma data</option>
+            </select>
+          </label>
+          <label className="flex-1 text-sm font-bold text-gray-700">
+            <span className="mb-1.5 block">Data específica</span>
+            <input type="date" name="data" defaultValue={dataSelecionada} className="h-10 w-full rounded-lg border border-gray-300 px-3" />
+          </label>
+          <button type="submit" className="h-10 rounded-lg bg-linear-to-r from-orange-500 to-red-500 px-6 font-bold text-white shadow-sm hover:shadow-md">
+            Aplicar filtro
+          </button>
+        </div>
+      </form>
 
       {/* Resumo por Status */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -171,7 +246,7 @@ export default async function PedidosPage() {
       <div className="bg-white rounded-2xl shadow-lg border-2 border-orange-100 overflow-x-auto">
         <div className="p-6 border-b border-orange-100 bg-linear-to-r from-orange-50 to-red-50">
           <h2 className="text-xl font-bold text-gray-900">
-            Todos os Pedidos ({pedidos.length})
+            Pedidos encontrados ({totalPedidos})
           </h2>
         </div>
 
@@ -256,6 +331,13 @@ export default async function PedidosPage() {
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         Ver / Imprimir
+                      </Link>
+                      <Link
+                        href={`/admin/pedidos/${pedido.id}/editar`}
+                        className="inline-flex items-center justify-center rounded-lg border-2 border-orange-200 bg-white px-4 py-2 text-sm font-semibold text-orange-700 transition hover:border-orange-300 hover:bg-orange-50 md:text-base"
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Editar pedido
                       </Link>
                       {/* Botão de excluir (componente cliente) */}
                       <DeletePedidoButton id={pedido.id} />
@@ -378,6 +460,22 @@ export default async function PedidosPage() {
             </div>
           )}
         </div>
+        {totalPedidos > 0 && (
+          <div className="flex flex-col gap-3 border-t border-orange-100 bg-orange-50/40 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-gray-600">
+              Exibindo <strong>{(pagina - 1) * POR_PAGINA + 1}</strong> a <strong>{Math.min(pagina * POR_PAGINA, totalPedidos)}</strong> de <strong>{totalPedidos}</strong>
+            </p>
+            <div className="flex items-center gap-2">
+              {pagina > 1 ? (
+                <Link href={urlPagina(pagina - 1)} className="inline-flex h-9 items-center rounded-lg border bg-white px-3 text-sm font-bold text-gray-700 hover:bg-gray-50"><ChevronLeft className="mr-1 h-4 w-4" /> Anterior</Link>
+              ) : <span className="inline-flex h-9 items-center rounded-lg border bg-gray-100 px-3 text-sm font-bold text-gray-400"><ChevronLeft className="mr-1 h-4 w-4" /> Anterior</span>}
+              <span className="min-w-24 text-center text-sm font-bold text-gray-700">{pagina} de {totalPaginas}</span>
+              {pagina < totalPaginas ? (
+                <Link href={urlPagina(pagina + 1)} className="inline-flex h-9 items-center rounded-lg border bg-white px-3 text-sm font-bold text-gray-700 hover:bg-gray-50">Próxima <ChevronRight className="ml-1 h-4 w-4" /></Link>
+              ) : <span className="inline-flex h-9 items-center rounded-lg border bg-gray-100 px-3 text-sm font-bold text-gray-400">Próxima <ChevronRight className="ml-1 h-4 w-4" /></span>}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

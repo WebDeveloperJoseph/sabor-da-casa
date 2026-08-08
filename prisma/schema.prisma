@@ -149,7 +149,7 @@ model LancamentoFinanceiro {
   pedidoId        Int?     @unique @map("pedido_id")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
-  pedido          Pedido?  @relation(fields: [pedidoId], references: [id], onDelete: SetNull)
+  pedido          Pedido?  @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
 
   @@index([dataCompetencia])
   @@index([tipo, dataCompetencia])

@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
       evolucaoAgrupada,
       despesasAgrupadas,
       categoriasRegistradas,
-    ] = await Promise.all([
+    ] = await prisma.$transaction([
       prisma.lancamentoFinanceiro.findMany({
         where,
         orderBy: [{ dataCompetencia: "desc" }, { id: "desc" }],
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
     const porDia = new Map<string, { entradas: number; despesas: number }>();
 
     for (const grupo of evolucaoAgrupada) {
-      const valor = Number(grupo._sum.valor ?? 0);
+      const valor = Number(grupo._sum?.valor ?? 0);
       const data = formatarDataIso(grupo.dataCompetencia);
       const dia = porDia.get(data) ?? { entradas: 0, despesas: 0 };
       if (grupo.tipo === "entrada") dia.entradas += valor;
@@ -172,7 +172,7 @@ export async function GET(request: NextRequest) {
       evolucao,
       despesasPorCategoria: despesasAgrupadas.map((grupo) => ({
         categoria: grupo.categoria,
-        valor: Number(grupo._sum.valor ?? 0),
+        valor: Number(grupo._sum?.valor ?? 0),
       })),
       categorias: categoriasRegistradas.map((item) => item.categoria),
       periodo: { inicio, fim },

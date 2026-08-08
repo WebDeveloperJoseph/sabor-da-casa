@@ -7,6 +7,7 @@ export async function DELETE() {
     const { authenticated } = await requireAuth()
     if (!authenticated) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     const result = await prisma.$transaction(async (tx) => {
+      await tx.lancamentoFinanceiro.deleteMany({ where: { origem: 'pedido' } })
       // Apaga tudo (cascata cuidará de itens e avaliações)
       const deletedAvaliacao = await tx.avaliacao.deleteMany({})
       const deletedItens = await tx.itemPedido.deleteMany({})

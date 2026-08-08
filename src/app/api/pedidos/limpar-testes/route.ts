@@ -7,10 +7,13 @@ export async function DELETE() {
     const { authenticated } = await requireAuth()
     if (!authenticated) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   // Deleta todos os pedidos com ID < 24 (considerados testes)
-    const result = await prisma.pedido.deleteMany({
-      where: {
-        id: { lt: 24 }
-      }
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.lancamentoFinanceiro.deleteMany({
+        where: { origem: 'pedido', pedido: { is: { id: { lt: 24 } } } },
+      })
+      return tx.pedido.deleteMany({
+        where: { id: { lt: 24 } },
+      })
     })
 
     return NextResponse.json({ 
