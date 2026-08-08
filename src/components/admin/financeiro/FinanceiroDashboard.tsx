@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -223,7 +224,26 @@ export function FinanceiroDashboard() {
                       <td className="px-4 py-4"><div className="font-bold text-slate-800">{item.descricao}</div><div className="mt-0.5 text-xs text-slate-400">{item.origem === "pedido" ? "Automático" : item.observacoes || "Manual"}</div></td>
                       <td className="px-4 py-4 text-slate-600">{item.categoria}</td>
                       <td className={`px-4 py-4 text-right font-black ${item.tipo === "entrada" ? "text-emerald-600" : "text-rose-600"}`}>{item.tipo === "entrada" ? "+" : "-"} {moeda.format(item.valor)}</td>
-                      <td className="px-6 py-4"><div className="flex justify-end gap-1">{item.origem === "manual" ? <><Button variant="ghost" size="icon-sm" title="Editar" onClick={() => { setEditando(item); setDialogAberto(true); }}><Pencil /></Button><Button variant="ghost" size="icon-sm" title="Excluir" className="text-rose-600 hover:bg-rose-50 hover:text-rose-700" onClick={() => excluir(item)}><Trash2 /></Button></> : <span className="text-xs font-medium text-slate-400">Protegido</span>}</div></td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-1">
+                          {item.origem === "manual" ? (
+                            <>
+                              <Button variant="ghost" size="icon-sm" title="Editar lançamento" onClick={() => { setEditando(item); setDialogAberto(true); }}><Pencil /></Button>
+                              <Button variant="ghost" size="icon-sm" title="Excluir" className="text-rose-600 hover:bg-rose-50 hover:text-rose-700" onClick={() => excluir(item)}><Trash2 /></Button>
+                            </>
+                          ) : item.pedidoId ? (
+                            <Link
+                              href={`/admin/pedidos/${item.pedidoId}/editar`}
+                              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-orange-700 transition hover:bg-orange-50 hover:text-orange-800"
+                              title={`Editar pedido #${item.pedidoId}`}
+                            >
+                              <Pencil className="h-3.5 w-3.5" /> Editar pedido
+                            </Link>
+                          ) : (
+                            <span className="text-xs font-medium text-slate-400">Pedido indisponível</span>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                   {dados.lancamentos.length === 0 && <tr><td colSpan={6} className="px-6 py-16 text-center text-slate-500">Nenhuma movimentação encontrada com estes filtros.</td></tr>}
