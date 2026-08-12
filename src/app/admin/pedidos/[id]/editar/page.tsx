@@ -2,11 +2,25 @@ import { notFound } from "next/navigation";
 
 import { EditarPedidoForm } from "@/components/admin/EditarPedidoForm";
 import { prisma } from "@/lib/prisma";
+import { calcularSubtotalItens, calcularTaxaEntrega } from "@/lib/pedidoTotais";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditarPedidoPage({ params }: { params: Promise<{ id: string }> }) {
+function toDatetimeLocal(value: Date) {
+  const data = new Date(value);
+  const offset = data.getTimezoneOffset() * 60000;
+  return new Date(data.getTime() - offset).toISOString().slice(0, 16);
+}
+
+export default async function EditarPedidoPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ retorno?: string }>;
+}) {
   const id = Number((await params).id);
+  const retorno = (await searchParams).retorno;
   if (!Number.isInteger(id) || id <= 0) notFound();
 
   const [pedido, produtos] = await prisma.$transaction([
@@ -23,17 +37,19 @@ export default async function EditarPedidoPage({ params }: { params: Promise<{ i
   ]);
   if (!pedido) notFound();
 
-  const somaItens = pedido.itens.reduce((total, item) => total + Number(item.subtotal), 0);
-  const taxaEntrega = Math.max(0, Number(pedido.valorTotal) - somaItens);
+  const somaItens = calcularSubtotalItens(pedido.itens);
+  const taxaEntrega = calcularTaxaEntrega(pedido.valorTotal, somaItens);
 
   return (
     <EditarPedidoForm
+      retorno={retorno}
       pedido={{
         id: pedido.id,
         nomeCliente: pedido.nomeCliente,
         telefone: pedido.telefone ?? "",
         endereco: pedido.endereco ?? "",
         observacoes: pedido.observacoes ?? "",
+        dataPedido: toDatetimeLocal(pedido.createdAt),
         taxaEntrega,
         itens: pedido.itens.map((item) => ({
           chave: String(item.id),

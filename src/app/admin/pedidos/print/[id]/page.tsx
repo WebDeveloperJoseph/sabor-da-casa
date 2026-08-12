@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import PrintActionsClient from '@/components/admin/PrintActionsClient'
+import { calcularSubtotalItens, calcularTaxaEntrega } from '@/lib/pedidoTotais'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -55,6 +56,8 @@ export default async function PrintPedidoPage({ params, searchParams }: Props) {
   }
 
   const dailyNumber = (pedido as unknown as { dailyNumber?: number }).dailyNumber
+  const subtotalItens = calcularSubtotalItens(pedido.itens)
+  const taxaEntrega = calcularTaxaEntrega(pedido.valorTotal, subtotalItens)
 
   const printAuto = String(resolvedSearch?.print || '') === '1'
 
@@ -92,6 +95,19 @@ export default async function PrintPedidoPage({ params, searchParams }: Props) {
               </div>
             ))}
           </div>
+
+          {taxaEntrega > 0 && (
+            <>
+              <div className="mt-3 flex justify-between text-sm text-gray-700">
+                <span>Subtotal</span>
+                <span>R$ {subtotalItens.toFixed(2).replace('.', ',')}</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-700">
+                <span>Taxa de entrega</span>
+                <span>R$ {taxaEntrega.toFixed(2).replace('.', ',')}</span>
+              </div>
+            </>
+          )}
 
           <div className="mt-4 text-right text-base font-semibold">Total: R$ {Number(pedido.valorTotal).toFixed(2).replace('.', ',')}</div>
 

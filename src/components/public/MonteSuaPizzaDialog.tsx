@@ -165,8 +165,9 @@ export function MonteSuaPizzaDialog({
   );
 
   const precoBordaExtra = bordaExtraSelecionada?.preco || 0;
-  const precoCalculado =
-    precoBaseCalculado + precoAdicionais + precoBordaExtra + precoBebidas;
+  const precoPizza =
+    precoBaseCalculado + precoAdicionais + precoBordaExtra;
+  const totalNoCarrinho = precoPizza + precoBebidas;
 
   const pizzasFiltradas = useMemo(() => {
     const termo = normalizeText(buscaSabor.trim());
@@ -255,7 +256,7 @@ export function MonteSuaPizzaDialog({
     add({
       pratoId: 999,
       nome: "Pizza de 2 sabores",
-      preco: precoCalculado,
+      preco: precoPizza,
       tamanho: tamanhoSelecionado,
       observacoes: obs,
       adicionais: adicionaisEscolhidos,
@@ -355,7 +356,7 @@ export function MonteSuaPizzaDialog({
                   </p>
                 </div>
                 <div className="text-right text-2xl font-black text-[#c90010]">
-                  R$ {precoCalculado.toFixed(2).replace(".", ",")}
+                  R$ {totalNoCarrinho.toFixed(2).replace(".", ",")}
                 </div>
               </div>
 
@@ -656,7 +657,7 @@ export function MonteSuaPizzaDialog({
                 disabled={saboresSelecionados.length < minSabores}
                 className="h-[52px] flex-1 rounded-2xl bg-[#d71920] text-base font-black text-white hover:bg-[#b50008] disabled:bg-[#f5a08a]"
               >
-                Adicionar • R$ {precoCalculado.toFixed(2).replace(".", ",")}
+                Adicionar • R$ {totalNoCarrinho.toFixed(2).replace(".", ",")}
               </Button>
             </div>
           </div>

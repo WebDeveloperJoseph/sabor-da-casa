@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth'
 import { registrarReceitaDoPedido, removerReceitaDoPedido } from '@/lib/financeiro'
+import { calcularSubtotalItens, calcularTaxaEntrega, calcularValorTotal } from '@/lib/pedidoTotais'
 import { z } from 'zod'
 
 const atualizarStatusSchema = z.object({
@@ -13,6 +14,8 @@ const editarPedidoSchema = z.object({
   telefone: z.string().trim().max(20).nullable().optional(),
   endereco: z.string().trim().min(5).max(500),
   observacoes: z.string().trim().max(1000).nullable().optional(),
+  dataPedido: z.string().min(10).max(35).optional(),
+  taxaEntrega: z.number().min(0).optional(),
   itens: z.array(z.object({
     id: z.number().int().positive().optional(),
     pratoId: z.number().int().positive(),
@@ -159,10 +162,9 @@ export async function PATCH(
     })
     const pratosPorId = new Map(pratos.map((prato) => [prato.id, prato]))
     const itensAtuais = new Map(existente.itens.map((item) => [item.id, item]))
-    const taxaEntregaPreservada = Math.max(
-      0,
-      Number(existente.valorTotal) - existente.itens.reduce((total, item) => total + Number(item.subtotal), 0),
-    )
+    const subtotalAtual = calcularSubtotalItens(existente.itens)
+    const taxaEntregaPreservada = calcularTaxaEntrega(existente.valorTotal, subtotalAtual)
+    const taxaEntrega = validacao.data.taxaEntrega ?? taxaEntregaPreservada
 
     const itensAtualizados = validacao.data.itens.map((item) => {
       const atual = item.id ? itensAtuais.get(item.id) : undefined
@@ -186,7 +188,23 @@ export async function PATCH(
       }
 
       const prato = pratosPorId.get(item.pratoId)
-      if (!prato || !prato.ativo || prato.id === 999) throw new Error('PRATO_INVALIDO')
+      if (!prato || !prato.ativo) {
+        if (atual && atual.pratoId === item.pratoId) {
+          const precoUnit = Number(atual.precoUnit)
+          return {
+            pratoId: atual.pratoId,
+            nomePrato: atual.nomePrato,
+            quantidade: item.quantidade,
+            precoUnit,
+            subtotal: precoUnit * item.quantidade,
+            observacoes: item.observacoes || null,
+            tamanho: atual.tamanho,
+            bordaNome: atual.bordaNome,
+            bordaPreco: atual.bordaPreco,
+          }
+        }
+        throw new Error('PRATO_INVALIDO')
+      }
       let precoUnit = Number(prato.preco)
       if (prato.tamanhos.length > 0) {
         const opcao = prato.tamanhos.find((opcao) => opcao.tamanho === tamanho)
@@ -207,7 +225,13 @@ export async function PATCH(
       }
     })
 
-    const valorTotal = itensAtualizados.reduce((total, item) => total + item.subtotal, 0) + taxaEntregaPreservada
+    const valorTotal = calcularValorTotal(
+      itensAtualizados.reduce((total, item) => total + item.subtotal, 0),
+      taxaEntrega,
+    )
+    const dataPedido = validacao.data.dataPedido
+      ? new Date(validacao.data.dataPedido)
+      : existente.createdAt
     const atualizado = await prisma.$transaction(async (tx) => {
       const pedido = await tx.pedido.update({
         where: { id: pedidoId },
@@ -216,6 +240,7 @@ export async function PATCH(
           telefone: validacao.data.telefone || null,
           endereco: validacao.data.endereco,
           observacoes: validacao.data.observacoes || null,
+          createdAt: dataPedido,
           valorTotal,
           itens: {
             deleteMany: {},

@@ -233,7 +233,7 @@ export function FinanceiroDashboard() {
                             </>
                           ) : item.pedidoId ? (
                             <Link
-                              href={`/admin/pedidos/${item.pedidoId}/editar`}
+                              href={`/admin/pedidos/${item.pedidoId}/editar?retorno=financeiro`}
                               className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-orange-700 transition hover:bg-orange-50 hover:text-orange-800"
                               title={`Editar pedido #${item.pedidoId}`}
                             >

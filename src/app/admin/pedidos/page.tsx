@@ -6,6 +6,7 @@ import AdminOrderRealtimeNotifier from "@/components/admin/AdminOrderRealtimeNot
 import PedidoStatusControls from "@/components/admin/PedidoStatusControls";
 import LimparPedidosTesteButton from "@/components/admin/LimparPedidosTesteButton";
 import ZerarPedidosButton from "@/components/admin/ZerarPedidosButton";
+import { calcularSubtotalItens, calcularTaxaEntrega } from "@/lib/pedidoTotais";
 import {
   ShoppingCart,
   Clock,
@@ -379,15 +380,7 @@ export default async function PedidosPage({ searchParams }: { searchParams: Sear
                                   bordaPreco?: number | string;
                                 }
                               ).bordaPreco
-                                ? ` (+R$ ${Number(
-                                    (
-                                      item as unknown as {
-                                        bordaPreco?: number | string;
-                                      }
-                                    ).bordaPreco,
-                                  )
-                                    .toFixed(2)
-                                    .replace(".", ",")})`
+                                ? " (incluída no subtotal)"
                                 : ""}
                             </p>
                           )}
@@ -403,6 +396,30 @@ export default async function PedidosPage({ searchParams }: { searchParams: Sear
                         </span>
                       </div>
                     ))}
+                    {(() => {
+                      const subtotalItens = calcularSubtotalItens(pedido.itens);
+                      const taxaEntrega = calcularTaxaEntrega(
+                        pedido.valorTotal,
+                        subtotalItens,
+                      );
+                      if (taxaEntrega <= 0) return null;
+                      return (
+                        <>
+                          <div className="flex justify-between gap-3 rounded-lg border border-dashed border-orange-200 bg-white/80 px-3 py-2 text-sm text-gray-600">
+                            <span>Subtotal dos itens</span>
+                            <span className="font-semibold">
+                              R$ {subtotalItens.toFixed(2).replace(".", ",")}
+                            </span>
+                          </div>
+                          <div className="flex justify-between gap-3 rounded-lg border border-dashed border-orange-200 bg-white/80 px-3 py-2 text-sm text-gray-600">
+                            <span>Taxa de entrega</span>
+                            <span className="font-semibold">
+                              R$ {taxaEntrega.toFixed(2).replace(".", ",")}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 

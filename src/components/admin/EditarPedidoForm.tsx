@@ -34,25 +34,36 @@ type PedidoEditavel = {
   telefone: string;
   endereco: string;
   observacoes: string;
+  dataPedido: string;
   taxaEntrega: number;
   itens: ItemEditavel[];
 };
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-export function EditarPedidoForm({ pedido, produtos }: { pedido: PedidoEditavel; produtos: Produto[] }) {
+export function EditarPedidoForm({
+  pedido,
+  produtos,
+  retorno,
+}: {
+  pedido: PedidoEditavel;
+  produtos: Produto[];
+  retorno?: string;
+}) {
   const [form, setForm] = useState(pedido);
   const [salvando, setSalvando] = useState(false);
+  const voltarHref = retorno === "financeiro" ? "/admin/financeiro" : "/admin/pedidos";
 
   const totalEstimado = useMemo(() => {
-    return form.itens.reduce((total, item) => {
+    const subtotalItens = form.itens.reduce((total, item) => {
       const produto = produtos.find((opcao) => opcao.id === item.pratoId);
       const semTroca = item.id && item.pratoId === item.originalPratoId && item.tamanho === (item.originalTamanho ?? "");
       const preco = semTroca
         ? item.precoAtual ?? 0
-        : produto?.tamanhos.find((opcao) => opcao.tamanho === item.tamanho)?.preco ?? produto?.preco ?? 0;
+        : produto?.tamanhos.find((opcao) => opcao.tamanho === item.tamanho)?.preco ?? produto?.preco ?? item.precoAtual ?? 0;
       return total + preco * item.quantidade;
-    }, form.taxaEntrega);
+    }, 0);
+    return subtotalItens + Number(form.taxaEntrega || 0);
   }, [form.itens, form.taxaEntrega, produtos]);
 
   function alterarItem(chave: string, alteracao: Partial<ItemEditavel>) {
@@ -106,6 +117,8 @@ export function EditarPedidoForm({ pedido, produtos }: { pedido: PedidoEditavel;
           telefone: form.telefone || null,
           endereco: form.endereco,
           observacoes: form.observacoes || null,
+          dataPedido: form.dataPedido,
+          taxaEntrega: Number(form.taxaEntrega || 0),
           itens: form.itens.map((item) => ({
             id: item.id,
             pratoId: item.pratoId,
@@ -118,7 +131,7 @@ export function EditarPedidoForm({ pedido, produtos }: { pedido: PedidoEditavel;
       const corpo = await resposta.json();
       if (!resposta.ok) throw new Error(corpo.erro ?? "Não foi possível salvar");
       toast.success("Pedido atualizado com sucesso");
-      window.location.assign("/admin/pedidos");
+      window.location.assign(voltarHref);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao editar pedido");
     } finally {
@@ -130,9 +143,9 @@ export function EditarPedidoForm({ pedido, produtos }: { pedido: PedidoEditavel;
     <form onSubmit={salvar} className="space-y-6">
       <div className="flex flex-col gap-4 rounded-3xl bg-slate-950 p-6 text-white shadow-xl sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Link href="/admin/pedidos" className="mb-3 inline-flex items-center text-sm font-semibold text-slate-300 hover:text-white"><ArrowLeft className="mr-1 h-4 w-4" /> Voltar aos pedidos</Link>
+          <Link href={voltarHref} className="mb-3 inline-flex items-center text-sm font-semibold text-slate-300 hover:text-white"><ArrowLeft className="mr-1 h-4 w-4" /> Voltar</Link>
           <h1 className="text-3xl font-black">Editar pedido #{pedido.id}</h1>
-          <p className="mt-1 text-sm text-slate-300">Corrija os dados sem pedir ao cliente para refazer a compra.</p>
+          <p className="mt-1 text-sm text-slate-300">Altere nome, produtos, data e taxa de entrega. As mudanças refletem no financeiro.</p>
         </div>
         <div className="rounded-2xl bg-white/10 px-5 py-3 text-right">
           <p className="text-xs font-bold uppercase text-slate-300">Novo total estimado</p>
@@ -141,10 +154,12 @@ export function EditarPedidoForm({ pedido, produtos }: { pedido: PedidoEditavel;
       </div>
 
       <section className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2 md:p-6">
-        <h2 className="md:col-span-2 text-lg font-black text-slate-900">Dados do cliente</h2>
-        <Campo label="Nome"><Input value={form.nomeCliente} onChange={(event) => setForm({ ...form, nomeCliente: event.target.value })} required minLength={3} /></Campo>
+        <h2 className="md:col-span-2 text-lg font-black text-slate-900">Dados do pedido</h2>
+        <Campo label="Nome do cliente"><Input value={form.nomeCliente} onChange={(event) => setForm({ ...form, nomeCliente: event.target.value })} required minLength={3} /></Campo>
         <Campo label="Telefone"><Input value={form.telefone} onChange={(event) => setForm({ ...form, telefone: event.target.value })} /></Campo>
         <Campo label="Endereço" className="md:col-span-2"><Input value={form.endereco} onChange={(event) => setForm({ ...form, endereco: event.target.value })} required minLength={5} /></Campo>
+        <Campo label="Data do pedido"><Input type="datetime-local" value={form.dataPedido} onChange={(event) => setForm({ ...form, dataPedido: event.target.value })} required /></Campo>
+        <Campo label="Taxa de entrega (R$)"><Input type="number" min={0} step="0.01" value={form.taxaEntrega} onChange={(event) => setForm({ ...form, taxaEntrega: Number(event.target.value) })} /></Campo>
         <Campo label="Observações do pedido" className="md:col-span-2">
           <textarea value={form.observacoes} onChange={(event) => setForm({ ...form, observacoes: event.target.value })} rows={3} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-400" />
         </Campo>
