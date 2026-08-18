@@ -63,6 +63,7 @@ export function FinanceiroDashboard() {
   const [dialogAberto, setDialogAberto] = useState(false);
   const [editando, setEditando] = useState<LancamentoFinanceiroDTO | null>(null);
   const [pagina, setPagina] = useState(1);
+  const [atualizacao, setAtualizacao] = useState(0);
   const porPagina = 25;
 
   const carregar = useCallback(async () => {
@@ -84,7 +85,7 @@ export function FinanceiroDashboard() {
     } finally {
       setCarregando(false);
     }
-  }, [filtrosAplicados, pagina]);
+  }, [filtrosAplicados, pagina, atualizacao]);
 
   useEffect(() => {
     void carregar();
@@ -274,7 +275,27 @@ export function FinanceiroDashboard() {
         </>
       )}
 
-      <LancamentoDialog aberto={dialogAberto} lancamento={editando} onOpenChange={setDialogAberto} onSalvo={carregar} />
+      <LancamentoDialog
+        aberto={dialogAberto}
+        lancamento={editando}
+        onOpenChange={(aberto) => {
+          setDialogAberto(aberto);
+          if (!aberto) setEditando(null);
+        }}
+        onSalvo={(salvo) => {
+          const incluirData = (atual: Filtros): Filtros => ({
+            ...atual,
+            tipo: "todos",
+            categoria: "todas",
+            inicio: atual.inicio <= salvo.dataCompetencia ? atual.inicio : salvo.dataCompetencia,
+            fim: atual.fim >= salvo.dataCompetencia ? atual.fim : salvo.dataCompetencia,
+          });
+          setFiltros(incluirData);
+          setFiltrosAplicados(incluirData);
+          setPagina(1);
+          setAtualizacao((atual) => atual + 1);
+        }}
+      />
     </div>
   );
 }

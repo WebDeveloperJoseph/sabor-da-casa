@@ -95,3 +95,43 @@ export function adicionarDias(data: Date, dias: number): Date {
 export function formatarDataIso(data: Date): string {
   return data.toISOString().slice(0, 10);
 }
+
+export function serializarLancamento(item: {
+  id: number;
+  tipo: string;
+  origem: string;
+  descricao: string;
+  categoria: string;
+  valor: { toString(): string } | number;
+  dataCompetencia: Date;
+  observacoes: string | null;
+  pedidoId: number | null;
+}) {
+  return {
+    id: item.id,
+    tipo: item.tipo,
+    origem: item.origem,
+    descricao: item.descricao,
+    categoria: item.categoria,
+    valor: Number(item.valor),
+    dataCompetencia: formatarDataIso(item.dataCompetencia),
+    observacoes: item.observacoes,
+    pedidoId: item.pedidoId,
+  };
+}
+
+export function parseValorLancamento(valor: unknown) {
+  if (typeof valor === "number") {
+    return Number.isFinite(valor) ? valor : Number.NaN;
+  }
+  if (typeof valor !== "string") return Number.NaN;
+
+  const bruto = valor.trim();
+  if (!bruto) return Number.NaN;
+
+  const normalizado = bruto.includes(",")
+    ? bruto.replace(/\./g, "").replace(",", ".")
+    : bruto;
+  const numero = Number(normalizado);
+  return Number.isFinite(numero) ? numero : Number.NaN;
+}

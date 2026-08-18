@@ -6,6 +6,8 @@ import {
   adicionarDias,
   dataUtc,
   formatarDataIso,
+  parseValorLancamento,
+  serializarLancamento,
   sincronizarPedidos,
 } from "@/lib/financeiro";
 import { prisma } from "@/lib/prisma";
@@ -14,7 +16,7 @@ const lancamentoSchema = z.object({
   tipo: z.enum(["entrada", "despesa"]),
   descricao: z.string().trim().min(2).max(200),
   categoria: z.string().trim().min(2).max(100),
-  valor: z.coerce.number().positive().max(99_999_999),
+  valor: z.preprocess(parseValorLancamento, z.number().positive().max(99_999_999)),
   dataCompetencia: z.iso.date(),
   observacoes: z.string().trim().max(1000).optional().nullable(),
 });
@@ -164,11 +166,7 @@ export async function GET(request: NextRequest) {
         ticketMedio: totalPedidos > 0 ? valorPedidos / totalPedidos : 0,
         lancamentos: totalLancamentos,
       },
-      lancamentos: lancamentos.map((item) => ({
-        ...item,
-        valor: Number(item.valor),
-        dataCompetencia: formatarDataIso(item.dataCompetencia),
-      })),
+      lancamentos: lancamentos.map(serializarLancamento),
       evolucao,
       despesasPorCategoria: despesasAgrupadas.map((grupo) => ({
         categoria: grupo.categoria,
@@ -216,7 +214,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(lancamento, { status: 201 });
+    return NextResponse.json(serializarLancamento(lancamento), { status: 201 });
   } catch (error) {
     console.error("Erro ao criar lançamento:", error);
     return NextResponse.json(

@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireFinanceAuth } from "@/lib/auth";
-import { dataUtc } from "@/lib/financeiro";
+import { dataUtc, parseValorLancamento, serializarLancamento } from "@/lib/financeiro";
 import { prisma } from "@/lib/prisma";
 
 const lancamentoSchema = z.object({
   tipo: z.enum(["entrada", "despesa"]),
   descricao: z.string().trim().min(2).max(200),
   categoria: z.string().trim().min(2).max(100),
-  valor: z.coerce.number().positive().max(99_999_999),
+  valor: z.preprocess(parseValorLancamento, z.number().positive().max(99_999_999)),
   dataCompetencia: z.iso.date(),
   observacoes: z.string().trim().max(1000).optional().nullable(),
 });
@@ -48,7 +48,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         dataCompetencia: dataUtc(validacao.data.dataCompetencia),
       },
     });
-    return NextResponse.json(atualizado);
+    return NextResponse.json(serializarLancamento(atualizado));
   } catch (error) {
     console.error("Erro ao atualizar lançamento:", error);
     return NextResponse.json({ erro: "Não foi possível atualizar" }, { status: 500 });
